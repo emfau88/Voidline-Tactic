@@ -18,13 +18,13 @@ Stand: 21. August 2026
 - Prototyp v2 als Interaction Spike eingeordnet, v1 archiviert
 - Risiken zu Architektur, Mobile UX, Assets und IP festgehalten
 
-## M1 – Mobile-first Produktionsfundament 🚧
+## M1 – Mobile-first Produktionsfundament ✅
 
 - ✅ Phaser 4, TypeScript, Vite und Vitest pinnen
 - ✅ 390×844 Referenzviewport mit responsivem FIT-Scaling
 - ✅ Boot- und Combat-Szene anlegen
 - ✅ Playwright-Konfiguration für Mobile und Desktop
-- 🚧 CI und GitHub Pages Deployment angelegt, Live-Verifikation ausstehend
+- ✅ CI und GitHub Pages Deployment live verifiziert
 - ✅ README um Live-Link, Spielanleitung und Entwickler-Workflow ergänzt
 
 ## M2 – Deterministischer Combat Core ✅

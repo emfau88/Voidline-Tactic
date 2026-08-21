@@ -4,6 +4,17 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+Nächster Schwerpunkt: M4 – Originale Art und Combat Feel.
+
+## [0.1.0] – 2026-08-21
+
+Meilenstein-Commits:
+
+- `09b5acc` – Mobile-first Phaser-Fundament
+- `5f5c3d6` – deterministischer Combat Core
+- `255a7e9` – spielbarer Mobile-Greybox-Slice
+- `a4fa320` – CI und GitHub-Pages-Deployment
+
 ### Added
 
 - Mobile-first Phaser-4-/TypeScript-/Vite-Produktionsgrundlage
@@ -37,6 +48,8 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 - GitHub-Pages-Workflow mit Typecheck, Unit Tests, Production Build und Mobile-/Desktop-E2E-Gate angelegt
 - Live-Spiel-Link und Deployment-Status in die README aufgenommen
+- erstes öffentliches Deployment in [GitHub Actions Run 1](https://github.com/emfau88/Voidline-Tactic/actions/runs/32506418474) erfolgreich gebaut, getestet und veröffentlicht
+- Live-Build auf 390×844 visuell, funktional und ohne Console Errors abgenommen
 
 ## [0.0.1] – 2026-08-21
 

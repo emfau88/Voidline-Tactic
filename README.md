@@ -24,7 +24,7 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 - ✅ deterministischer Combat Core mit seedbarem Zufall
 - ✅ Movement, Facing, drei Waffen, Shield, Gegner-KI und Sieg/Niederlage
 - ✅ Unit- und Browser-Tests für Mobile und Desktop
-- 🚧 automatisches GitHub-Pages-Deployment
+- ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
 - ⏳ originale Schiffs-Art, Combat-VFX, Audio und Parallax-Hintergrund
 - ⏳ Reward, Shipyard, Upgrades und Persistenz
 
