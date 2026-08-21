@@ -68,24 +68,41 @@ export class CombatScene extends Phaser.Scene {
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => this.handlePointerMove(pointer));
     this.refresh();
     this.hud.toast('Wähle ein Schiff oder plane direkt seine erste Bewegung.');
+    const shell = document.getElementById('game-shell');
+    shell?.setAttribute('aria-busy', 'false');
+    if (shell) shell.dataset.gameReady = 'true';
   }
 
   private createBattlefield(): void {
-    const background = this.add.graphics().setDepth(-20);
-    background.fillStyle(0x070b14, 1);
-    background.fillRect(0, 0, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT);
-    background.fillStyle(0x2c1741, 0.15);
-    background.fillCircle(180, 380, 420);
-    background.fillStyle(0x0d4960, 0.11);
-    background.fillCircle(860, 1_020, 500);
-    for (let index = 0; index < 150; index += 1) {
+    this.add
+      .image(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
+      .setDisplaySize(BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT)
+      .setDepth(-30);
+
+    const farStars = this.add.graphics().setDepth(-22);
+    for (let index = 0; index < 72; index += 1) {
       const x = (index * 347.13 + 71) % BATTLEFIELD_WIDTH;
       const y = (index * 211.73 + 113) % BATTLEFIELD_HEIGHT;
-      background.fillStyle(index % 11 === 0 ? 0xc6e1ff : 0xffffff, index % 11 === 0 ? 0.7 : 0.35);
-      background.fillCircle(x, y, index % 17 === 0 ? 2.4 : 1.2);
+      farStars.fillStyle(index % 11 === 0 ? 0xbadfff : 0xffffff, index % 11 === 0 ? 0.45 : 0.2);
+      farStars.fillCircle(x, y, index % 17 === 0 ? 2 : 0.9);
     }
-    background.lineStyle(3, 0x826c45, 0.24);
-    background.strokeRect(8, 8, BATTLEFIELD_WIDTH - 16, BATTLEFIELD_HEIGHT - 16);
+
+    const nearStars = this.add.graphics().setDepth(-18);
+    for (let index = 0; index < 22; index += 1) {
+      const x = (index * 521.41 + 193) % BATTLEFIELD_WIDTH;
+      const y = (index * 389.17 + 271) % BATTLEFIELD_HEIGHT;
+      nearStars.fillStyle(index % 5 === 0 ? 0x9edcff : 0xfff6df, 0.48);
+      nearStars.fillCircle(x, y, index % 7 === 0 ? 2.4 : 1.35);
+    }
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.tweens.add({ targets: farStars, x: 8, y: 12, alpha: 0.78, duration: 28_000, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: nearStars, x: -7, y: 8, alpha: 0.84, duration: 19_000, yoyo: true, repeat: -1 });
+    }
+
+    const boundary = this.add.graphics().setDepth(-12);
+    boundary.lineStyle(3, 0x826c45, 0.24);
+    boundary.strokeRect(8, 8, BATTLEFIELD_WIDTH - 16, BATTLEFIELD_HEIGHT - 16);
   }
 
   private createShipViews(): void {

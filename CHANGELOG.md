@@ -11,6 +11,14 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 - transparenter, originaler True-Top-down-Spieler-Cruiser als hochauflösende Quelle und optimierter Runtime-Export
 - datenbezogene Engine-, Lance-, Torpedo- und Port-/Starboard-Broadside-Hardpoints
 - zwei Unit Tests für rotierte und zielseitenabhängige Hardpoint-Transformationen
+- reproduzierbare Asset-Spezifikationen für Spieler-Frigate, Gegner-Cruiser und Gegner-Destroyer
+- originale True-Top-down-Source- und Runtime-Assets für Spieler-Frigate, Gegner-Cruiser und Gegner-Destroyer
+- vollständige Presentation-Definitionen für alle vier Schiffe mit klassenspezifischen Größen und Hardpoints
+- Unit-Test-Gate, das Runtime-Art, Engine- und Weapon-Ursprünge für die gesamte Flotte absichert
+- reproduzierbare Generationsspezifikation für einen kontrastarmen 2:3-Nebula-Environment-Layer
+- originaler Nebula-Source-Layer und 25-KB-Runtime-Export mit ruhigem taktischem Zentrum
+- zwei deterministische, langsam driftende Sternlayer mit Reduced-Motion-Fallback
+- sichtbarer und zugänglicher Game-Ready-Ladezustand für die wachsende Asset-Pipeline
 
 ### Changed
 
@@ -20,6 +28,9 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 - Lance, Broadside und Torpedo starten an echten Hardpoints; Shield-/Hull-Kontakt besitzt eine zusätzliche Ripple-Phase
 - Reduced Motion deaktiviert nun auch Camera Shake
 - kanonische Game Vision von der früheren Desktop-first-Annahme auf den 390×844-Mobile-Referenzviewport korrigiert
+- opake Schachbrett-Entwürfe vor der Integration erkannt und durch technisch verifizierte Alpha-Exporte ersetzt
+- Interaktionen bleiben bis zum vollständig gebundenen Phaser-/HUD-Ready-Signal deaktiviert
+- Playwright wartet explizit auf Game Ready und verhindert dadurch frühe Mobile-Taps auf noch ungebundene Aktionen
 
 ## [0.1.0] – 2026-08-21
 

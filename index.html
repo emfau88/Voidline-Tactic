@@ -12,7 +12,7 @@
   </head>
   <body>
     <main id="app" aria-label="Voidline Tactics">
-      <section id="game-shell" aria-label="Mission: Erster Kontakt">
+      <section id="game-shell" aria-label="Mission: Erster Kontakt" aria-busy="true">
         <div id="game-root" aria-label="Taktisches Spielfeld"></div>
 
         <header id="topbar" class="panel">
@@ -30,8 +30,9 @@
           </div>
         </header>
 
-        <button id="help-button" class="icon-button" type="button" aria-label="Spielhilfe öffnen">?</button>
+        <button id="help-button" class="icon-button" type="button" aria-label="Spielhilfe öffnen" disabled>?</button>
         <div id="toast" role="status" aria-live="polite"></div>
+        <div id="loading-label" role="status">FLUGDATEN WERDEN GELADEN…</div>
 
         <aside id="target-card" class="panel" hidden aria-label="Zielvorschau">
           <div class="card-heading">
@@ -80,13 +81,13 @@
           </section>
 
           <nav id="action-grid" aria-label="Schiffsaktionen">
-            <button type="button" data-action="move"><span>➤</span><strong>BEWEGEN</strong><small>1 AP</small></button>
-            <button type="button" data-action="rotate"><span>⟳</span><strong>DREHEN</strong><small>1 AP</small></button>
-            <button type="button" data-action="broadside"><span>⇉</span><strong>BREITSEITE</strong><small>2 AP</small></button>
-            <button type="button" data-action="lance"><span>✦</span><strong>LANZE</strong><small>2 AP</small></button>
-            <button type="button" data-action="torpedo"><span>➜</span><strong>TORPEDO</strong><small>2 AP</small></button>
-            <button type="button" data-action="shield"><span>⬡</span><strong>SCHILD</strong><small>1 AP</small></button>
-            <button id="end-turn-button" type="button"><span>⌛</span><strong>RUNDE</strong><small>beenden</small></button>
+            <button type="button" data-action="move" disabled><span>➤</span><strong>BEWEGEN</strong><small>1 AP</small></button>
+            <button type="button" data-action="rotate" disabled><span>⟳</span><strong>DREHEN</strong><small>1 AP</small></button>
+            <button type="button" data-action="broadside" disabled><span>⇉</span><strong>BREITSEITE</strong><small>2 AP</small></button>
+            <button type="button" data-action="lance" disabled><span>✦</span><strong>LANZE</strong><small>2 AP</small></button>
+            <button type="button" data-action="torpedo" disabled><span>➜</span><strong>TORPEDO</strong><small>2 AP</small></button>
+            <button type="button" data-action="shield" disabled><span>⬡</span><strong>SCHILD</strong><small>1 AP</small></button>
+            <button id="end-turn-button" type="button" disabled><span>⌛</span><strong>RUNDE</strong><small>beenden</small></button>
           </nav>
 
           <div id="confirm-bar" hidden>

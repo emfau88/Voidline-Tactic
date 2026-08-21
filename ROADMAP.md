@@ -50,10 +50,11 @@ Stand: 21. August 2026
 ## M4 – Originale Art und Combat Feel 🚧
 
 - ✅ eigenständiger Spieler-Cruiser als Art-Proof samt Asset-Provenienz
-- vier lesbare Schiffssilhouetten und Hardpoints
+- ✅ vier lesbare Schiffssilhouetten und vollständige Hardpoint-Sets
 - 🚧 datenbezogene Hardpoints sowie Engine-, Broadside-, Lance-, Torpedo- und Shield-VFX
 - Audio-Busse, Varianten und Reduced Motion
-- Parallax-Hintergrund und taktisches HUD
+- ✅ originaler Nebula-Base-Layer mit zwei deterministisch driftenden Sternlayern
+- 🚧 taktisches HUD-Polish und Asset-Loading-Feedback
 
 ## M5 – Reward, Shipyard und Persistenz ⏳
 
@@ -79,4 +80,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Die drei verbleibenden Schiffe erhalten auf Basis des abgenommenen Cruiser-Art-Proofs eigenständige, im Mobile-Zoom unterscheidbare Silhouetten und vollständige Hardpoint-Sets. Danach werden Hintergrund, HUD und Audio auf denselben Qualitätsstandard gebracht.
+Die Waffen-VFX-Choreografien und das taktische HUD werden auf den jetzt abgenommenen Flotten-/Environment-Standard gebracht. Anschließend folgen originale Audio-Busse und Varianten mit sauberem Mobile-Audio-Unlock.

@@ -25,8 +25,9 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 - ✅ Movement, Facing, drei Waffen, Shield, Gegner-KI und Sieg/Niederlage
 - ✅ Unit- und Browser-Tests für Mobile und Desktop
 - ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
-- ✅ erster originaler Spieler-Cruiser-Art-Proof mit dokumentierter Herkunft
-- 🚧 restliche Schiffs-Art, Combat-VFX, Audio und Parallax-Hintergrund
+- ✅ vier originale Schiffsassets mit dokumentierter Herkunft und vollständigen Hardpoints
+- ✅ originärer Nebula-Hintergrund mit dezentem Zwei-Layer-Stern-Parallax
+- 🚧 Combat-VFX, taktisches HUD-Polish und Audio
 - ⏳ Reward, Shipyard, Upgrades und Persistenz
 
 Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md).

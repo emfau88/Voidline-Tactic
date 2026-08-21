@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-test('loads the mobile-first Phaser shell', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-game-ready', 'true', { timeout: 10_000 });
+  await expect(page.locator('#game-shell')).toHaveAttribute('aria-busy', 'false');
+});
 
+test('loads the mobile-first Phaser shell', async ({ page }) => {
   await expect(page).toHaveTitle('Voidline Tactics');
   await expect(page.locator('#game-root canvas')).toBeVisible();
   await expect(page.getByRole('button', { name: /BEWEGEN/ })).toBeVisible();
@@ -11,8 +15,6 @@ test('loads the mobile-first Phaser shell', async ({ page }) => {
 });
 
 test('opens the concise mobile help', async ({ page }) => {
-  await page.goto('/');
-
   await page.getByRole('button', { name: 'Spielhilfe öffnen' }).click();
   await expect(page.getByRole('heading', { name: 'SO SPIELST DU' })).toBeVisible();
   await page.getByRole('button', { name: 'ZURÜCK ZUM GEFECHT' }).click();
@@ -20,7 +22,6 @@ test('opens the concise mobile help', async ({ page }) => {
 });
 
 test('plans and confirms a touch movement', async ({ page }) => {
-  await page.goto('/');
   const canvas = page.locator('#game-root canvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Canvas has no layout box.');
@@ -35,8 +36,6 @@ test('plans and confirms a touch movement', async ({ page }) => {
 });
 
 test('completes an animated enemy phase and returns control', async ({ page }) => {
-  await page.goto('/');
-
   await page.getByRole('button', { name: /RUNDE beenden/ }).click();
   await expect(page.locator('#turn-number')).toHaveText('2', { timeout: 7_000 });
   await expect(page.locator('#phase-label')).toHaveText('SPIELERPHASE');

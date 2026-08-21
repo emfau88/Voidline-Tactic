@@ -172,6 +172,31 @@ button:focus-visible {
   opacity: 1;
 }
 
+#loading-label {
+  position: absolute;
+  z-index: 35;
+  top: 43%;
+  left: 50%;
+  min-width: 13rem;
+  padding: 0.7rem 1rem;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(91 183 236 / 35%);
+  border-radius: 8px;
+  background: rgb(3 8 15 / 90%);
+  box-shadow: 0 0 22px rgb(56 153 211 / 12%);
+  color: #b8dbef;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  transition: opacity 180ms ease;
+}
+
+#game-shell[data-game-ready='true'] #loading-label {
+  pointer-events: none;
+  opacity: 0;
+}
+
 #target-card {
   position: absolute;
   z-index: 6;

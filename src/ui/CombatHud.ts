@@ -89,7 +89,9 @@ export class CombatHud {
     requiredElement<HTMLButtonElement>('confirm-button').addEventListener('click', callbacks.onConfirm);
     requiredElement<HTMLButtonElement>('cancel-button').addEventListener('click', callbacks.onCancel);
     requiredElement<HTMLButtonElement>('restart-button').addEventListener('click', callbacks.onRestart);
-    requiredElement<HTMLButtonElement>('help-button').addEventListener('click', () => this.helpDialog.showModal());
+    const helpButton = requiredElement<HTMLButtonElement>('help-button');
+    helpButton.addEventListener('click', () => this.helpDialog.showModal());
+    helpButton.disabled = false;
     requiredElement<HTMLButtonElement>('close-help-button').addEventListener('click', () => this.helpDialog.close());
   }
 

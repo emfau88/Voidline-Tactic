@@ -48,6 +48,66 @@ export const SHIP_PRESENTATIONS: Readonly<Partial<Record<string, ShipPresentatio
       ],
     },
   },
+  'p-frigate': {
+    texture: 'ship-player-frigate-v1',
+    spriteWidthInRadii: 1.43,
+    spriteLengthInRadii: 3.5,
+    hardpoints: {
+      engines: [
+        { x: -1.47, y: -0.35 },
+        { x: -1.47, y: 0.35 },
+      ],
+      lance: [{ x: 1.5, y: 0 }],
+      torpedo: [
+        { x: 0.52, y: -0.32 },
+        { x: 0.52, y: 0.32 },
+      ],
+      portBroadside: [],
+      starboardBroadside: [],
+    },
+  },
+  'e-cruiser': {
+    texture: 'ship-enemy-cruiser-v1',
+    spriteWidthInRadii: 2.18,
+    spriteLengthInRadii: 3.28,
+    hardpoints: {
+      engines: [
+        { x: -1.38, y: -0.72 },
+        { x: -1.48, y: -0.24 },
+        { x: -1.48, y: 0.24 },
+        { x: -1.38, y: 0.72 },
+      ],
+      lance: [{ x: 1.4, y: 0 }],
+      torpedo: [],
+      portBroadside: [
+        { x: 0.02, y: -0.9 },
+        { x: -0.35, y: -0.88 },
+      ],
+      starboardBroadside: [
+        { x: 0.02, y: 0.9 },
+        { x: -0.35, y: 0.88 },
+      ],
+    },
+  },
+  'e-destroyer': {
+    texture: 'ship-enemy-destroyer-v1',
+    spriteWidthInRadii: 1.72,
+    spriteLengthInRadii: 3.45,
+    hardpoints: {
+      engines: [
+        { x: -1.48, y: -0.38 },
+        { x: -1.55, y: 0 },
+        { x: -1.48, y: 0.38 },
+      ],
+      lance: [{ x: 1.5, y: 0 }],
+      torpedo: [
+        { x: 0.15, y: -0.61 },
+        { x: 0.15, y: 0.61 },
+      ],
+      portBroadside: [],
+      starboardBroadside: [],
+    },
+  },
 };
 
 function toWorldPoint(ship: ShipState, hardpoint: RelativeHardpoint): Vector2 {
