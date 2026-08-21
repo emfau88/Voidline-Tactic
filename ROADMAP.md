@@ -24,8 +24,8 @@ Stand: 21. August 2026
 - ✅ 390×844 Referenzviewport mit responsivem FIT-Scaling
 - ✅ Boot- und Combat-Szene anlegen
 - ✅ Playwright-Konfiguration für Mobile und Desktop
-- ⏳ CI und GitHub Pages Deployment
-- ⏳ README um Live-Link und Entwickler-Workflow ergänzen
+- 🚧 CI und GitHub Pages Deployment angelegt, Live-Verifikation ausstehend
+- ✅ README um Live-Link, Spielanleitung und Entwickler-Workflow ergänzt
 
 ## M2 – Deterministischer Combat Core ✅
 
@@ -43,7 +43,7 @@ Stand: 21. August 2026
 - ✅ Broadside-, Lance- und Torpedo-Arcs
 - ✅ verständliche Action Bar, Target Preview und End Turn
 - ✅ kompakter, animierter Gegnerzug und Sieg/Niederlage
-- ✅ Touch zuerst, Maus und Tastatur zusätzlich
+- ✅ Touch zuerst, Maus zusätzlich
 - ✅ Hilfe- und Ergebnisdialoge, Reduced Motion und große Touch-Ziele
 - ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Gegnerphase
 

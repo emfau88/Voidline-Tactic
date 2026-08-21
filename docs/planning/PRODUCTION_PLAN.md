@@ -59,7 +59,7 @@ Arbeit:
 - eigenständige Fraktionsnamen, Embleme und Formensprache definieren
 - Mockups auf UI-Hierarchie reduzieren; keine direkte Stilkopie
 - Asset-Manifest und Rechtefelder festlegen
-- Desktop-Zielauflösungen und einen unterstützten Mobile-Breakpoint definieren
+- 390×844 als primären Mobile-Referenzviewport und unterstützte Desktop-Breiten definieren
 - Definition of Done, Performance- und Download-Budgets festlegen
 
 Gate:
@@ -194,8 +194,8 @@ Gate:
 
 Arbeit:
 
-- klare Desktop-Komposition zuerst, danach bewusstes Mobile-/Tablet-Layout
-- Tastatur-/Maus-Flow plus vollständiger Touch-Flow
+- klare Mobile-Komposition und Touch-Flow zuerst, danach bewusste Tablet-/Desktop-Erweiterung
+- vollständiger Touch-Flow plus gleichwertige Maus-/Tastatur-Bedienung
 - Fokuszustände, zugängliche Namen, Live-Feedback und skalierbare Texte
 - Farbblind-sichere Shapes/Icons, Reduced Motion und Browser-Zoom
 - lokalisierbare Strings statt gemischter Sprache
@@ -258,6 +258,7 @@ Für eine erfahrene Einzelperson ist ein wirklich polierter Vertical Slice mit o
 
 ## Unmittelbar nächste drei Arbeitspakete
 
-1. **Foundation:** Phaser/TypeScript/Vite, CI, feste World Units und ein testbarer Combat-State.
-2. **Greybox Gate:** Movement/Facing/Arcs plus dieselbe Waffenlogik für Preview, Spieler und KI.
-3. **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz; erst nach dessen Abnahme die restlichen Schiffe produzieren.
+1. ✅ **Foundation:** Phaser/TypeScript/Vite, feste World Units und ein testbarer Combat-State.
+2. ✅ **Greybox Gate:** Movement/Facing/Arcs plus dieselbe Waffenlogik für Preview, Spieler und KI.
+3. 🚧 **Delivery Gate:** CI-gesicherter GitHub-Pages-Build und verifizierter öffentlicher Spiel-Link.
+4. ⏳ **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz; erst nach dessen Abnahme die restlichen Schiffe produzieren.

@@ -1,57 +1,84 @@
 # Voidline Tactics
 
-Voidline Tactics ist ein rundenbasiertes 2D-Top-down-Flottentaktikspiel für den Browser. Kleine, persistente Flotten, relevante Ausrichtung, Breitseiten, klar unterscheidbare Waffensysteme und sichtbare Gefechtsfolgen bilden den Kern.
+[![Deploy GitHub Pages](https://github.com/emfau88/Voidline-Tactic/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/emfau88/Voidline-Tactic/actions/workflows/deploy-pages.yml)
+
+Rundenbasierte 2D-Flottentaktik für den Browser: Schiffe positionieren, Facing planen, Feuerwinkel nutzen und Energie über mehrere Züge einteilen. Die Produktionsversion wird mobile-first mit Phaser, TypeScript und einer deterministischen Kampfdomäne entwickelt.
+
+## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
+
+Der aktuelle Stand ist ein vollständig bedienbarer 2-gegen-2-Greybox-Kampf. Er funktioniert mit Touch und Maus; originale Art, Audio und die finale VFX-Qualität folgen als nächster Produktionsmeilenstein.
+
+## So funktioniert der Kampf
+
+1. Eigenes Schiff auf dem Schlachtfeld auswählen.
+2. Aktion im unteren HUD wählen.
+3. Bei Bewegung das Ziel antippen und für die neue Ausrichtung ziehen; bei Waffen ein gegnerisches Schiff antippen.
+4. Kosten und Vorschau prüfen, dann bestätigen.
+5. Mit **RUNDE** den Gegnerzug starten.
+
+Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Aktionspunkte begrenzen die Zahl der Manöver; Energie regeneriert zu Beginn der eigenen Phase.
 
 ## Projektstatus
 
-**Pre-Production / Interaction Prototype.** Das Repository enthält noch kein Produktionsspiel. Der aktuelle Stand ist ein eigenständiger Canvas-Prototyp, der den grundlegenden Kampfablauf demonstriert. Er dient als UX- und Mechanik-Spike und soll nicht zum nächsten Single-File-Monolithen ausgebaut werden.
+- ✅ mobile-first App-Shell und responsives Touch-HUD
+- ✅ deterministischer Combat Core mit seedbarem Zufall
+- ✅ Movement, Facing, drei Waffen, Shield, Gegner-KI und Sieg/Niederlage
+- ✅ Unit- und Browser-Tests für Mobile und Desktop
+- 🚧 automatisches GitHub-Pages-Deployment
+- ⏳ originale Schiffs-Art, Combat-VFX, Audio und Parallax-Hintergrund
+- ⏳ Reward, Shipyard, Upgrades und Persistenz
 
-Bereits demonstriert:
+Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md).
 
-- zwei Spielerschiffe gegen zwei Gegner
-- Runden, AP und Energie
-- Bewegung mit Zielvorschau und Facing
-- Front- und Breitseiten-Feuerwinkel
-- Broadside, Lance, Torpedo und Shield
-- Treffervorschau, einfacher Gegnerzug sowie Sieg/Niederlage
-- rudimentärer Reward-/Upgrade-Loop
+## Lokal entwickeln
 
-Noch nicht vorhanden sind unter anderem eine Produktionsarchitektur, echte Game-Assets, Audio, Persistenz, Tests, Build-Pipeline, Content-Pipeline und ein belastbarer Kampagnenfluss.
-
-## Prototyp starten
-
-Direktes Öffnen der HTML-Datei kann funktionieren; ein lokaler Webserver ist verlässlicher:
+Voraussetzung ist Node.js 24 mit npm.
 
 ```powershell
-python -m http.server 4173
+npm ci
+npm run dev
 ```
 
-Danach öffnen:
+Vite zeigt anschließend die lokale URL an. Für den vollständigen Qualitätslauf:
 
-```text
-http://127.0.0.1:4173/prototypes/vertical-slice-v2.html
+```powershell
+npm run check
+npx playwright install chromium
+npm run test:e2e
 ```
+
+| Befehl | Aufgabe |
+|---|---|
+| `npm run dev` | lokaler Entwicklungsserver |
+| `npm run typecheck` | TypeScript-Prüfung |
+| `npm test` | deterministische Domänen-Tests |
+| `npm run test:e2e` | Mobile- und Desktop-Browser-Flows |
+| `npm run build` | statischer Production Build in `dist/` |
+| `npm run check` | Typecheck, Unit Tests und Production Build |
 
 ## Kanonische Dokumente
 
-- [Game Vision](docs/design/GAME_VISION.md) – Produktvision und verbindliche Designleitplanken
-- [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – originale Bildsprache, Asset-Pipeline und Effektregeln
-- [Repository Audit](docs/reviews/REPOSITORY_AUDIT.md) – belastbare Bestandsaufnahme und bekannte Risiken
+- [Roadmap](ROADMAP.md) – aktueller, überprüfbarer Projektstatus
+- [Changelog](CHANGELOG.md) – chronologische Änderungshistorie
+- [Game Vision](docs/design/GAME_VISION.md) – Produktvision und Designleitplanken
+- [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – originale Bildsprache und Asset-Pipeline
 - [Production Plan](docs/planning/PRODUCTION_PLAN.md) – phasenweiser Weg zum hochwertigen Vertical Slice
-- [Mockup-Hinweise](docs/reference/mockups/README.md) – Rolle und Grenzen der vorhandenen Konzeptbilder
-- [Prototype Notes](prototypes/README.md) – Einordnung der beiden HTML-Spikes
+- [Repository Audit](docs/reviews/REPOSITORY_AUDIT.md) – Bestandsaufnahme und bekannte Risiken
+- [Prototype Notes](prototypes/README.md) – Einordnung der isolierten HTML-Spikes
 
-## Struktur
+## Repository-Struktur
 
 ```text
-docs/
-  design/               Produkt-, Art- und VFX-Vorgaben
-  planning/             Umsetzungsplan und Quality Gates
-  reference/mockups/    visuelle Referenzen, keine Runtime-Assets
-  reviews/              technische und produktbezogene Audits
-prototypes/
-  vertical-slice-v2.html
-  archive/              ältere, nur noch referenzierte Spikes
+src/
+  app/                 Bootstrap und Spielkonfiguration
+  domain/combat/       pure Regeln, Commands, Events und KI
+  game/                Phaser-Szenen und Präsentation
+  ui/                  zugängliches DOM-HUD
+tests/
+  unit/                Combat-Core-Tests
+  e2e/                 echte Mobile-/Desktop-Browser-Flows
+docs/                   Vision, Planung, Art-Richtung und Audit
+prototypes/             isolierte frühere Interaction Spikes
 ```
 
-Die geplante Produktionsanwendung wird später separat unter `src/`, `public/assets/` und `tests/` aufgebaut. Bis dahin bleibt der Prototyp bewusst isoliert.
+Die Konzeptbilder unter `docs/reference/mockups/` sind visuelle Referenzen und keine Runtime-Assets. Neue Spielgrafik und Audio werden eigenständig produziert und mit Herkunft sowie Nutzungsrechten dokumentiert.

@@ -30,6 +30,13 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 - Combat-Szene vom statischen Architekturbeweis zum durchgängig spielbaren Mobile-Slice ausgebaut
 - Schiffszustände und Aktionsverfügbarkeit werden nach jedem Command direkt im HUD gespiegelt
+- README auf den spielbaren Produktionsstand, Mobile-Steuerung und lokalen Entwickler-Workflow aktualisiert
+- Produktionsplan durchgängig auf Mobile-first als primäre Layout- und Eingabestrategie geschärft
+
+### Infrastructure
+
+- GitHub-Pages-Workflow mit Typecheck, Unit Tests, Production Build und Mobile-/Desktop-E2E-Gate angelegt
+- Live-Spiel-Link und Deployment-Status in die README aufgenommen
 
 ## [0.0.1] – 2026-08-21
 
