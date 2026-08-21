@@ -36,14 +36,16 @@ Stand: 21. August 2026
 - ✅ datengetriebene Definitionen für vier Schiffe und drei Waffen
 - ✅ Unit Tests für Winkel, Reichweite, Kosten, Schaden, Phasen und KI
 
-## M3 – Spielbarer Mobile-Greybox-Slice 🚧
+## M3 – Spielbarer Mobile-Greybox-Slice ✅
 
-- 2 Spieler- gegen 2 Gegnerschiffe
-- Auswahl, Movement Radius, Ghost Path und Facing
-- Broadside-, Lance- und Torpedo-Arcs
-- verständliche Action Bar, Target Preview und End Turn
-- kompakter Gegnerzug und Sieg/Niederlage
-- Touch zuerst, Maus und Tastatur zusätzlich
+- ✅ 2 Spieler- gegen 2 Gegnerschiffe
+- ✅ Auswahl, Movement Radius, Ghost Path und Facing
+- ✅ Broadside-, Lance- und Torpedo-Arcs
+- ✅ verständliche Action Bar, Target Preview und End Turn
+- ✅ kompakter, animierter Gegnerzug und Sieg/Niederlage
+- ✅ Touch zuerst, Maus und Tastatur zusätzlich
+- ✅ Hilfe- und Ergebnisdialoge, Reduced Motion und große Touch-Ziele
+- ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Gegnerphase
 
 ## M4 – Originale Art und Combat Feel ⏳
 
@@ -77,4 +79,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Ein auf echtem Touch-Viewport vollständig spielbarer Kampf: Schiff wählen, bewegen, Facing setzen, Waffen-Preview bestätigen, Gegnerzug ausführen und Sieg/Niederlage erreichen.
+Das öffentliche GitHub-Pages-Deployment mit grüner CI, verständlicher README und direkt spielbarem Link. Danach folgt in M4 ein eigenständiger visueller Art-Proof für Schiff, Hintergrund, HUD und Combat-VFX.

@@ -12,7 +12,106 @@
   </head>
   <body>
     <main id="app" aria-label="Voidline Tactics">
-      <div id="game-root" aria-label="Taktisches Spielfeld"></div>
+      <section id="game-shell" aria-label="Mission: Erster Kontakt">
+        <div id="game-root" aria-label="Taktisches Spielfeld"></div>
+
+        <header id="topbar" class="panel">
+          <div class="brand-block">
+            <strong>VOIDLINE</strong>
+            <small>ERSTER KONTAKT</small>
+          </div>
+          <div class="turn-block">
+            <strong>RUNDE <span id="turn-number">1</span></strong>
+            <small id="phase-label">SPIELERPHASE</small>
+          </div>
+          <div class="objective-block">
+            <small>ZIEL</small>
+            <strong>Feinde ausschalten</strong>
+          </div>
+        </header>
+
+        <button id="help-button" class="icon-button" type="button" aria-label="Spielhilfe öffnen">?</button>
+        <div id="toast" role="status" aria-live="polite"></div>
+
+        <aside id="target-card" class="panel" hidden aria-label="Zielvorschau">
+          <div class="card-heading">
+            <div>
+              <strong id="target-name">Kein Ziel</strong>
+              <small id="target-class"></small>
+            </div>
+            <span id="hit-chance"></span>
+          </div>
+          <div class="compact-bars">
+            <label>HÜLLE <span id="target-hull-text"></span></label>
+            <div class="meter"><span id="target-hull-bar" class="hull-fill"></span></div>
+            <label>SCHILD <span id="target-shield-text"></span></label>
+            <div class="meter"><span id="target-shield-bar" class="shield-fill"></span></div>
+          </div>
+          <p id="preview-damage"></p>
+        </aside>
+
+        <footer id="combat-hud">
+          <section id="ship-card" class="panel" aria-label="Ausgewähltes Schiff">
+            <div class="card-heading">
+              <div>
+                <strong id="ship-name">–</strong>
+                <small id="ship-class">–</small>
+              </div>
+              <span id="ship-status">BEREIT</span>
+            </div>
+            <div class="ship-meters">
+              <div>
+                <label>HÜLLE <span id="ship-hull-text"></span></label>
+                <div class="meter"><span id="ship-hull-bar" class="hull-fill"></span></div>
+              </div>
+              <div>
+                <label>SCHILD <span id="ship-shield-text"></span></label>
+                <div class="meter"><span id="ship-shield-bar" class="shield-fill"></span></div>
+              </div>
+              <div>
+                <label>ENERGIE <span id="ship-energy-text"></span></label>
+                <div class="meter"><span id="ship-energy-bar" class="energy-fill"></span></div>
+              </div>
+            </div>
+            <div class="resource-row">
+              <span>AP <strong id="ship-ap">–</strong></span>
+              <span>AUSRICHTUNG <strong id="ship-facing">–</strong></span>
+            </div>
+          </section>
+
+          <nav id="action-grid" aria-label="Schiffsaktionen">
+            <button type="button" data-action="move"><span>➤</span><strong>BEWEGEN</strong><small>1 AP</small></button>
+            <button type="button" data-action="rotate"><span>⟳</span><strong>DREHEN</strong><small>1 AP</small></button>
+            <button type="button" data-action="broadside"><span>⇉</span><strong>BREITSEITE</strong><small>2 AP</small></button>
+            <button type="button" data-action="lance"><span>✦</span><strong>LANZE</strong><small>2 AP</small></button>
+            <button type="button" data-action="torpedo"><span>➜</span><strong>TORPEDO</strong><small>2 AP</small></button>
+            <button type="button" data-action="shield"><span>⬡</span><strong>SCHILD</strong><small>1 AP</small></button>
+            <button id="end-turn-button" type="button"><span>⌛</span><strong>RUNDE</strong><small>beenden</small></button>
+          </nav>
+
+          <div id="confirm-bar" hidden>
+            <button id="cancel-button" type="button">ABBRECHEN</button>
+            <button id="confirm-button" type="button">BESTÄTIGEN</button>
+          </div>
+        </footer>
+
+        <dialog id="help-dialog" class="modal panel">
+          <h2>SO SPIELST DU</h2>
+          <ol>
+            <li>Wähle eines deiner blau markierten Schiffe.</li>
+            <li>Bewegen: Ziel antippen, danach um das Ghost-Schiff ziehen, um die Ausrichtung festzulegen.</li>
+            <li>Breitseiten feuern links und rechts. Lanze und Torpedo benötigen den Frontbogen.</li>
+            <li>Ziel antippen, Prognose prüfen und den Angriff bestätigen.</li>
+          </ol>
+          <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>
+        </dialog>
+
+        <dialog id="result-dialog" class="modal panel">
+          <h2 id="result-title">MISSION BEENDET</h2>
+          <p id="result-copy"></p>
+          <button id="restart-button" type="button">MISSION NEU STARTEN</button>
+        </dialog>
+      </section>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

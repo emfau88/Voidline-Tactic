@@ -18,6 +18,18 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 - seedbarer Zufall für reproduzierbare Treffer- und Schadensauflösung
 - gemeinsame Waffenvalidierung für Preview, Spieler und Gegner-KI
 - sieben Unit Tests für Bewegung, Arcs, Kosten, Schaden, Determinismus und Phasen
+- vollständig bedienbarer 2-gegen-2-Mobile-Kampf mit Auswahl, Bewegung und Facing
+- Touch-optimierte Action Bar mit großen Zielen, Ressourcenanzeigen und klarer Bestätigung
+- Reichweiten-, Treffer-, Schild- und Hull-Vorschau für alle drei Waffen
+- animierter Gegnerzug mit derselben Regelbasis wie der Spieler
+- prozedurale Greybox-Schiffe, Schlachtfeld, Schilde, Treffer-, Projektil- und Explosions-VFX
+- Hilfe- und Ergebnisdialoge, deutsche Statusmeldungen und Reduced-Motion-Unterstützung
+- vier Mobile-Chromium-E2E-Tests für Layout, Hilfe, Touch-Bewegung und Gegnerphase
+
+### Changed
+
+- Combat-Szene vom statischen Architekturbeweis zum durchgängig spielbaren Mobile-Slice ausgebaut
+- Schiffszustände und Aktionsverfügbarkeit werden nach jedem Command direkt im HUD gespiegelt
 
 ## [0.0.1] – 2026-08-21
 
