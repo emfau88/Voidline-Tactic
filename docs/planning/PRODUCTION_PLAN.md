@@ -261,4 +261,5 @@ Für eine erfahrene Einzelperson ist ein wirklich polierter Vertical Slice mit o
 1. ✅ **Foundation:** Phaser/TypeScript/Vite, feste World Units und ein testbarer Combat-State.
 2. ✅ **Greybox Gate:** Movement/Facing/Arcs plus dieselbe Waffenlogik für Preview, Spieler und KI.
 3. ✅ **Delivery Gate:** CI-gesicherter GitHub-Pages-Build und verifizierter öffentlicher Spiel-Link.
-4. ⏳ **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz; erst nach dessen Abnahme die restlichen Schiffe produzieren.
+4. ✅ **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz.
+5. 🚧 **Fleet Art:** die drei restlichen Schiffe mit klarer Klassen-/Fraktionssilhouette und vollständigen Hardpoints produzieren.

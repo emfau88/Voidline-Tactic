@@ -4,7 +4,22 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
-Nächster Schwerpunkt: M4 – Originale Art und Combat Feel.
+### Added
+
+- Asset-Manifest mit Herkunfts-, Rechte-, Versions- und Abnahmestatus
+- reproduzierbare Generationsspezifikation für den originalen Spieler-Cruiser-Art-Proof
+- transparenter, originaler True-Top-down-Spieler-Cruiser als hochauflösende Quelle und optimierter Runtime-Export
+- datenbezogene Engine-, Lance-, Torpedo- und Port-/Starboard-Broadside-Hardpoints
+- zwei Unit Tests für rotierte und zielseitenabhängige Hardpoint-Transformationen
+
+### Changed
+
+- M4 – Originale Art und Combat Feel gestartet
+- Selection- und Shield-Geometrie folgen der länglichen Cruiser-Silhouette
+- Engine-Emissives pulsieren unabhängig von der Rumpftextur und kritischer Hull tönt das Schiff
+- Lance, Broadside und Torpedo starten an echten Hardpoints; Shield-/Hull-Kontakt besitzt eine zusätzliche Ripple-Phase
+- Reduced Motion deaktiviert nun auch Camera Shake
+- kanonische Game Vision von der früheren Desktop-first-Annahme auf den 390×844-Mobile-Referenzviewport korrigiert
 
 ## [0.1.0] – 2026-08-21
 

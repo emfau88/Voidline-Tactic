@@ -25,7 +25,8 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 - ✅ Movement, Facing, drei Waffen, Shield, Gegner-KI und Sieg/Niederlage
 - ✅ Unit- und Browser-Tests für Mobile und Desktop
 - ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
-- ⏳ originale Schiffs-Art, Combat-VFX, Audio und Parallax-Hintergrund
+- ✅ erster originaler Spieler-Cruiser-Art-Proof mit dokumentierter Herkunft
+- 🚧 restliche Schiffs-Art, Combat-VFX, Audio und Parallax-Hintergrund
 - ⏳ Reward, Shipyard, Upgrades und Persistenz
 
 Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md).
@@ -62,6 +63,7 @@ npm run test:e2e
 - [Changelog](CHANGELOG.md) – chronologische Änderungshistorie
 - [Game Vision](docs/design/GAME_VISION.md) – Produktvision und Designleitplanken
 - [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – originale Bildsprache und Asset-Pipeline
+- [Asset Manifest](docs/assets/ASSET_MANIFEST.md) – Herkunft, Version, Rechte-/IP-Status und Runtime-Pfade
 - [Production Plan](docs/planning/PRODUCTION_PLAN.md) – phasenweiser Weg zum hochwertigen Vertical Slice
 - [Repository Audit](docs/reviews/REPOSITORY_AUDIT.md) – Bestandsaufnahme und bekannte Risiken
 - [Prototype Notes](prototypes/README.md) – Einordnung der isolierten HTML-Spikes

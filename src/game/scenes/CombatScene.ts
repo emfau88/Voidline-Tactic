@@ -20,6 +20,7 @@ import type {
   WeaponKind,
 } from '../../domain/combat/types';
 import { ShipView } from '../presentation/ShipView';
+import { weaponOrigins } from '../presentation/shipPresentation';
 import { CombatHud } from '../../ui/CombatHud';
 import type { ActionMode } from '../../ui/CombatHud';
 
@@ -290,33 +291,59 @@ export class CombatScene extends Phaser.Scene {
     const attacker = this.shipViews.get(event.shipId);
     const target = this.shipViews.get(event.targetId);
     if (!attacker || !target) return;
+    const attackerState = this.combatState.ships[event.shipId];
+    const targetState = this.combatState.ships[event.targetId];
+    const origins = weaponOrigins(attackerState, targetState.position, event.weapon);
     if (event.weapon === 'torpedo') {
-      const projectile = this.add.circle(attacker.x, attacker.y, 10, 0xffb35f, 1).setDepth(41);
-      const trail = this.add.line(0, 0, attacker.x, attacker.y, target.x, target.y, 0xe0e7ed, 0.32).setOrigin(0).setDepth(39);
-      await this.tween({ targets: projectile, x: target.x, y: target.y, duration: 420 });
-      projectile.destroy();
+      const origin = origins[0];
+      const launch = this.add.circle(origin.x, origin.y, 11, 0xffd098, 0.82).setDepth(42);
+      await this.tween({ targets: launch, scale: 2.1, alpha: 0, duration: 110 });
+      launch.destroy();
+      const glow = this.add.circle(0, 0, 13, 0xff8f3e, 0.32).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.circle(0, 0, 6, 0xfff1c6, 1);
+      const projectile = this.add.container(origin.x, origin.y, [glow, core]).setDepth(41);
+      const trail = this.add
+        .line(0, 0, origin.x, origin.y, target.x, target.y, 0xffc879, 0.2)
+        .setOrigin(0)
+        .setDepth(39);
+      await this.tween({ targets: projectile, x: target.x, y: target.y, duration: 430, ease: 'Sine.In' });
+      projectile.destroy(true);
       trail.destroy();
     } else {
       this.vfx.clear();
       const color = event.weapon === 'lance' ? 0xd76dff : 0xff9d4c;
+      const flashes = origins.map((origin) =>
+        this.add.circle(origin.x, origin.y, event.weapon === 'lance' ? 15 : 9, color, 0.82).setDepth(42),
+      );
+      await Promise.all(
+        flashes.map((flash) => this.tween({ targets: flash, scale: 1.8, alpha: 0.25, duration: event.weapon === 'lance' ? 150 : 80 })),
+      );
       this.vfx.lineStyle(event.weapon === 'lance' ? 10 : 6, color, 0.22);
-      this.vfx.lineBetween(attacker.x, attacker.y, target.x, target.y);
+      this.vfx.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
       this.vfx.lineStyle(event.weapon === 'lance' ? 4 : 2, color, 1);
       if (event.weapon === 'broadside') {
-        for (let offset = -18; offset <= 18; offset += 9) {
-          this.vfx.lineBetween(attacker.x, attacker.y + offset, target.x, target.y + offset * 0.3);
+        for (const [index, origin] of origins.entries()) {
+          const spread = (index - (origins.length - 1) / 2) * 8;
+          this.vfx.lineBetween(origin.x, origin.y, target.x + spread, target.y - spread * 0.35);
         }
       } else {
-        this.vfx.lineBetween(attacker.x, attacker.y, target.x, target.y);
+        this.vfx.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
       }
       await this.tween({ targets: this.vfx, alpha: 0, duration: 280 });
       this.vfx.setAlpha(1).clear();
+      for (const flash of flashes) flash.destroy();
     }
     if (event.hit && !event.intercepted) {
-      const impact = this.add.circle(target.x, target.y, 22, event.shieldDamage > 0 ? 0x5ab6ff : 0xff9d4c, 0.8).setDepth(42);
-      await this.tween({ targets: impact, scale: 2.2, alpha: 0, duration: 240 });
+      const impactColor = event.shieldDamage > 0 ? 0x5ab6ff : 0xff9d4c;
+      const impact = this.add.circle(target.x, target.y, 22, impactColor, 0.72).setDepth(42);
+      const ripple = this.add.circle(target.x, target.y, 26, 0x000000, 0).setStrokeStyle(5, impactColor, 0.9).setDepth(43);
+      await Promise.all([
+        this.tween({ targets: impact, scale: 2.2, alpha: 0, duration: 240 }),
+        this.tween({ targets: ripple, scale: 2.8, alpha: 0, duration: 330 }),
+      ]);
       impact.destroy();
-      this.cameras.main.shake(90, 0.0045);
+      ripple.destroy();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) this.cameras.main.shake(90, 0.0045);
     }
   }
 

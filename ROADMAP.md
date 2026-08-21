@@ -47,11 +47,11 @@ Stand: 21. August 2026
 - ✅ Hilfe- und Ergebnisdialoge, Reduced Motion und große Touch-Ziele
 - ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Gegnerphase
 
-## M4 – Originale Art und Combat Feel ⏳
+## M4 – Originale Art und Combat Feel 🚧
 
-- eigenständiger Spieler-Cruiser als Art-Proof
+- ✅ eigenständiger Spieler-Cruiser als Art-Proof samt Asset-Provenienz
 - vier lesbare Schiffssilhouetten und Hardpoints
-- Engine, Broadside, Lance, Torpedo und Shield VFX
+- 🚧 datenbezogene Hardpoints sowie Engine-, Broadside-, Lance-, Torpedo- und Shield-VFX
 - Audio-Busse, Varianten und Reduced Motion
 - Parallax-Hintergrund und taktisches HUD
 
@@ -79,4 +79,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Das öffentliche GitHub-Pages-Deployment mit grüner CI, verständlicher README und direkt spielbarem Link. Danach folgt in M4 ein eigenständiger visueller Art-Proof für Schiff, Hintergrund, HUD und Combat-VFX.
+Die drei verbleibenden Schiffe erhalten auf Basis des abgenommenen Cruiser-Art-Proofs eigenständige, im Mobile-Zoom unterscheidbare Silhouetten und vollständige Hardpoint-Sets. Danach werden Hintergrund, HUD und Audio auf denselben Qualitätsstandard gebracht.

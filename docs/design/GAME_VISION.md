@@ -983,7 +983,7 @@ anzeigen.
 
 # 30. Steuerung
 
-Desktop zuerst.
+Mobile-first.
 
 ## Maus
 
@@ -1001,15 +1001,11 @@ Desktop zuerst.
 
 - Zoom optional
 
-## Mobile später
+## Mobile als Referenz
 
-Mobile Support soll architektonisch möglich bleiben.
+Die erste Entwicklung und jede Layout-Abnahme konzentriert sich auf den 390×844-Referenzviewport. Touch-Ziele sind mindestens 44×44 CSS-Pixel groß; wichtige Aktionen bleiben ohne Hover erreichbar.
 
-Aber:
-
-> **erste Entwicklung auf Desktop konzentrieren.**
-
-Touch Targets dennoch nicht winzig gestalten.
+Desktop erweitert die mobile Komposition um Raum und gleichwertige Mausbedienung, ohne andere Kampfregeln oder Reichweiten einzuführen.
 
 ---
 
