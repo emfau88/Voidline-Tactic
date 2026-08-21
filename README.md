@@ -6,7 +6,15 @@ Rundenbasierte 2D-Flottentaktik für den Browser: Schiffe positionieren, Facing 
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
 
-Der aktuelle Stand ist ein vollständig bedienbarer 2-gegen-2-Greybox-Kampf. Er funktioniert mit Touch und Maus; originale Art, Audio und die finale VFX-Qualität folgen als nächster Produktionsmeilenstein.
+Der aktuelle Stand ist ein vollständig bedienbarer 2-gegen-2-Mobile-Kampf mit vier originalen Schiffen, eigenem Nebula-Schlachtfeld und Hardpoint-basierten Kampf-VFX. Er funktioniert mit Touch und Maus. Der öffentliche Link wurde zuletzt am **21. August 2026** auf Mobile-Chromium geprüft und wird nach jedem Push erst nach Typecheck, Unit Tests, Production Build und Browser-Tests veröffentlicht.
+
+## Aktueller Mobile-Build
+
+| Gefechtsübersicht | Bewegung und Facing | Ziel- und Schadensprognose |
+|---|---|---|
+| [<img src="docs/screenshots/mobile-combat-overview.png" alt="Mobile Gefechtsübersicht mit vier Schiffen" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-movement-planning.png" alt="Touch-Bewegungsplanung mit Reichweite und Facing" width="260">](docs/screenshots/mobile-movement-planning.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Torpedo-Zielvorschau mit Trefferchance und Schadensprognose" width="260">](docs/screenshots/mobile-target-preview.png) |
+
+Die Galerie lässt sich reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisieren.
 
 ## So funktioniert der Kampf
 
@@ -27,10 +35,11 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 - ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
 - ✅ vier originale Schiffsassets mit dokumentierter Herkunft und vollständigen Hardpoints
 - ✅ originärer Nebula-Hintergrund mit dezentem Zwei-Layer-Stern-Parallax
-- 🚧 Combat-VFX, taktisches HUD-Polish und Audio
+- ✅ grundlegende Hardpoint-basierte Combat-VFX und Reduced-Motion-Fallbacks
+- 🚧 taktisches HUD-Polish, tiefere VFX-Choreografien und Audio
 - ⏳ Reward, Shipyard, Upgrades und Persistenz
 
-Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md).
+Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md). Die [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) messen die Lücke zu den Konzeptbildern und priorisieren die nächsten Produktionsschritte.
 
 ## Lokal entwickeln
 
@@ -55,6 +64,7 @@ npm run test:e2e
 | `npm run typecheck` | TypeScript-Prüfung |
 | `npm test` | deterministische Domänen-Tests |
 | `npm run test:e2e` | Mobile- und Desktop-Browser-Flows |
+| `npm run capture:readme` | drei reproduzierbare Mobile-Screenshots |
 | `npm run build` | statischer Production Build in `dist/` |
 | `npm run check` | Typecheck, Unit Tests und Production Build |
 
@@ -66,6 +76,7 @@ npm run test:e2e
 - [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – originale Bildsprache und Asset-Pipeline
 - [Asset Manifest](docs/assets/ASSET_MANIFEST.md) – Herkunft, Version, Rechte-/IP-Status und Runtime-Pfade
 - [Production Plan](docs/planning/PRODUCTION_PLAN.md) – phasenweiser Weg zum hochwertigen Vertical Slice
+- [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) – priorisierte Lücke vom aktuellen Build zum Mockup-Niveau
 - [Repository Audit](docs/reviews/REPOSITORY_AUDIT.md) – Bestandsaufnahme und bekannte Risiken
 - [Prototype Notes](prototypes/README.md) – Einordnung der isolierten HTML-Spikes
 
@@ -80,7 +91,8 @@ src/
 tests/
   unit/                Combat-Core-Tests
   e2e/                 echte Mobile-/Desktop-Browser-Flows
-docs/                   Vision, Planung, Art-Richtung und Audit
+scripts/                reproduzierbare Projekt- und Dokumentationswerkzeuge
+docs/                   Vision, Planung, Screenshots, Art-Richtung und Audit
 prototypes/             isolierte frühere Interaction Spikes
 ```
 

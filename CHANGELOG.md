@@ -6,6 +6,9 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ### Added
 
+- drei reproduzierbare 390×844-Mobile-Screenshots für Gefechtsübersicht, Bewegungsplanung und gültige Zielprognose
+- Capture-Skript und npm-Befehl zur konsistenten Aktualisierung der README-Galerie
+- priorisierte Top-20-Gap-Analyse mit messbaren Abnahmekriterien für den Weg zum Mockup-Niveau
 - Asset-Manifest mit Herkunfts-, Rechte-, Versions- und Abnahmestatus
 - reproduzierbare Generationsspezifikation für den originalen Spieler-Cruiser-Art-Proof
 - transparenter, originaler True-Top-down-Spieler-Cruiser als hochauflösende Quelle und optimierter Runtime-Export
@@ -22,6 +25,8 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ### Changed
 
+- README um aktuelle Spielbilder, verifizierten Live-Link und die Mockup-Gap-Analyse erweitert
+- M4-Roadmap in grundlegende abgeschlossene VFX und noch ausstehendes Choreografie-/Audio-Polish aufgeteilt
 - M4 – Originale Art und Combat Feel gestartet
 - Selection- und Shield-Geometrie folgen der länglichen Cruiser-Silhouette
 - Engine-Emissives pulsieren unabhängig von der Rumpftextur und kritischer Hull tönt das Schiff

@@ -51,10 +51,12 @@ Stand: 21. August 2026
 
 - ✅ eigenständiger Spieler-Cruiser als Art-Proof samt Asset-Provenienz
 - ✅ vier lesbare Schiffssilhouetten und vollständige Hardpoint-Sets
-- 🚧 datenbezogene Hardpoints sowie Engine-, Broadside-, Lance-, Torpedo- und Shield-VFX
-- Audio-Busse, Varianten und Reduced Motion
+- ✅ grundlegende Hardpoint-basierte Engine-, Broadside-, Lance-, Torpedo- und Shield-VFX
+- 🚧 gestaffelte Waffen-Choreografien, Trefferreaktionen und VFX-Pooling
+- ⏳ originale Audio-Busse, Varianten und Mobile-Audio-Unlock
 - ✅ originaler Nebula-Base-Layer mit zwei deterministisch driftenden Sternlayern
 - 🚧 taktisches HUD-Polish und Asset-Loading-Feedback
+- ✅ drei reproduzierbare Mobile-Screenshots für README und visuelle Standabnahme
 
 ## M5 – Reward, Shipyard und Persistenz ⏳
 
@@ -80,4 +82,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Die Waffen-VFX-Choreografien und das taktische HUD werden auf den jetzt abgenommenen Flotten-/Environment-Standard gebracht. Anschließend folgen originale Audio-Busse und Varianten mit sauberem Mobile-Audio-Unlock.
+M4 wird über die Hebel 1–10 der [priorisierten Mockup-Gap-Analyse](docs/planning/TOP_20_LEVERS.md) geschlossen. Als nächstes entstehen eine gekrümmte Movement-/Facing-Vorschau, klarere Feuergeometrie, gestaffelte Waffen- und Treffer-Choreografien sowie ein konsistentes taktisches HUD-System. Danach folgen originale Audio-Busse mit sauberem Mobile-Audio-Unlock.
