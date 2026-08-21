@@ -20,7 +20,7 @@ test('loads the mobile-first Phaser shell', async ({ page }) => {
   await expect(page.locator('#ship-name')).toHaveText('Aster Vale');
   await expect(page.locator('#ship-energy-text')).toHaveText('80/80');
   await expect(page.getByRole('button', { name: /BEWEGEN/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /RUNDE beenden/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /BEAT 0\/2 Befehle/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Vollbild umschalten' })).toBeEnabled();
   await page.getByRole('button', { name: 'Hineinzoomen' }).click();
   await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('110%');
@@ -28,6 +28,13 @@ test('loads the mobile-first Phaser shell', async ({ page }) => {
   const innerWidth = await page.evaluate(() => window.innerWidth);
   expect(Math.abs(shellWidth - Math.min(innerWidth, 620))).toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth)).toBe(true);
+  const density = await page.locator('#game-root canvas').evaluate((element) => {
+    const canvas = element as HTMLCanvasElement;
+    const bounds = canvas.getBoundingClientRect();
+    return canvas.width / bounds.width;
+  });
+  const expectedDensity = await page.evaluate(() => Math.min(window.devicePixelRatio, 2));
+  expect(Math.abs(density - expectedDensity)).toBeLessThan(0.08);
 });
 
 test('opens the concise mobile help', async ({ page }) => {
@@ -49,14 +56,39 @@ test('plans and confirms a touch movement', async ({ page }) => {
   await expect(page.locator('#confirm-bar')).toBeVisible();
   await page.locator('#confirm-button').click();
 
-  await expect(page.locator('#ship-ap')).toHaveText('2/3');
-  await expect(page.locator('#ship-energy-text')).toHaveText('76/80');
+  await expect(page.getByRole('button', { name: /BEAT 1\/2 Befehle/ })).toBeVisible();
+  await page.getByRole('button', { name: /BEAT 1\/2 Befehle/ }).click();
+  await expect(page.locator('#turn-number')).toHaveText('2', { timeout: 7_000 });
+  await expect(page.locator('#phase-label')).toHaveText('BEFEHLE PLANEN');
 });
 
-test('completes an animated enemy phase and returns control', async ({ page }) => {
+test('executes a simultaneous command beat and returns to planning', async ({ page }) => {
   await startBattle(page);
-  await page.getByRole('button', { name: /RUNDE beenden/ }).click();
+  await page.getByRole('button', { name: /BEAT 0\/2 Befehle/ }).click();
   await expect(page.locator('#turn-number')).toHaveText('2', { timeout: 7_000 });
-  await expect(page.locator('#phase-label')).toHaveText('SPIELERPHASE');
+  await expect(page.locator('#phase-label')).toHaveText('BEFEHLE PLANEN');
   await expect(page.getByRole('button', { name: /BEWEGEN/ })).toBeEnabled();
+});
+
+test('supports two-finger pinch zoom around the touch midpoint', async ({ page }) => {
+  await startBattle(page);
+  await page.locator('#game-root canvas').evaluate((canvas) => {
+    const bounds = canvas.getBoundingClientRect();
+    const emit = (type: string, pointerId: number, x: number, y: number): void => {
+      canvas.dispatchEvent(new PointerEvent(type, {
+        bubbles: true,
+        pointerType: 'touch',
+        pointerId,
+        clientX: bounds.left + x,
+        clientY: bounds.top + y,
+      }));
+    };
+    emit('pointerdown', 41, bounds.width * 0.4, bounds.height * 0.43);
+    emit('pointerdown', 42, bounds.width * 0.6, bounds.height * 0.43);
+    emit('pointermove', 41, bounds.width * 0.3, bounds.height * 0.43);
+    emit('pointermove', 42, bounds.width * 0.7, bounds.height * 0.43);
+    emit('pointerup', 41, bounds.width * 0.3, bounds.height * 0.43);
+    emit('pointerup', 42, bounds.width * 0.7, bounds.height * 0.43);
+  });
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('180%');
 });

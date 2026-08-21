@@ -1,7 +1,7 @@
 import { WEAPONS } from './content';
 import { angleBetween, distance } from './math';
 import { executeCommand, getAttackPreview, getLivingShips } from './combatEngine';
-import type { CombatCommand, CombatState, ShipState, WeaponKind } from './types';
+import type { CombatCommand, CombatState, ShipOrder, ShipState, WeaponKind } from './types';
 
 const WEAPON_PRIORITY: readonly WeaponKind[] = ['broadside', 'lance', 'torpedo'];
 
@@ -13,9 +13,9 @@ function expectedDamage(state: CombatState, attacker: ShipState, target: ShipSta
   return averageDamage * (preview.hitChance / 100);
 }
 
-export function chooseEnemyCommand(state: CombatState, shipId: string): CombatCommand | undefined {
+export function chooseEnemyCommand(state: CombatState, shipId: string): ShipOrder | undefined {
   const ship = state.ships[shipId];
-  if (!ship?.alive || ship.team !== 'enemy' || state.phase !== 'enemy') return undefined;
+  if (!ship?.alive || ship.team !== 'enemy' || state.status !== 'active') return undefined;
   const targets = [...getLivingShips(state, 'player')].sort(
     (a, b) => distance(ship.position, a.position) - distance(ship.position, b.position),
   );
@@ -42,6 +42,13 @@ export function chooseEnemyCommand(state: CombatState, shipId: string): CombatCo
   };
   const facing = preferredWeapon.arc === 'broadside' ? angle - Math.PI / 2 : angle;
   return { type: 'move', shipId, destination, facing };
+}
+
+export function planEnemyOrders(state: CombatState): readonly ShipOrder[] {
+  const planningState = { ...state, phase: 'enemy' as const };
+  return getLivingShips(planningState, 'enemy')
+    .map((ship) => chooseEnemyCommand(planningState, ship.id))
+    .filter((order): order is ShipOrder => Boolean(order));
 }
 
 export function executeEnemyPhase(initialState: CombatState): {

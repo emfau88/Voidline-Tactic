@@ -2,8 +2,12 @@ import {
   BATTLEFIELD_HEIGHT,
   BATTLEFIELD_MARGIN,
   BATTLEFIELD_WIDTH,
+  COMMAND_DRIFT_DISTANCE,
   MOVE_AP_COST,
   MOVE_ENERGY_COST,
+  NEBULA_CENTER,
+  NEBULA_DAMAGE_REDUCTION,
+  NEBULA_RADIUS,
   ROTATE_AP_COST,
   SHIELD_AP_COST,
   SHIELD_ENERGY_COST,
@@ -11,14 +15,16 @@ import {
 } from './constants';
 import { SHIPS, WEAPONS } from './content';
 import { angleBetween, angleDifference, clamp, distance, normalizeAngle } from './math';
-import { nextRandom, normalizeSeed, randomInteger } from './rng';
+import { normalizeSeed } from './rng';
 import type {
   AttackPreview,
+  CommandBeatResult,
   CombatCommand,
   CombatEvent,
   CombatState,
   CommandResult,
   ShipState,
+  ShipOrder,
   Team,
   Vector2,
   WeaponDefinition,
@@ -77,6 +83,10 @@ function isInsideBattlefield(position: Vector2, radius: number): boolean {
   );
 }
 
+export function isInsideNebula(position: Vector2): boolean {
+  return distance(position, NEBULA_CENTER) <= NEBULA_RADIUS;
+}
+
 function getActionShip(state: CombatState, shipId: string): ShipState | string {
   const ship = state.ships[shipId];
   if (!ship) return 'Unknown ship.';
@@ -109,9 +119,11 @@ interface DamageSplit {
 }
 
 function splitDamage(target: ShipState, rawDamage: number, weapon: WeaponDefinition): DamageSplit {
-  const shieldDamage = Math.min(target.shield, Math.round(rawDamage * weapon.shieldMultiplier));
+  const coverMultiplier = isInsideNebula(target.position) ? 1 - NEBULA_DAMAGE_REDUCTION : 1;
+  const coveredDamage = rawDamage * coverMultiplier;
+  const shieldDamage = Math.min(target.shield, Math.round(coveredDamage * weapon.shieldMultiplier));
   const consumedRawDamage = shieldDamage / weapon.shieldMultiplier;
-  const remainingRawDamage = Math.max(0, rawDamage - consumedRawDamage);
+  const remainingRawDamage = Math.max(0, coveredDamage - consumedRawDamage);
   const hullDamage = Math.max(0, Math.round(remainingRawDamage * (1 - target.armor)));
   return { shieldDamage, hullDamage };
 }
@@ -123,6 +135,7 @@ function invalidPreview(weapon: WeaponDefinition, reason: string, measuredDistan
     weapon,
     distance: measuredDistance,
     hitChance: 0,
+    coverReduction: 0,
     minShieldDamage: 0,
     maxShieldDamage: 0,
     minHullDamage: 0,
@@ -153,19 +166,19 @@ export function getAttackPreview(
   if (attacker.ap < weapon.apCost) return invalidPreview(weapon, 'Not enough AP.', measuredDistance);
   if (attacker.energy < weapon.energyCost) return invalidPreview(weapon, 'Not enough Energy.', measuredDistance);
 
-  const rangePenalty = Math.floor((measuredDistance / weapon.range) * 18);
-  const hitChance = clamp(weapon.accuracy - rangePenalty, 45, 97);
-  const minimum = splitDamage(target, weapon.minDamage, weapon);
-  const maximum = splitDamage(target, weapon.maxDamage, weapon);
+  const rangeFactor = clamp(measuredDistance / weapon.range, 0, 1);
+  const resolvedDamage = Math.round(weapon.maxDamage - (weapon.maxDamage - weapon.minDamage) * rangeFactor);
+  const resolved = splitDamage(target, resolvedDamage, weapon);
   return {
     valid: true,
     weapon,
     distance: measuredDistance,
-    hitChance,
-    minShieldDamage: minimum.shieldDamage,
-    maxShieldDamage: maximum.shieldDamage,
-    minHullDamage: minimum.hullDamage,
-    maxHullDamage: maximum.hullDamage,
+    hitChance: 100,
+    coverReduction: isInsideNebula(target.position) ? Math.round(NEBULA_DAMAGE_REDUCTION * 100) : 0,
+    minShieldDamage: resolved.shieldDamage,
+    maxShieldDamage: resolved.shieldDamage,
+    minHullDamage: resolved.hullDamage,
+    maxHullDamage: resolved.hullDamage,
   };
 }
 
@@ -234,46 +247,36 @@ function executeAttack(state: CombatState, command: Extract<CombatCommand, { typ
   const preview = getAttackPreview(state, actionShip.id, target.id, command.weapon);
   if (!preview.valid) return invalidResult(state, preview.reason ?? 'Invalid attack.');
 
-  const hitRoll = nextRandom(state.rngState);
-  const hit = hitRoll.value * 100 < preview.hitChance;
-  const interceptRoll = nextRandom(hitRoll.state);
-  const intercepted = command.weapon === 'torpedo' && hit && interceptRoll.value < 0.18;
-  const damageRoll = randomInteger(interceptRoll.state, weaponResult.minDamage, weaponResult.maxDamage);
-
   const attacker: ShipState = {
     ...actionShip,
     ap: actionShip.ap - weaponResult.apCost,
     energy: actionShip.energy - weaponResult.energyCost,
   };
-  let nextState = updateShip({ ...state, rngState: damageRoll.state }, attacker);
+  let nextState = updateShip(state, attacker);
   const events: CombatEvent[] = [];
-  let shieldDamage = 0;
-  let hullDamage = 0;
-
-  if (hit && !intercepted) {
-    const split = splitDamage(target, damageRoll.value, weaponResult);
-    shieldDamage = split.shieldDamage;
-    hullDamage = split.hullDamage;
-    const remainingHull = Math.max(0, target.hull - hullDamage);
-    const damagedTarget: ShipState = {
-      ...target,
-      shield: Math.max(0, target.shield - shieldDamage),
-      hull: remainingHull,
-      alive: remainingHull > 0,
-    };
-    nextState = updateShip(nextState, damagedTarget);
-    if (!damagedTarget.alive) events.push({ type: 'ship-destroyed', shipId: damagedTarget.id });
-  }
+  const split = {
+    shieldDamage: preview.minShieldDamage,
+    hullDamage: preview.minHullDamage,
+  };
+  const remainingHull = Math.max(0, target.hull - split.hullDamage);
+  const damagedTarget: ShipState = {
+    ...target,
+    shield: Math.max(0, target.shield - split.shieldDamage),
+    hull: remainingHull,
+    alive: remainingHull > 0,
+  };
+  nextState = updateShip(nextState, damagedTarget);
+  if (!damagedTarget.alive) events.push({ type: 'ship-destroyed', shipId: damagedTarget.id });
 
   events.unshift({
     type: 'attack-resolved',
     shipId: attacker.id,
     targetId: target.id,
     weapon: command.weapon,
-    hit,
-    intercepted,
-    shieldDamage,
-    hullDamage,
+    hit: true,
+    intercepted: false,
+    shieldDamage: split.shieldDamage,
+    hullDamage: split.hullDamage,
   });
   nextState = resolveCombatStatus(nextState, events);
   return { state: nextState, events };
@@ -342,4 +345,175 @@ export function executeCommand(state: CombatState, command: CombatCommand): Comm
     case 'end-turn':
       return executeEndTurn(state);
   }
+}
+
+function resetForNextBeat(state: CombatState): CombatState {
+  const ships = Object.fromEntries(
+    Object.entries(state.ships).map(([id, ship]) => [
+      id,
+      ship.alive
+        ? {
+            ...ship,
+            ap: ship.maxAp,
+            energy: Math.min(ship.maxEnergy, ship.energy + ship.energyRegen),
+          }
+        : ship,
+    ]),
+  );
+  return { ...state, phase: 'player', turn: state.turn + 1, ships };
+}
+
+function driftLivingShips(state: CombatState, events: CombatEvent[]): CombatState {
+  let nextState = state;
+  for (const ship of getLivingShips(state)) {
+    const destination = {
+      x: clamp(
+        ship.position.x + Math.cos(ship.facing) * COMMAND_DRIFT_DISTANCE,
+        BATTLEFIELD_MARGIN + ship.radius,
+        BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius,
+      ),
+      y: clamp(
+        ship.position.y + Math.sin(ship.facing) * COMMAND_DRIFT_DISTANCE,
+        BATTLEFIELD_MARGIN + ship.radius,
+        BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius,
+      ),
+    };
+    if (distance(ship.position, destination) < 0.5) continue;
+    nextState = updateShip(nextState, { ...ship, position: destination });
+    events.push({
+      type: 'ship-moved',
+      shipId: ship.id,
+      from: ship.position,
+      to: destination,
+      facing: ship.facing,
+      movementKind: 'drift',
+    });
+  }
+  return nextState;
+}
+
+/**
+ * Resolves one short command beat. Every living ship may contribute at most one
+ * order. Maneuvers happen first, attacks use that projected board, damage is
+ * applied for every valid firing solution, and the whole formation then drifts.
+ */
+export function resolveCommandBeat(
+  initialState: CombatState,
+  playerOrders: readonly ShipOrder[],
+  enemyOrders: readonly ShipOrder[],
+): CommandBeatResult {
+  if (initialState.status !== 'active') {
+    return { state: initialState, events: [], resolvedOrders: [], error: 'Combat has already ended.' };
+  }
+
+  const events: CombatEvent[] = [];
+  const resolvedOrders: ShipOrder[] = [];
+  const seenShips = new Set<string>();
+  const orders = [...playerOrders, ...enemyOrders];
+  const validOrders: ShipOrder[] = [];
+
+  for (const order of orders) {
+    const ship = initialState.ships[order.shipId];
+    const expectedTeam: Team = playerOrders.includes(order) ? 'player' : 'enemy';
+    const reason = !ship
+      ? 'Unknown ship.'
+      : !ship.alive
+        ? 'Destroyed ships cannot act.'
+        : ship.team !== expectedTeam
+          ? 'Order assigned to the wrong team.'
+          : seenShips.has(ship.id)
+            ? 'Only one order per ship is allowed in a command beat.'
+            : undefined;
+    if (reason) {
+      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason });
+      continue;
+    }
+    seenShips.add(ship.id);
+    validOrders.push(order);
+  }
+
+  let state = initialState;
+  const maneuverOrders = validOrders.filter((order) => order.type !== 'attack');
+  const attackOrders = validOrders.filter(
+    (order): order is Extract<ShipOrder, { type: 'attack' }> => order.type === 'attack',
+  );
+
+  for (const order of maneuverOrders) {
+    const team = state.ships[order.shipId]?.team;
+    if (!team) continue;
+    const phasedState = { ...state, phase: team };
+    const result =
+      order.type === 'move'
+        ? executeMove(phasedState, order)
+        : order.type === 'rotate'
+          ? executeRotate(phasedState, order)
+          : executeShield(phasedState, order);
+    if (result.error) {
+      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason: result.error });
+      continue;
+    }
+    state = result.state;
+    for (const event of result.events) {
+      events.push(event.type === 'ship-moved' ? { ...event, movementKind: 'order' } : event);
+    }
+    resolvedOrders.push(order);
+  }
+
+  const attackSnapshot: CombatState = { ...state, phase: 'player' };
+  for (const order of attackOrders) {
+    const attackerSnapshot = attackSnapshot.ships[order.shipId];
+    const targetSnapshot = attackSnapshot.ships[order.targetId];
+    if (!attackerSnapshot || !targetSnapshot) {
+      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason: 'Unknown ship.' });
+      continue;
+    }
+    const preview = getAttackPreview(attackSnapshot, order.shipId, order.targetId, order.weapon);
+    if (!preview.valid) {
+      events.push({
+        type: 'order-failed',
+        shipId: order.shipId,
+        order: order.type,
+        reason: preview.reason ?? 'Firing solution was broken.',
+      });
+      continue;
+    }
+
+    const weapon = WEAPONS[order.weapon];
+    const currentAttacker = state.ships[order.shipId];
+    const currentTarget = state.ships[order.targetId];
+    state = updateShip(state, {
+      ...currentAttacker,
+      ap: Math.max(0, attackerSnapshot.ap - weapon.apCost),
+      energy: Math.max(0, attackerSnapshot.energy - weapon.energyCost),
+    });
+    const damage = splitDamage(currentTarget, weapon.maxDamage - (weapon.maxDamage - weapon.minDamage) * clamp(preview.distance / weapon.range, 0, 1), weapon);
+    const remainingHull = Math.max(0, currentTarget.hull - damage.hullDamage);
+    const wasAlive = currentTarget.alive;
+    state = updateShip(state, {
+      ...currentTarget,
+      shield: Math.max(0, currentTarget.shield - damage.shieldDamage),
+      hull: remainingHull,
+      alive: remainingHull > 0,
+    });
+    events.push({
+      type: 'attack-resolved',
+      shipId: order.shipId,
+      targetId: order.targetId,
+      weapon: order.weapon,
+      hit: true,
+      intercepted: false,
+      shieldDamage: damage.shieldDamage,
+      hullDamage: damage.hullDamage,
+    });
+    if (wasAlive && remainingHull === 0) events.push({ type: 'ship-destroyed', shipId: order.targetId });
+    resolvedOrders.push(order);
+  }
+
+  state = resolveCombatStatus({ ...state, phase: 'player' }, events);
+  if (state.status === 'active') {
+    state = driftLivingShips(state, events);
+    state = resetForNextBeat(state);
+    events.push({ type: 'phase-changed', phase: 'player', turn: state.turn });
+  }
+  return { state, events, resolvedOrders };
 }

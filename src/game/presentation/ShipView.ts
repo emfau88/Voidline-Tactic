@@ -67,8 +67,16 @@ export class ShipView extends Phaser.GameObjects.Container {
       this.status.lineStyle(4, 0x63baff, 0.95);
       this.status.strokeEllipse(0, 0, statusLength, statusWidth);
     } else if (targeted) {
-      this.status.lineStyle(4, 0xef5d68, 0.95);
+      this.status.lineStyle(6, 0xff6674, 1);
       this.status.strokeEllipse(0, 0, statusLength, statusWidth);
+    } else if (!friendly) {
+      this.status.lineStyle(4, 0xff5968, 0.78);
+      this.status.strokeEllipse(0, 0, statusLength, statusWidth);
+    }
+    if (!friendly) {
+      const markerX = statusLength * 0.58;
+      this.status.fillStyle(0xff5968, 0.96);
+      this.status.fillTriangle(markerX, 0, markerX + ship.radius * 0.34, -ship.radius * 0.17, markerX + ship.radius * 0.34, ship.radius * 0.17);
     }
     if (ship.shield > 0) {
       this.status.lineStyle(2, friendly ? 0x57aef0 : 0xb95770, 0.24 + 0.35 * (ship.shield / ship.maxShield));
@@ -106,7 +114,7 @@ export class ShipView extends Phaser.GameObjects.Container {
       this.hullGraphics.fillStyle(friendly ? 0x67c9ff : 0xff6e67, 0.9);
       this.hullGraphics.fillCircle(-length * 0.53, 0, Math.max(5, ship.radius * 0.13));
     } else {
-      this.art.setTint(ship.hull / ship.maxHull < 0.35 ? 0xffb2a4 : 0xffffff);
+      this.art.setTint(ship.hull / ship.maxHull < 0.35 ? 0xffb2a4 : friendly ? 0xffffff : 0xffe0dc);
     }
 
     if (presentation) {

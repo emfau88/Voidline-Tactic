@@ -67,11 +67,14 @@ export interface AttackPreview {
   readonly weapon: WeaponDefinition;
   readonly distance: number;
   readonly hitChance: number;
+  readonly coverReduction: number;
   readonly minShieldDamage: number;
   readonly maxShieldDamage: number;
   readonly minHullDamage: number;
   readonly maxHullDamage: number;
 }
+
+export type ShipOrder = Exclude<CombatCommand, { readonly type: 'end-turn' }>;
 
 export type CombatCommand =
   | {
@@ -97,6 +100,7 @@ export type CombatEvent =
       readonly from: Vector2;
       readonly to: Vector2;
       readonly facing: number;
+      readonly movementKind?: 'order' | 'drift';
     }
   | { readonly type: 'ship-rotated'; readonly shipId: string; readonly facing: number }
   | {
@@ -110,6 +114,12 @@ export type CombatEvent =
       readonly hullDamage: number;
     }
   | { readonly type: 'shield-reinforced'; readonly shipId: string; readonly amount: number }
+  | {
+      readonly type: 'order-failed';
+      readonly shipId: string;
+      readonly order: ShipOrder['type'];
+      readonly reason: string;
+    }
   | { readonly type: 'phase-changed'; readonly phase: CombatPhase; readonly turn: number }
   | { readonly type: 'ship-destroyed'; readonly shipId: string }
   | { readonly type: 'combat-ended'; readonly status: Exclude<CombatStatus, 'active'> };
@@ -118,4 +128,8 @@ export interface CommandResult {
   readonly state: CombatState;
   readonly events: readonly CombatEvent[];
   readonly error?: string;
+}
+
+export interface CommandBeatResult extends CommandResult {
+  readonly resolvedOrders: readonly ShipOrder[];
 }

@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
-import { chooseEnemyCommand } from '../../domain/combat/ai';
+import { planEnemyOrders } from '../../domain/combat/ai';
 import {
   createCombatState,
   executeCommand,
   getAttackPreview,
   getLivingShips,
+  resolveCommandBeat,
 } from '../../domain/combat/combatEngine';
-import { BATTLEFIELD_HEIGHT, BATTLEFIELD_WIDTH } from '../../domain/combat/constants';
+import {
+  BATTLEFIELD_HEIGHT,
+  BATTLEFIELD_WIDTH,
+  NEBULA_CENTER,
+  NEBULA_RADIUS,
+} from '../../domain/combat/constants';
 import { WEAPONS } from '../../domain/combat/content';
 import { angleBetween, distance } from '../../domain/combat/math';
 import type {
@@ -14,8 +20,8 @@ import type {
   CombatCommand,
   CombatEvent,
   CombatState,
-  CommandResult,
   ShipState,
+  ShipOrder,
   Vector2,
   WeaponKind,
 } from '../../domain/combat/types';
@@ -24,6 +30,7 @@ import { weaponOrigins } from '../presentation/shipPresentation';
 import { CombatHud } from '../../ui/CombatHud';
 import type { ActionMode } from '../../ui/CombatHud';
 import { getStarterShipId } from '../../app/starterSelection';
+import { RENDER_DENSITY } from '../../app/display';
 
 interface PendingMove {
   readonly type: 'move' | 'rotate';
@@ -41,9 +48,17 @@ export class CombatScene extends Phaser.Scene {
   private busy = false;
   private hud!: CombatHud;
   private overlay!: Phaser.GameObjects.Graphics;
-  private vfx!: Phaser.GameObjects.Graphics;
   private baseCameraZoom = 0.39;
   private cameraZoomFactor = 1;
+  private readonly plannedOrders = new Map<string, ShipOrder>();
+  private enemyOrders: readonly ShipOrder[] = [];
+  private readonly intentLabels = new Map<string, Phaser.GameObjects.Text>();
+  private readonly touchPointers = new Map<number, { x: number; y: number }>();
+  private pinchStartDistance = 0;
+  private pinchStartZoom = 1;
+  private gestureActive = false;
+  private removePinchListeners?: () => void;
+  private resizeObserver?: ResizeObserver;
   private readonly shipViews = new Map<string, ShipView>();
 
   public constructor() {
@@ -55,12 +70,13 @@ export class CombatScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#05070c');
     this.createBattlefield();
     this.overlay = this.add.graphics().setDepth(10);
-    this.vfx = this.add.graphics().setDepth(40);
     this.combatState = createCombatState(0x51a7c0de, getStarterShipId());
     this.createShipViews();
+    this.createIntentLabels();
+    this.enemyOrders = planEnemyOrders(this.combatState);
     this.hud = new CombatHud({
       onAction: (action) => this.handleAction(action),
-      onEndTurn: () => void this.runEnemyTurn(),
+      onEndTurn: () => void this.executeBeat(),
       onConfirm: () => void this.confirmAction(),
       onCancel: () => this.cancelAction(),
       onRestart: () => this.restartBattle(),
@@ -72,10 +88,16 @@ export class CombatScene extends Phaser.Scene {
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown, _deltaX: number, deltaY: number) => {
       this.adjustCameraZoom(deltaY > 0 ? -1 : 1);
     });
+    this.bindPinchZoom();
+    this.bindHiDpiResize();
     this.scale.on('resize', this.layoutCamera, this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.layoutCamera, this));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off('resize', this.layoutCamera, this);
+      this.removePinchListeners?.();
+      this.resizeObserver?.disconnect();
+    });
     this.refresh();
-    this.hud.toast('Wähle ein Schiff oder plane direkt seine erste Bewegung.');
+    this.hud.toast('Plane je Schiff einen Befehl. Rote Linien zeigen den Gegnerplan.');
     const shell = document.getElementById('game-shell');
     shell?.setAttribute('aria-busy', 'false');
     if (shell) shell.dataset.gameReady = 'true';
@@ -84,8 +106,14 @@ export class CombatScene extends Phaser.Scene {
   private createBattlefield(): void {
     this.add
       .image(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
-      .setDisplaySize(BATTLEFIELD_WIDTH * 1.28, BATTLEFIELD_HEIGHT * 1.16)
+      .setDisplaySize(BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT)
+      .setAlpha(0.92)
       .setDepth(-30);
+
+    this.add
+      .rectangle(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT, 0x204469, 0.13)
+      .setBlendMode(Phaser.BlendModes.SCREEN)
+      .setDepth(-29);
 
     const farStars = this.add.graphics().setDepth(-22);
     for (let index = 0; index < 72; index += 1) {
@@ -116,9 +144,9 @@ export class CombatScene extends Phaser.Scene {
   private layoutCamera(): void {
     const width = this.scale.width || 390;
     const height = this.scale.height || 844;
-    const topInset = 62;
-    const hudHeight = Math.max(218, Math.min(270, height * 0.27));
-    const viewportHeight = Math.max(300, height - topInset - hudHeight);
+    const topInset = 62 * RENDER_DENSITY;
+    const hudHeight = Math.max(218 * RENDER_DENSITY, Math.min(270 * RENDER_DENSITY, height * 0.27));
+    const viewportHeight = Math.max(300 * RENDER_DENSITY, height - topInset - hudHeight);
     this.cameras.main.setViewport(0, topInset, width, viewportHeight);
     this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);
     this.cameras.main.setZoom(this.baseCameraZoom * this.cameraZoomFactor);
@@ -128,13 +156,26 @@ export class CombatScene extends Phaser.Scene {
 
   private adjustCameraZoom(direction: number): void {
     if (this.busy) return;
-    this.cameraZoomFactor = Phaser.Math.Clamp(this.cameraZoomFactor + direction * 0.1, 0.8, 1.4);
-    this.layoutCamera();
+    this.applyCameraZoom(this.cameraZoomFactor + direction * 0.1);
   }
 
   private resetCameraZoom(): void {
     this.cameraZoomFactor = 1;
     this.layoutCamera();
+  }
+
+  private applyCameraZoom(factor: number, focus?: { x: number; y: number }): void {
+    const camera = this.cameras.main;
+    const nextFactor = Phaser.Math.Clamp(factor, 0.8, 1.8);
+    const worldBefore = focus ? camera.getWorldPoint(focus.x, focus.y) : undefined;
+    this.cameraZoomFactor = nextFactor;
+    camera.setZoom(this.baseCameraZoom * nextFactor);
+    if (focus && worldBefore) {
+      const worldAfter = camera.getWorldPoint(focus.x, focus.y);
+      camera.scrollX += worldBefore.x - worldAfter.x;
+      camera.scrollY += worldBefore.y - worldAfter.y;
+    }
+    this.hud?.setZoom(nextFactor);
   }
 
   private createShipViews(): void {
@@ -143,10 +184,91 @@ export class CombatScene extends Phaser.Scene {
     }
   }
 
+  private createIntentLabels(): void {
+    for (const enemy of getLivingShips(this.combatState, 'enemy')) {
+      const label = this.add
+        .text(enemy.position.x, enemy.position.y, '', {
+          fontFamily: 'Inter, Arial, sans-serif',
+          fontSize: '25px',
+          fontStyle: 'bold',
+          color: '#ffd6d6',
+          backgroundColor: '#54131fe6',
+          padding: { x: 9, y: 5 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(32);
+      this.intentLabels.set(enemy.id, label);
+    }
+  }
+
+  private bindPinchZoom(): void {
+    const canvas = this.game.canvas;
+    const position = (event: PointerEvent): { x: number; y: number } => {
+      const bounds = canvas.getBoundingClientRect();
+      return {
+        x: ((event.clientX - bounds.left) / bounds.width) * this.scale.width,
+        y: ((event.clientY - bounds.top) / bounds.height) * this.scale.height,
+      };
+    };
+    const distanceBetweenTouches = (): number => {
+      const [first, second] = [...this.touchPointers.values()];
+      return first && second ? Math.hypot(second.x - first.x, second.y - first.y) : 0;
+    };
+    const midpoint = (): { x: number; y: number } => {
+      const [first, second] = [...this.touchPointers.values()];
+      return first && second ? { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 } : { x: 0, y: 0 };
+    };
+    const onPointerDown = (event: PointerEvent): void => {
+      if (event.pointerType !== 'touch') return;
+      this.touchPointers.set(event.pointerId, position(event));
+      if (this.touchPointers.size === 2) {
+        this.gestureActive = true;
+        this.pinchStartDistance = Math.max(1, distanceBetweenTouches());
+        this.pinchStartZoom = this.cameraZoomFactor;
+        this.cancelAction();
+      }
+    };
+    const onPointerMove = (event: PointerEvent): void => {
+      if (!this.touchPointers.has(event.pointerId)) return;
+      this.touchPointers.set(event.pointerId, position(event));
+      if (this.touchPointers.size !== 2 || this.pinchStartDistance <= 0) return;
+      event.preventDefault();
+      this.applyCameraZoom(this.pinchStartZoom * (distanceBetweenTouches() / this.pinchStartDistance), midpoint());
+    };
+    const onPointerUp = (event: PointerEvent): void => {
+      this.touchPointers.delete(event.pointerId);
+      if (this.touchPointers.size < 2) this.pinchStartDistance = 0;
+      if (this.touchPointers.size === 0) window.setTimeout(() => (this.gestureActive = false), 80);
+    };
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: true });
+    canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+    canvas.addEventListener('pointerup', onPointerUp, { passive: true });
+    canvas.addEventListener('pointercancel', onPointerUp, { passive: true });
+    this.removePinchListeners = () => {
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
+    };
+  }
+
+  private bindHiDpiResize(): void {
+    const host = document.getElementById('game-root');
+    if (!host || typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const width = Math.max(1, Math.round(entry.contentRect.width * RENDER_DENSITY));
+      const height = Math.max(1, Math.round(entry.contentRect.height * RENDER_DENSITY));
+      if (this.scale.width === width && this.scale.height === height) return;
+      this.scale.resize(width, height);
+    });
+    this.resizeObserver.observe(host);
+  }
+
   private handleAction(action: ActionMode | 'shield'): void {
     if (this.busy || this.combatState.phase !== 'player') return;
     if (action === 'shield') {
-      void this.applyCommand({ type: 'reinforce-shield', shipId: this.selectedShipId });
+      this.queueOrder({ type: 'reinforce-shield', shipId: this.selectedShipId });
       return;
     }
     this.mode = this.mode === action ? undefined : action;
@@ -158,7 +280,7 @@ export class CombatScene extends Phaser.Scene {
       rotate: 'Richtung um das Schiff antippen und bestätigen.',
       broadside: 'Ein Ziel im linken oder rechten Feuerbogen wählen.',
       lance: 'Ein Ziel im violetten Frontbogen wählen.',
-      torpedo: 'Ein Ziel im orangenen Frontbogen wählen.',
+      torpedo: 'Torpedos treffen sicher. Ein Ziel im orangenen Frontbogen wählen.',
     };
     if (this.mode) this.hud.toast(instructions[this.mode]);
     this.refresh();
@@ -175,7 +297,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.busy || this.combatState.phase !== 'player' || this.combatState.status !== 'active') return;
+    if (this.gestureActive || this.busy || this.combatState.phase !== 'player' || this.combatState.status !== 'active') return;
     const point = this.pointerWorld(pointer);
     const hit = this.findShipAt(point);
     if (hit) {
@@ -222,7 +344,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private handlePointerMove(pointer: Phaser.Input.Pointer): void {
-    if (!pointer.isDown || !this.pending || this.busy) return;
+    if (this.gestureActive || !pointer.isDown || !this.pending || this.busy) return;
     const point = this.pointerWorld(pointer);
     if (distance(this.pending.destination, point) < 25) return;
     this.pending.facing = angleBetween(this.pending.destination, point);
@@ -231,9 +353,9 @@ export class CombatScene extends Phaser.Scene {
 
   private selectAttackTarget(target: ShipState, weapon: WeaponKind): void {
     this.targetShipId = target.id;
-    this.preview = getAttackPreview(this.combatState, this.selectedShipId, target.id, weapon);
+    this.preview = getAttackPreview(this.projectedState(), this.selectedShipId, target.id, weapon);
     if (!this.preview.valid) this.hud.toast(this.translateError(this.preview.reason ?? 'Invalid attack.'));
-    else this.hud.toast('Prognose prüfen und FEUERN bestätigen.');
+    else this.hud.toast('Deterministische Prognose prüfen und Befehl bestätigen.');
     this.refresh();
   }
 
@@ -241,7 +363,7 @@ export class CombatScene extends Phaser.Scene {
     return mode === 'broadside' || mode === 'lance' || mode === 'torpedo';
   }
 
-  private async confirmAction(): Promise<void> {
+  private confirmAction(): void {
     if (this.pending) {
       const command: CombatCommand =
         this.pending.type === 'move'
@@ -252,17 +374,46 @@ export class CombatScene extends Phaser.Scene {
               facing: this.pending.facing,
             }
           : { type: 'rotate', shipId: this.selectedShipId, facing: this.pending.facing };
-      await this.applyCommand(command);
+      this.queueOrder(command);
       return;
     }
     if (this.preview?.valid && this.targetShipId && this.isWeaponMode(this.mode)) {
-      await this.applyCommand({
+      this.queueOrder({
         type: 'attack',
         shipId: this.selectedShipId,
         targetId: this.targetShipId,
         weapon: this.mode,
       });
     }
+  }
+
+  private projectedState(): CombatState {
+    let state: CombatState = { ...this.combatState, phase: 'enemy' };
+    for (const order of this.enemyOrders) {
+      if (order.type !== 'move' && order.type !== 'rotate') continue;
+      const result = executeCommand(state, order);
+      if (!result.error) state = result.state;
+    }
+    return { ...state, phase: 'player' };
+  }
+
+  private queueOrder(order: ShipOrder): void {
+    const validationState = order.type === 'attack' ? this.projectedState() : this.combatState;
+    const validation = executeCommand({ ...validationState, phase: 'player' }, order);
+    if (validation.error) {
+      this.hud.toast(this.translateError(validation.error));
+      return;
+    }
+    this.plannedOrders.set(order.shipId, order);
+    const ship = this.combatState.ships[order.shipId];
+    this.mode = undefined;
+    this.pending = undefined;
+    this.preview = undefined;
+    this.targetShipId = undefined;
+    const nextShip = getLivingShips(this.combatState, 'player').find((candidate) => !this.plannedOrders.has(candidate.id));
+    if (nextShip) this.selectedShipId = nextShip.id;
+    this.hud.toast(`${ship.name}: Befehl gespeichert. ${nextShip ? `${nextShip.name} ist bereit.` : 'Command Beat bereit.'}`);
+    this.refresh();
   }
 
   private cancelAction(): void {
@@ -273,29 +424,46 @@ export class CombatScene extends Phaser.Scene {
     this.refresh();
   }
 
-  private async applyCommand(command: CombatCommand): Promise<boolean> {
-    const result = executeCommand(this.combatState, command);
-    if (result.error) {
-      this.hud.toast(this.translateError(result.error));
-      return false;
-    }
-    this.busy = true;
-    this.refresh();
-    this.combatState = result.state;
-    await this.animateEvents(result);
-    this.mode = undefined;
-    this.pending = undefined;
-    this.preview = undefined;
-    if (command.type !== 'attack') this.targetShipId = undefined;
-    this.busy = false;
-    this.refresh();
-    return true;
-  }
+  private async animateBeat(events: readonly CombatEvent[]): Promise<void> {
+    const orderedMoves = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'ship-moved' }> =>
+        event.type === 'ship-moved' && event.movementKind !== 'drift',
+    );
+    const rotations = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'ship-rotated' }> => event.type === 'ship-rotated',
+    );
+    await Promise.all([...orderedMoves, ...rotations].map((event) => this.animateEvent(event)));
 
-  private async animateEvents(result: CommandResult): Promise<void> {
-    for (const event of result.events) {
+    for (const event of events.filter((candidate) => candidate.type === 'shield-reinforced')) {
       await this.animateEvent(event);
     }
+
+    const attacks = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'attack-resolved' }> => event.type === 'attack-resolved',
+    );
+    await Promise.all(
+      attacks.map(async (event, index) => {
+        await new Promise((resolve) => window.setTimeout(resolve, index * 110));
+        await this.animateAttack(event);
+      }),
+    );
+
+    const destroyed = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'ship-destroyed' }> => event.type === 'ship-destroyed',
+    );
+    await Promise.all(destroyed.map((event) => this.animateExplosion(event.shipId)));
+
+    const drift = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'ship-moved' }> =>
+        event.type === 'ship-moved' && event.movementKind === 'drift',
+    );
+    await Promise.all(drift.map((event) => this.animateEvent(event)));
+
+    const failed = events.filter(
+      (event): event is Extract<CombatEvent, { type: 'order-failed' }> => event.type === 'order-failed',
+    );
+    if (failed.length > 0) this.hud.toast(`${failed.length} Feuerlösung${failed.length > 1 ? 'en' : ''} durch Bewegung gebrochen.`);
+    else if (attacks.length > 0) this.hud.toast('Command Beat ausgeführt · Treffer sind vollständig deterministisch.');
   }
 
   private async animateEvent(event: CombatEvent): Promise<void> {
@@ -303,7 +471,14 @@ export class CombatScene extends Phaser.Scene {
       case 'ship-moved': {
         const view = this.shipViews.get(event.shipId);
         if (!view) return;
-        await this.tween({ targets: view, x: event.to.x, y: event.to.y, rotation: event.facing, duration: 420 });
+        await this.tween({
+          targets: view,
+          x: event.to.x,
+          y: event.to.y,
+          rotation: event.facing,
+          duration: event.movementKind === 'drift' ? 520 : 420,
+          ease: event.movementKind === 'drift' ? 'Sine.InOut' : 'Sine.Out',
+        });
         return;
       }
       case 'ship-rotated': {
@@ -313,13 +488,6 @@ export class CombatScene extends Phaser.Scene {
       }
       case 'attack-resolved':
         await this.animateAttack(event);
-        this.hud.toast(
-          event.intercepted
-            ? 'Torpedo abgefangen.'
-            : !event.hit
-              ? 'Angriff verfehlt.'
-              : `${event.shieldDamage} Schild · ${event.hullDamage} Hülle`,
-        );
         return;
       case 'shield-reinforced': {
         const view = this.shipViews.get(event.shipId);
@@ -329,6 +497,8 @@ export class CombatScene extends Phaser.Scene {
       }
       case 'ship-destroyed':
         await this.animateExplosion(event.shipId);
+        return;
+      case 'order-failed':
         return;
       case 'phase-changed':
       case 'combat-ended':
@@ -340,8 +510,16 @@ export class CombatScene extends Phaser.Scene {
     const attacker = this.shipViews.get(event.shipId);
     const target = this.shipViews.get(event.targetId);
     if (!attacker || !target) return;
-    const attackerState = this.combatState.ships[event.shipId];
-    const targetState = this.combatState.ships[event.targetId];
+    const attackerState = {
+      ...this.combatState.ships[event.shipId],
+      position: { x: attacker.x, y: attacker.y },
+      facing: attacker.rotation,
+    };
+    const targetState = {
+      ...this.combatState.ships[event.targetId],
+      position: { x: target.x, y: target.y },
+      facing: target.rotation,
+    };
     const origins = weaponOrigins(attackerState, targetState.position, event.weapon);
     if (event.weapon === 'torpedo') {
       const origin = origins[0];
@@ -359,7 +537,7 @@ export class CombatScene extends Phaser.Scene {
       projectile.destroy(true);
       trail.destroy();
     } else {
-      this.vfx.clear();
+      const beam = this.add.graphics().setDepth(40);
       const color = event.weapon === 'lance' ? 0xd76dff : 0xff9d4c;
       const flashes = origins.map((origin) =>
         this.add.circle(origin.x, origin.y, event.weapon === 'lance' ? 15 : 9, color, 0.82).setDepth(42),
@@ -367,19 +545,19 @@ export class CombatScene extends Phaser.Scene {
       await Promise.all(
         flashes.map((flash) => this.tween({ targets: flash, scale: 1.8, alpha: 0.25, duration: event.weapon === 'lance' ? 150 : 80 })),
       );
-      this.vfx.lineStyle(event.weapon === 'lance' ? 10 : 6, color, 0.22);
-      this.vfx.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
-      this.vfx.lineStyle(event.weapon === 'lance' ? 4 : 2, color, 1);
+      beam.lineStyle(event.weapon === 'lance' ? 10 : 6, color, 0.22);
+      beam.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
+      beam.lineStyle(event.weapon === 'lance' ? 4 : 2, color, 1);
       if (event.weapon === 'broadside') {
         for (const [index, origin] of origins.entries()) {
           const spread = (index - (origins.length - 1) / 2) * 8;
-          this.vfx.lineBetween(origin.x, origin.y, target.x + spread, target.y - spread * 0.35);
+          beam.lineBetween(origin.x, origin.y, target.x + spread, target.y - spread * 0.35);
         }
       } else {
-        this.vfx.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
+        beam.lineBetween(origins[0].x, origins[0].y, target.x, target.y);
       }
-      await this.tween({ targets: this.vfx, alpha: 0, duration: 280 });
-      this.vfx.setAlpha(1).clear();
+      await this.tween({ targets: beam, alpha: 0, duration: 280 });
+      beam.destroy();
       for (const flash of flashes) flash.destroy();
     }
     if (event.hit && !event.intercepted) {
@@ -417,24 +595,26 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
-  private async runEnemyTurn(): Promise<void> {
+  private async executeBeat(): Promise<void> {
     if (this.busy || this.combatState.phase !== 'player' || this.combatState.status !== 'active') return;
     this.cancelAction();
-    await this.applyCommand({ type: 'end-turn' });
-    if (this.combatState.status !== 'active') return;
-    for (const enemy of getLivingShips(this.combatState, 'enemy')) {
-      for (let step = 0; step < 2; step += 1) {
-        const command = chooseEnemyCommand(this.combatState, enemy.id);
-        if (!command) break;
-        const succeeded = await this.applyCommand(command);
-        if (!succeeded || this.combatState.status !== 'active') return;
-        await new Promise((resolve) => window.setTimeout(resolve, 90));
-      }
+    this.busy = true;
+    this.refresh();
+    const result = resolveCommandBeat(this.combatState, [...this.plannedOrders.values()], this.enemyOrders);
+    if (result.error) {
+      this.busy = false;
+      this.hud.toast(this.translateError(result.error));
+      this.refresh();
+      return;
     }
-    await this.applyCommand({ type: 'end-turn' });
-    const nextSelected = getLivingShips(this.combatState, 'player')[0];
-    if (nextSelected && !this.combatState.ships[this.selectedShipId]?.alive) this.selectedShipId = nextSelected.id;
-    this.hud.toast('Deine Flotte ist wieder am Zug.');
+    await this.animateBeat(result.events);
+    this.combatState = result.state;
+    this.plannedOrders.clear();
+    this.enemyOrders = this.combatState.status === 'active' ? planEnemyOrders(this.combatState) : [];
+    const nextSelected = getLivingShips(this.combatState, 'player').find((ship) => ship.id === this.selectedShipId)
+      ?? getLivingShips(this.combatState, 'player')[0];
+    if (nextSelected) this.selectedShipId = nextSelected.id;
+    this.busy = false;
     this.refresh();
   }
 
@@ -447,6 +627,8 @@ export class CombatScene extends Phaser.Scene {
     this.pending = undefined;
     this.preview = undefined;
     this.busy = false;
+    this.plannedOrders.clear();
+    this.enemyOrders = planEnemyOrders(this.combatState);
     for (const view of this.shipViews.values()) view.setAlpha(1).setScale(1);
     this.refresh();
     this.hud.toast('Mission neu gestartet.');
@@ -467,12 +649,69 @@ export class CombatScene extends Phaser.Scene {
       preview: this.preview,
       mode: this.mode,
       hasPendingAction: Boolean(this.pending || this.preview?.valid),
+      selectedHasOrder: this.plannedOrders.has(selected.id),
+      plannedOrderCount: this.plannedOrders.size,
+      livingPlayerCount: getLivingShips(this.combatState, 'player').length,
       busy: this.busy,
     });
   }
 
   private drawOverlays(selected: ShipState): void {
     this.overlay.clear();
+    this.overlay.fillStyle(0x73cbe8, 0.055);
+    this.overlay.lineStyle(4, 0x78d5ef, 0.4);
+    this.overlay.fillCircle(NEBULA_CENTER.x, NEBULA_CENTER.y, NEBULA_RADIUS);
+    this.overlay.strokeCircle(NEBULA_CENTER.x, NEBULA_CENTER.y, NEBULA_RADIUS);
+
+    for (const [shipId, label] of this.intentLabels) {
+      const ship = this.combatState.ships[shipId];
+      const order = this.enemyOrders.find((candidate) => candidate.shipId === shipId);
+      if (!ship?.alive || !order || this.busy) {
+        label.setVisible(false);
+        continue;
+      }
+      const orderText =
+        order.type === 'attack'
+          ? `⚠ ${order.weapon === 'broadside' ? 'BREITSEITE' : order.weapon === 'lance' ? 'LANZE' : 'TORPEDO'}`
+          : order.type === 'move'
+            ? '↘ MANÖVER'
+            : order.type === 'rotate'
+              ? '↻ DREHEN'
+              : '⬡ SCHILD';
+      label.setText(orderText).setPosition(ship.position.x, ship.position.y - ship.radius * 2.15).setVisible(true);
+      if (order.type === 'attack') {
+        const target = this.combatState.ships[order.targetId];
+        if (target?.alive) {
+          const color = order.weapon === 'torpedo' ? 0xffa34f : order.weapon === 'lance' ? 0xf267ff : 0xff5968;
+          this.overlay.lineStyle(7, color, 0.67);
+          this.overlay.lineBetween(ship.position.x, ship.position.y, target.position.x, target.position.y);
+          this.overlay.fillStyle(color, 0.18);
+          this.overlay.fillCircle(target.position.x, target.position.y, target.radius * 1.55);
+        }
+      } else if (order.type === 'move') {
+        this.overlay.lineStyle(7, 0xff5968, 0.62);
+        this.overlay.lineBetween(ship.position.x, ship.position.y, order.destination.x, order.destination.y);
+        this.overlay.lineStyle(4, 0xff8d96, 0.85);
+        this.overlay.strokeCircle(order.destination.x, order.destination.y, ship.radius * 1.2);
+      }
+    }
+
+    for (const order of this.plannedOrders.values()) {
+      const ship = this.combatState.ships[order.shipId];
+      if (!ship?.alive) continue;
+      if (order.type === 'move') {
+        this.overlay.lineStyle(7, 0x62d4ff, 0.7);
+        this.overlay.lineBetween(ship.position.x, ship.position.y, order.destination.x, order.destination.y);
+        this.overlay.lineStyle(4, 0x7ce6ff, 0.95);
+        this.overlay.strokeCircle(order.destination.x, order.destination.y, ship.radius * 1.25);
+      } else if (order.type === 'attack') {
+        const target = this.projectedState().ships[order.targetId];
+        if (target?.alive) {
+          this.overlay.lineStyle(6, 0x72d8ff, 0.7);
+          this.overlay.lineBetween(ship.position.x, ship.position.y, target.position.x, target.position.y);
+        }
+      }
+    }
     if (this.mode === 'move' || this.pending?.type === 'move') {
       this.overlay.fillStyle(0x4fa9ec, 0.08);
       this.overlay.lineStyle(4, 0x5ab6ff, 0.45);

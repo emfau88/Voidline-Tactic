@@ -75,7 +75,7 @@ body {
     max(16px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   background:
     linear-gradient(180deg, rgb(3 6 12 / 35%), rgb(2 5 10 / 90%)),
-    url('/assets/backgrounds/battlefield-nebula-v1.jpg') center / cover;
+    url('/assets/backgrounds/battlefield-nebula-v2.jpg') center / cover;
   scrollbar-width: thin;
 }
 

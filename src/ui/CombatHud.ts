@@ -28,6 +28,9 @@ export interface HudViewModel {
   readonly preview?: AttackPreview;
   readonly mode?: ActionMode;
   readonly hasPendingAction: boolean;
+  readonly selectedHasOrder: boolean;
+  readonly plannedOrderCount: number;
+  readonly livingPlayerCount: number;
   readonly busy: boolean;
 }
 
@@ -108,9 +111,20 @@ export class CombatHud {
   }
 
   public update(model: HudViewModel): void {
-    const { state, selected, target, preview, mode, hasPendingAction, busy } = model;
+    const {
+      state,
+      selected,
+      target,
+      preview,
+      mode,
+      hasPendingAction,
+      selectedHasOrder,
+      plannedOrderCount,
+      livingPlayerCount,
+      busy,
+    } = model;
     setText('turn-number', String(state.turn));
-    setText('phase-label', state.phase === 'player' ? 'SPIELERPHASE' : 'GEGNERPHASE');
+    setText('phase-label', busy ? 'AUSFÜHRUNG' : 'BEFEHLE PLANEN');
     setText('ship-name', selected.name);
     setText('ship-class', selected.class.toUpperCase());
     setText('ship-hull-text', `${selected.hull}/${selected.maxHull}`);
@@ -121,7 +135,7 @@ export class CombatHud {
     setMeter('ship-hull-bar', selected.hull, selected.maxHull);
     setMeter('ship-shield-bar', selected.shield, selected.maxShield);
     setMeter('ship-energy-bar', selected.energy, selected.maxEnergy);
-    setText('ship-status', busy ? 'AKTION' : hasPendingAction ? 'PLANUNG' : actionLabel(mode));
+    setText('ship-status', busy ? 'IMPULS' : hasPendingAction ? 'PLANUNG' : selectedHasOrder ? 'GEPLANT' : actionLabel(mode));
 
     this.targetCard.hidden = !target;
     if (target) {
@@ -131,11 +145,11 @@ export class CombatHud {
       setText('target-shield-text', `${target.shield}/${target.maxShield}`);
       setMeter('target-hull-bar', target.hull, target.maxHull);
       setMeter('target-shield-bar', target.shield, target.maxShield);
-      setText('hit-chance', preview?.valid ? `${preview.hitChance}%` : 'ZIEL');
+      setText('hit-chance', preview?.valid ? 'SICHER' : 'ZIEL');
       setText(
         'preview-damage',
         preview?.valid
-          ? `Schild ${preview.minShieldDamage}–${preview.maxShieldDamage} · Hülle ${preview.minHullDamage}–${preview.maxHullDamage}`
+          ? `Schild ${preview.minShieldDamage} · Hülle ${preview.minHullDamage}${preview.coverReduction > 0 ? ` · NEBEL −${preview.coverReduction}%` : ''}`
           : translateReason(preview?.reason),
       );
     }
@@ -161,7 +175,10 @@ export class CombatHud {
         (weapon ? selected.ap < weapon.apCost || selected.energy < weapon.energyCost : false);
       button.classList.toggle('active', action === mode);
     }
-    requiredElement<HTMLButtonElement>('end-turn-button').disabled = !canAct;
+    const executeButton = requiredElement<HTMLButtonElement>('end-turn-button');
+    executeButton.disabled = !canAct;
+    executeButton.querySelector('strong')!.textContent = plannedOrderCount >= livingPlayerCount ? 'BEAT STARTEN' : 'BEAT';
+    executeButton.querySelector('small')!.textContent = `${plannedOrderCount}/${livingPlayerCount} Befehle`;
     this.confirmBar.hidden = !hasPendingAction;
     this.confirmButton.textContent = preview ? 'FEUERN' : mode === 'rotate' ? 'DREHEN' : 'BEWEGEN';
 

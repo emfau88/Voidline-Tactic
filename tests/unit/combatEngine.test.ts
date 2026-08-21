@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { executeEnemyPhase } from '../../src/domain/combat/ai';
-import { createCombatState, executeCommand, getAttackPreview } from '../../src/domain/combat/combatEngine';
+import {
+  createCombatState,
+  executeCommand,
+  getAttackPreview,
+  resolveCommandBeat,
+} from '../../src/domain/combat/combatEngine';
+import { COMMAND_DRIFT_DISTANCE, NEBULA_CENTER } from '../../src/domain/combat/constants';
 import type { CombatState, ShipState } from '../../src/domain/combat/types';
 
 function replaceShip(state: CombatState, ship: ShipState): CombatState {
@@ -12,12 +18,12 @@ describe('combat engine', () => {
     const cruiserStart = createCombatState(1, 'p-cruiser');
     const frigateStart = createCombatState(1, 'p-frigate');
 
-    expect(cruiserStart.ships['p-cruiser'].maxShield).toBe(115);
-    expect(cruiserStart.ships['p-cruiser'].shield).toBe(115);
+    expect(cruiserStart.ships['p-cruiser'].maxShield).toBe(83);
+    expect(cruiserStart.ships['p-cruiser'].shield).toBe(83);
     expect(cruiserStart.ships['p-frigate'].moveRange).toBe(315);
     expect(frigateStart.ships['p-frigate'].moveRange).toBe(350);
     expect(frigateStart.ships['p-frigate'].maxEnergy).toBe(80);
-    expect(frigateStart.ships['p-cruiser'].maxShield).toBe(100);
+    expect(frigateStart.ships['p-cruiser'].maxShield).toBe(68);
   });
 
   it('uses fixed world units for movement', () => {
@@ -150,5 +156,75 @@ describe('combat engine', () => {
     for (const ship of Object.values(result.state.ships)) {
       expect(ship.energy).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it('resolves torpedoes without a hidden miss or interception roll', () => {
+    let state = createCombatState(12);
+    const attacker = state.ships['p-frigate'];
+    state = replaceShip(state, {
+      ...state.ships['e-destroyer'],
+      position: { x: attacker.position.x, y: attacker.position.y - 360 },
+    });
+    const result = resolveCommandBeat(
+      state,
+      [{ type: 'attack', shipId: attacker.id, targetId: 'e-destroyer', weapon: 'torpedo' }],
+      [],
+    );
+    const attack = result.events.find((event) => event.type === 'attack-resolved');
+
+    expect(attack?.type).toBe('attack-resolved');
+    if (attack?.type === 'attack-resolved') {
+      expect(attack.hit).toBe(true);
+      expect(attack.intercepted).toBe(false);
+      expect(attack.shieldDamage + attack.hullDamage).toBeGreaterThan(0);
+    }
+  });
+
+  it('advances a full formation with forced drift after every command beat', () => {
+    const state = createCombatState(13);
+    const before = state.ships['p-cruiser'].position;
+    const result = resolveCommandBeat(state, [], []);
+    const after = result.state.ships['p-cruiser'].position;
+
+    expect(result.state.turn).toBe(2);
+    expect(after.x).toBeCloseTo(before.x, 5);
+    expect(after.y).toBeCloseTo(before.y - COMMAND_DRIFT_DISTANCE, 5);
+    expect(result.events.filter((event) => event.type === 'ship-moved' && event.movementKind === 'drift')).toHaveLength(4);
+  });
+
+  it('lets a telegraphed shot fail when a maneuver breaks its firing arc', () => {
+    let state = createCombatState(14, 'p-frigate');
+    state = replaceShip(state, {
+      ...state.ships['e-destroyer'],
+      position: { x: 400, y: 400 },
+      facing: Math.PI / 2,
+    });
+    state = replaceShip(state, {
+      ...state.ships['p-frigate'],
+      position: { x: 400, y: 700 },
+    });
+    const result = resolveCommandBeat(
+      state,
+      [{ type: 'move', shipId: 'p-frigate', destination: { x: 400, y: 385 }, facing: -Math.PI / 2 }],
+      [{ type: 'attack', shipId: 'e-destroyer', targetId: 'p-frigate', weapon: 'torpedo' }],
+    );
+
+    expect(result.events.some((event) => event.type === 'order-failed' && event.shipId === 'e-destroyer')).toBe(true);
+    expect(result.events.some((event) => event.type === 'attack-resolved' && event.shipId === 'e-destroyer')).toBe(false);
+  });
+
+  it('shows and applies the nebula damage reduction in the deterministic preview', () => {
+    let state = createCombatState(15);
+    const attacker = state.ships['p-cruiser'];
+    state = replaceShip(state, { ...attacker, position: { x: NEBULA_CENTER.x, y: NEBULA_CENTER.y + 300 } });
+    state = replaceShip(state, { ...state.ships['e-cruiser'], position: { ...NEBULA_CENTER } });
+    const covered = getAttackPreview(state, 'p-cruiser', 'e-cruiser', 'lance');
+    state = replaceShip(state, { ...state.ships['e-cruiser'], position: { x: NEBULA_CENTER.x, y: NEBULA_CENTER.y - 250 } });
+    const exposed = getAttackPreview(state, 'p-cruiser', 'e-cruiser', 'lance');
+
+    expect(covered.valid).toBe(true);
+    expect(covered.coverReduction).toBe(25);
+    expect(exposed.coverReduction).toBe(0);
+    expect(covered.minShieldDamage).toBeLessThan(exposed.minShieldDamage);
   });
 });
