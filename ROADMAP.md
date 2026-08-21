@@ -23,7 +23,9 @@ Stand: 21. August 2026
 - ✅ Phaser 4, TypeScript, Vite und Vitest pinnen
 - ✅ 390×844 Referenzviewport für reproduzierbare Mobile-QA
 - ✅ dynamische Vollbreiten-Shell mit Safe Areas statt fest eingeschlossener 390:844-Säule
-- ✅ Browser-Fullscreen, fullscreen-fähiges Web-App-Manifest, Plattform-Fallback sowie kontrollierter 80–140-%-Zoom
+- ✅ Browser-Fullscreen, fullscreen-fähiges Web-App-Manifest und Plattform-Fallback
+- ✅ 80–180-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Gestenmittelpunkt
+- ✅ bis zu 2× HiDPI-Canvas-Backbuffer und 1024×1536-Environment-Export gegen unscharfen Mobile-Zoom
 - ✅ Boot- und Combat-Szene anlegen
 - ✅ Playwright-Konfiguration für Mobile und Desktop
 - ✅ CI und GitHub Pages Deployment live verifiziert
@@ -32,22 +34,34 @@ Stand: 21. August 2026
 ## M2 – Deterministischer Combat Core ✅
 
 - ✅ feste 1000×1500 World Units unabhängig vom Viewport
-- ✅ Combat State, Commands, Events und seedbarer Zufall
-- ✅ Turn Flow, AP, Energy, Hull, Shield und Phasenregeneration
+- ✅ Combat State, Commands, Events und reproduzierbarer State
+- ✅ Command-Beat-Flow, AP, Energy, Hull und Shield
 - ✅ gemeinsame Regeln für Preview, Spieler und KI
 - ✅ datengetriebene Definitionen für vier Schiffe und drei Waffen
-- ✅ Unit Tests für Winkel, Reichweite, Kosten, Schaden, Phasen und KI
+- ✅ Unit Tests für Winkel, Reichweite, Kosten, Schaden, Beats und KI
 
 ## M3 – Spielbarer Mobile-Greybox-Slice ✅
 
 - ✅ 2 Spieler- gegen 2 Gegnerschiffe
 - ✅ Auswahl, Movement Radius, Ghost Path und Facing
 - ✅ Broadside-, Lance- und Torpedo-Arcs
-- ✅ verständliche Action Bar, Target Preview und End Turn
-- ✅ kompakter, animierter Gegnerzug und Sieg/Niederlage
+- ✅ verständliche Action Bar, Target Preview und Beat-Ausführung
+- ✅ animierte gemeinsame Ausführungsphase und Sieg/Niederlage
 - ✅ Touch zuerst, Maus zusätzlich
 - ✅ Hilfe- und Ergebnisdialoge, Reduced Motion und große Touch-Ziele
-- ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Gegnerphase
+- ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Beat-Ausführung
+
+## M3.5 – Command Beats, Tempo und Mobile-Kamera ✅
+
+- ✅ genau ein austauschbarer Befehl pro Schiff und Beat statt zäher Vollphasen
+- ✅ Gegnerabsichten vor der Planung als Label, Route und Zielvektor sichtbar
+- ✅ Manöver beider Seiten werden gemeinsam animiert; angekündigte Feuerlösungen können durch Bewegung brechen
+- ✅ deterministische Treffer und garantierte Torpedos ohne versteckten Miss-/Intercept-Wurf
+- ✅ rund 30–40 % weniger Effective Health, stärkere Waffen und keine passive Schildregeneration
+- ✅ permanente Vorwärtsdrift nach jedem Beat, damit Position und Facing relevant bleiben
+- ✅ erste regelrelevante Nebelzone mit 25 % Schadensreduktion und exakter Preview
+- ✅ hellerer Battlefield-Grade sowie dauerhafte rote Outline, Formmarker und Intent-Chips für Gegner
+- ✅ 15 Unit Tests und 10 Mobile-/Desktop-Browser-Szenarien einschließlich Multi-Touch und HiDPI
 
 ## M4 – Originale Art und Combat Feel 🚧
 
@@ -57,6 +71,7 @@ Stand: 21. August 2026
 - 🚧 gestaffelte Waffen-Choreografien, Trefferreaktionen und VFX-Pooling
 - ⏳ originale Audio-Busse, Varianten und Mobile-Audio-Unlock
 - ✅ originaler Nebula-Base-Layer mit zwei deterministisch driftenden Sternlayern
+- ✅ hochauflösender Runtime-2-Export und heller Screen-Grade für gezoomte Mobile-Ansicht
 - 🚧 taktisches HUD-Polish und Asset-Loading-Feedback
 - ✅ erster HUD-System-Pass mit größeren Hierarchien, originalen Vektor-Icons und sichtbaren Aktionskosten
 - ✅ sichtbare Lance-, Torpedo- und Broadside-Mounts auf den Schiffen
@@ -89,4 +104,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Der Mobile-Shell-Baseline-Pass aus direktem Spieltest-Feedback ist abgeschlossen: Vollbreite, Fullscreen-Fallback, Zoom, Startschiffwahl, Flaggschiff-Module und der erste HUD-System-Pass sind integriert. Als nächstes folgen der zweite HUD-Pass, gekrümmte Movement-/Facing-Vorschau, echte Loadout-Slots mit weiteren sichtbaren Waffenvarianten und gestaffelte Waffen-/Treffer-Choreografien. Die Reihenfolge steht in der aktualisierten [Top-20-Gap-Analyse](docs/planning/TOP_20_LEVERS.md).
+Der Command-Beat- und Mobile-Kamera-Pass aus direktem Spieltest-Feedback ist abgeschlossen: Pinch/HiDPI, sichtbare Gegnerpläne, deterministische Torpedos, kürzere Time-to-Kill, Vorwärtsdrift, Nebel-Cover und der neue Planungszustand sind integriert. Als nächstes muss ein echter Mobile-Playtest das neue Tempo validieren; danach folgen gekrümmte Movement-/Facing-Routen, der zweite HUD-Fidelity-Pass, tiefere Trefferchoreografien und Pan/Action-Framing. Die Reihenfolge steht in der aktualisierten [Top-20-Gap-Analyse](docs/planning/TOP_20_LEVERS.md).

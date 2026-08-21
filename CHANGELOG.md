@@ -4,8 +4,20 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+Meilenstein-Commit:
+
+- `39e9513` – Command Beats, deterministisches Tempo-Balancing und Mobile-Pinch/HiDPI
+
 ### Added
 
+- gemeinsamer Command-Beat-Resolver mit genau einem Befehl pro Schiff, projiziertem Board und reproduzierbaren Events
+- vorab sichtbare Gegnerabsichten als rote Intent-Chips, Bewegungsrouten und Zielvektoren
+- permanente Vorwärtsdrift aller überlebenden Schiffe nach jedem Beat
+- regelrelevante Nebelzone mit 25 % Schadensreduktion und sichtbarer exakter Schadensprognose
+- echte Zwei-Finger-Pinch-Geste um den Gestenmittelpunkt mit 80–180-%-Grenzen und Schutz vor Fehlkommandos
+- bis zu 2× HiDPI-Canvas-Backbuffer samt automatischer Resize-Behandlung
+- vier neue Unit-Tests für sichere Torpedos, Command-Drift, gebrochene Feuerlösungen und Nebel-Cover
+- zwei zusätzliche Mobile-/Desktop-E2E-Szenarien für Command-Beat-Ausführung und Multi-Pointer-Pinch
 - Vollbreiten-Mobile-Shell mit Safe-Area-Behandlung und dynamischem Phaser-Resize
 - Browser-Fullscreen-Steuerung samt erklärtem Fallback für Plattformen ohne Web-Fullscreen
 - fullscreen-fähiges Web-App-Manifest, Portrait-Ausrichtung, iOS-Standalone-Metadaten und originales App-Icon
@@ -33,6 +45,14 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ### Changed
 
+- Kampfablauf von vollständigen Wechselphasen auf kurze Planung plus gemeinsame Command-Beat-Ausführung umgestellt
+- alle Waffen treffen deterministisch; Reichweite verändert den exakten Schaden statt einer versteckten Trefferchance
+- Torpedos können weder zufällig verfehlen noch über einen unsichtbaren 18-%-Wurf abgefangen werden
+- Effective Health um rund 30–40 % gesenkt, Waffenschaden angehoben, Waffen auf einen AP vereinheitlicht und passive Schildregeneration entfernt
+- Gegner bleiben durch helle rote Outline, zusätzlichen Formmarker, Intent-Chip und aufgehellten Battlefield-Grade erkennbar
+- taktischer Zoom von maximal 140 % auf 180 % erweitert und auf gestenfokussierte Kameraänderung umgestellt
+- Nebula-Runtime von 512×768/25 KB auf 1024×1536/rund 100 KB aktualisiert; die niedrig aufgelöste Runtime 1 wurde entfernt
+- README-Galerie, Spielanleitung, Status, Roadmap, Top-20-Analyse und Asset-Manifest auf den Command-Beat-Build aktualisiert
 - Mobile-Shell nutzt die gesamte verfügbare Phone-Breite statt das 390:844-Verhältnis als CSS-Maximum zu erzwingen
 - Combat-Kamera berechnet Viewport und Basiszoom aus der realen Gerätegröße
 - HUD besitzt größere Typografie, deutlichere Zustände und vollständig sichtbare AP-/Energiekosten

@@ -94,18 +94,18 @@ Gate:
 Arbeit:
 
 - feste World Units unabhängig von Auflösung und Kamera
-- Combat State, Ship State, Turn Queue, AP und Energy
-- Commands für Select, Move, Rotate, Broadside, Lance, Torpedo, Shield, End Turn
+- Combat State, Ship State, Command Beats, AP und Energy
+- Commands für Select, Move, Rotate, Broadside, Lance, Torpedo und Shield
 - gemeinsame Validierung und Schadensberechnung für Spieler, KI und Preview
-- seeded RNG, Combat Log und Replay-fähige Events
+- deterministische Treffer-/Schadensauflösung, Combat Log und Replay-fähige Events
 - Sieg/Niederlage, Reset und Save-Versionierung
 - datengetriebene Definitionen für 4 Schiffe und 3 Waffen
 
 Gate:
 
-- gleiche Eingabe plus gleicher Seed ergibt exakt dasselbe Ergebnis
-- Preview und tatsächliche mögliche Schadenswerte verwenden dieselbe Formel
-- Desktop- und Mobile-Viewport verändern keine Reichweite oder Hit Chance
+- gleiche Befehle ergeben exakt dasselbe Ergebnis
+- Preview und tatsächlicher exakter Schaden verwenden dieselbe Formel
+- Desktop- und Mobile-Viewport verändern weder Reichweite noch Schaden
 - ungültige Commands verändern den State nicht
 
 ## Phase 3 – Lesbarer Greybox-Vertical-Slice
@@ -117,16 +117,16 @@ Arbeit:
 - taktische Kamera, Auswahl und Hover/Touch-Zielgrößen
 - Movement Range, gebogener Pfad, Ghost und Facing-Griff
 - klar getrennte Front-/Port-/Starboard-Arcs
-- Target Preview mit Hit Chance, Shield/Hull und Kosten
-- kompakter Turn Flow und 2×- beziehungsweise Skip-Option für KI-Animationen
-- regelbasierte KI: Zielwahl, gewünschte Waffenposition, Retreat/Shield bei Gefahr
+- Target Preview mit exaktem Shield-/Hull-Schaden, Cover und Kosten
+- kurze Planungsbeats mit offenen Gegnerabsichten und gemeinsamer Ausführungsphase
+- regelbasierte KI: angekündigte Zielwahl, gewünschte Waffenposition, Retreat/Shield bei Gefahr
 - Tutorial als kontextuelle Hinweise statt Textwand
 
 Gate:
 
 - fünf neue Testspieler können ihr erstes Schiff bewegen, ausrichten und korrekt feuern
 - mindestens 80 % schließen die Testmission ohne mündliche Erklärung ab
-- Gegnerzug mit zwei Schiffen dauert im Standardfall höchstens etwa drei Sekunden oder ist beschleunigbar
+- ein gemeinsamer Ausführungsbeat mit vier Schiffen dauert im Standardfall höchstens etwa drei Sekunden oder ist beschleunigbar
 
 ## Phase 4 – Originale Art und Asset-Pipeline
 
@@ -215,7 +215,7 @@ Gate:
 Arbeit:
 
 - Telemetrie nur nach bewusster Datenschutzentscheidung; lokal zunächst Combat Logs
-- Balance-Simulationen für Hit Chance, Time-to-Kill, AP und Energy
+- Balance-Simulationen für Beat-Zahl, Time-to-Kill, AP und Energy
 - Unit-, Integration-, E2E- und Visual-Regression-Suite
 - Chromium, Firefox, WebKit sowie mindestens ein Mobile-Chrome-/Mobile-Safari-Profil
 - Restart-/Memory-Soak, Audio-Unlock, Tab-Visibility und Resize testen
@@ -247,7 +247,7 @@ Diese Reihenfolge verhindert, dass teure Meta-Screens entstehen, bevor das eigen
 | Ebene | Prüft |
 |---|---|
 | Unit / Vitest | Winkel, Reichweite, AP/Energy, Schaden, Shield, RNG, Save-Migration |
-| Integration | vollständige Commands und Events über mehrere Runden |
+| Integration | vollständige Commands und Events über mehrere Command Beats |
 | E2E / Playwright | Tutorial, Mission, Sieg/Niederlage, Upgrade, Reload, Responsive Layout |
 | Visual Regression | HUD, Arcs, Target Preview, VFX-Schlüsselframes, Shipyard |
 | Playtests | Verständlichkeit, Entscheidungsqualität, Tempo und visuelle Priorität |
@@ -264,3 +264,5 @@ Für eine erfahrene Einzelperson ist ein wirklich polierter Vertical Slice mit o
 4. ✅ **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz.
 5. ✅ **Fleet Art:** die drei restlichen Schiffe mit klarer Klassen-/Fraktionssilhouette und vollständigen Hardpoints produzieren.
 6. 🚧 **Presentation:** Parallax-Environment, taktisches HUD, vollständige VFX-Choreografien und Audio-Busse auf Flottenniveau bringen.
+7. ✅ **Command-Beat-Pass:** offene Gegnerabsichten, deterministische Treffer, kürzere Time-to-Kill, Vorwärtsdrift, Nebel-Cover sowie Pinch-/HiDPI-Kamera integrieren.
+8. 🚧 **Validation:** neuen Kampfablauf auf echten Phones testen, danach gekrümmte Routen, Action Framing und Trefferchoreografie ausbauen.

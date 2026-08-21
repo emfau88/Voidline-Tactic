@@ -17,13 +17,13 @@ Dieses Manifest dokumentiert Herkunft, Status und Runtime-Verwendung aller Produ
 | `ship-player-frigate` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/player-frigate-v1.png` | approved |
 | `ship-enemy-cruiser` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-cruiser-v1.png` | approved |
 | `ship-enemy-destroyer` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-destroyer-v1.png` | approved |
-| `battlefield-nebula` | 2:3 Environment Base | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/backgrounds/battlefield-nebula-v1.jpg` | approved |
+| `battlefield-nebula` | 2:3 Environment Base | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 2 | `public/assets/backgrounds/battlefield-nebula-v2.jpg` | approved |
 
 Abnahme `ship-player-cruiser`: 21. August 2026; 390×844 und 1423×800, Bewegung/Rotation, dunkler und heller Kontrastgrund, Engine-Emissive, Lance-Hardpoint und Schildkontakt geprüft.
 
 Abnahme übrige Flotte: 21. August 2026; echte Alpha-Transparenz technisch geprüft, Silhouettenvergleich auf dunklem/hellem Grund, 390×844-Flottenansicht, Fraktions-/Klassenlesbarkeit, Selection-/Shield-Geometrie und alle Weapon-/Engine-Hardpoints geprüft.
 
-Abnahme `battlefield-nebula`: 21. August 2026; 390×844 mit kompletter Flotte, HUD, Status-Bars und taktischem Overlay geprüft; zentraler Korridor bleibt kontrastarm, Randnebel überstrahlen keine Schiffe. Runtime-JPEG: rund 25 KB.
+Abnahme `battlefield-nebula`: 21. August 2026; 390×844 mit kompletter Flotte, HUD, Status-Bars und taktischem Overlay geprüft; zentraler Korridor bleibt kontrastarm, Randnebel überstrahlen keine Schiffe. Runtime 2 exportiert die volle 1024×1536-Source-Auflösung als rund 100-KB-JPEG, damit Pinch-Zoom nicht mehr den 512×768-Export hochskaliert.
 
 ## Referenzen
 

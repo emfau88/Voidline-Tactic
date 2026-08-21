@@ -1,4 +1,4 @@
-# Turn-Based Gothic Fleet Tactics — Game Vision & Implementation Specification
+# Command-Beat Gothic Fleet Tactics — Game Vision & Implementation Specification
 
 ## 1. Zweck dieses Dokuments
 
@@ -22,7 +22,7 @@ Wichtig:
 
 Das Spiel ist ein:
 
-> **hochwertiges, rundenbasiertes 2D-Top-Down-Weltraum-Taktikspiel mit kleiner persistenter Flotte, individueller Schiffsausrüstung, Positionierung, Feuerwinkeln, Energie-/Aktionspunkt-Management, Subsystemschäden, Torpedos und Boarding.**
+> **hochwertiges, simultan geplantes 2D-Top-Down-Weltraum-Taktikspiel mit kurzen Command Beats, kleiner persistenter Flotte, individueller Schiffsausrüstung, Positionierung, Feuerwinkeln, Energie-/Aktionspunkt-Management, Subsystemschäden, Torpedos und Boarding.**
 
 Der Spieler kommandiert keine riesige Armada.
 
@@ -184,7 +184,7 @@ Der grundlegende Loop:
 2. Flotte vorbereiten
 3. Schiffe ausrüsten
 4. Gefecht starten
-5. Rundenbasiert kämpfen
+5. In kurzen Command Beats planen und gemeinsam ausführen
 6. Mission abschließen
 7. Credits / Salvage / Tech erhalten
 8. Reparieren
@@ -198,9 +198,9 @@ Der grundlegende Loop:
 
 ## 7.1 Grundprinzip
 
-Das Spiel ist **turn-based**.
+Das Spiel ist **WEGO/Command-Beat-basiert**: Gegnerabsichten werden angekündigt, der Spieler plant einen Befehl je Schiff, danach führen beide Seiten ihre Befehle in einem kurzen Impuls gemeinsam aus.
 
-Jedes Schiff hat pro eigener Aktivierung:
+Jedes Schiff hat pro Beat:
 
 - Aktionspunkte
 - Energie
@@ -210,7 +210,7 @@ Jedes Schiff hat pro eigener Aktivierung:
 Beispiel:
 
 ```text
-AP: 3
+AP: 1
 Energy: 60 / 80
 ```
 
@@ -373,7 +373,8 @@ Eigenschaften:
 
 - hohe Einzelschadensspitze
 - sichtbares Projektil
-- können abgefangen werden
+- trifft bei gültiger Feuerlösung deterministisch
+- kann nur durch eine vorher sichtbare aktive Reaktion wie Ausweichen, Decoy oder Point Defense verhindert werden
 - benötigen Front Arc
 - verzögerte Wirkung möglich
 
@@ -381,10 +382,10 @@ Eigenschaften:
 
 Eigenschaften:
 
-- automatisch oder reaktiv
-- zerstört Torpedos
+- sichtbar reaktiv und als eigener Systembefehl
+- zerstört angekündigte Torpedos deterministisch
 - schützt gegen kleine Ziele
-- verbraucht ggf. Energie
+- verbraucht Energie und die Aktionsmöglichkeit des Beats
 
 ## 12.5 Boarding Torpedos
 
@@ -392,7 +393,7 @@ Eigenschaften:
 
 - wenig direkter Hull-Schaden
 - transportieren Marines
-- können abgefangen werden
+- können durch dieselben sichtbaren Reaktionssysteme verhindert werden
 - ermöglichen interne Angriffe
 
 Boarding soll später ein wichtiges Alleinstellungsmerkmal werden.
@@ -1444,7 +1445,7 @@ Der Build ist erst dann erfolgreich, wenn:
 - Frontwaffen funktionieren anders als Side Weapons
 - AP-Verbrauch ist sichtbar
 - Gegner reagiert sinnvoll
-- Runde kann sauber beendet werden
+- Command Beat kann sauber geplant und ausgeführt werden
 
 ## UX
 
