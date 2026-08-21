@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Voidline Tactics — Mobile First Prototype v2</title>
+<style>
+  :root{
+    --bg:#05070b;
+    --panel:rgba(8,11,17,.96);
+    --panel2:rgba(12,16,23,.96);
+    --gold:#b69658;
+    --gold2:#6d5732;
+    --text:#eee7d9;
+    --muted:#96a0ad;
+    --blue:#5ab6ff;
+    --cyan:#54d3dc;
+    --red:#ef5d68;
+    --orange:#ff9d4c;
+    --purple:#d46dff;
+    --green:#70dc92;
+    --line:rgba(182,150,88,.52);
+    --safeTop:env(safe-area-inset-top,0px);
+    --safeBottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030407;color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+  button{font:inherit;color:inherit}
+  #app{position:relative;width:100vw;height:100dvh;min-height:100svh;overflow:hidden;background:#030407}
+  canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+  #hud{position:absolute;inset:0;pointer-events:none}
+  .glass{background:linear-gradient(180deg,rgba(9,12,18,.97),rgba(6,9,14,.94));border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.34)}
+  #topbar{
+    pointer-events:auto;position:absolute;left:8px;right:8px;top:calc(8px + var(--safeTop));height:54px;
+    border-radius:8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 10px;z-index:8
+  }
+  .brand b{display:block;font-family:Georgia,serif;letter-spacing:.06em;font-size:12px;color:#d7c69e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand small{font-size:9px;color:#8793a3}
+  .turn{text-align:center;font-family:Georgia,serif;letter-spacing:.08em;font-size:15px}
+  .turn small{display:block;color:#9aa6b4;font:9px Inter,system-ui,sans-serif;letter-spacing:.02em;margin-top:2px}
+  .objective{text-align:right;min-width:0}
+  .objective b{display:block;color:#d7c69e;font-size:9px;letter-spacing:.08em}
+  .objective span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #help{
+    pointer-events:auto;position:absolute;right:10px;top:calc(70px + var(--safeTop));z-index:9;width:36px;height:36px;border-radius:50%;
+    border:1px solid var(--line);background:rgba(8,11,17,.9);display:grid;place-items:center;color:#d8c698;font-weight:700
+  }
+  #toast{
+    position:absolute;left:50%;top:calc(74px + var(--safeTop));transform:translateX(-50%);
+    max-width:86vw;background:rgba(5,8,13,.92);border:1px solid rgba(91,183,255,.34);
+    padding:7px 10px;border-radius:8px;font-size:11px;color:#dce8f4;z-index:7;opacity:0;transition:.18s;
+    text-align:center;pointer-events:none
+  }
+  #toast.show{opacity:1}
+  #bottom{
+    pointer-events:auto;position:absolute;left:0;right:0;bottom:0;z-index:10;
+    padding:8px 8px calc(8px + var(--safeBottom));
+    background:linear-gradient(180deg,rgba(5,7,10,.0),rgba(4,6,10,.92) 12%,rgba(4,6,10,.985) 34%);
+  }
+  #infoCard{
+    margin:0 auto 7px;max-width:740px;border-radius:10px;padding:9px 10px;
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start
+  }
+  .shipName{font-family:Georgia,serif;color:#dbcaa2;font-size:13px;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shipClass{font-size:9px;color:#8391a1;margin-top:1px}
+  .bars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}
+  .stat label{display:flex;justify-content:space-between;gap:4px;font-size:8px;color:#9eabb8;margin-bottom:3px}
+  .bar{height:5px;background:#181e27;border:1px solid #242d38;overflow:hidden}
+  .fill{height:100%}
+  .hull{background:#d3665d}.shield{background:#4fa6e8}.energy{background:#53c8d0}
+  .miniStats{display:flex;gap:8px;margin-top:6px;font-size:9px;color:#aab3bf;flex-wrap:wrap}
+  .miniStats b{color:#eee7d9}
+  #statusPill{font-size:9px;border:1px solid rgba(91,183,255,.34);padding:4px 6px;border-radius:999px;color:#8ed0ff;white-space:nowrap}
+  #actionsWrap{max-width:850px;margin:auto;display:grid;grid-template-columns:1fr 52px;gap:6px}
+  #actions{display:grid;grid-template-columns:repeat(6,minmax(62px,1fr));gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+  #actions::-webkit-scrollbar{display:none}
+  .act{
+    min-height:58px;border-radius:8px;border:1px solid rgba(182,150,88,.42);background:linear-gradient(180deg,#10151e,#090d14);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.018)
+  }
+  .act .ico{font-size:17px;line-height:1}
+  .act b{font-size:9px;letter-spacing:.04em}
+  .act small{font-size:8px;color:#8995a3}
+  .act.active{border-color:#62b7ff;box-shadow:0 0 0 1px rgba(98,183,255,.25),0 0 18px rgba(55,145,225,.16);background:linear-gradient(180deg,#14243a,#0b111b)}
+  .act:disabled{opacity:.38}
+  #endTurn{
+    border-radius:8px;border:1px solid rgba(182,150,88,.55);background:linear-gradient(180deg,#1a1610,#0c0c0d);
+    display:grid;place-items:center;font-family:Georgia,serif;color:#e8d6a7;font-size:18px
+  }
+  #confirmBar{max-width:850px;margin:6px auto 0;display:none;grid-template-columns:1fr 1fr;gap:6px}
+  #confirmBar.show{display:grid}
+  #confirmBar button{
+    min-height:42px;border-radius:8px;border:1px solid var(--line);background:#111722;font-size:11px;font-weight:700
+  }
+  #confirmMove{border-color:rgba(112,220,146,.5)!important;color:#8fe6aa!important}
+  #cancelMove{color:#d9b4b4!important}
+  #overlay{
+    pointer-events:auto;position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:16px;
+    background:rgba(1,3,7,.78);backdrop-filter:blur(4px)
+  }
+  #overlay.show{display:flex}
+  .modal{width:min(94vw,720px);max-height:88dvh;overflow:auto;border-radius:12px;padding:14px}
+  .modal h2{font-family:Georgia,serif;color:#dac79b;letter-spacing:.08em;margin:0 0 4px;font-size:20px}
+  .modal p{color:#aab4c1;font-size:11px;line-height:1.45}
+  .upgrades{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+  .upgrade{border:1px solid rgba(182,150,88,.42);border-radius:9px;padding:10px;background:#0d1118}
+  .upgrade b{font-size:12px;color:#eee7d9}
+  .upgrade small{display:block;color:#98a3b1;margin-top:4px;font-size:10px;line-height:1.35}
+  .upgrade button,.primary{
+    width:100%;margin-top:8px;min-height:42px;border:1px solid rgba(182,150,88,.6);border-radius:8px;background:#17130d;color:#e9d8ae;font-weight:700
+  }
+  .resultStats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
+  .resultStats div{background:#0d1118;border:1px solid #242d38;border-radius:8px;padding:9px}
+  .resultStats span{display:block;color:#8996a6;font-size:9px}
+  .resultStats b{font-size:16px;color:#eee7d9}
+  #desktopSide{display:none}
+  @media (min-width:900px) and (orientation:landscape){
+    #bottom{padding-left:300px;padding-right:300px}
+    #infoCard{display:none}
+    #desktopSide{display:block}
+    .side{
+      position:absolute;top:78px;width:260px;bottom:112px;z-index:9;border-radius:10px;padding:12px;pointer-events:none
+    }
+    #leftSide{left:12px}
+    #rightSide{right:12px}
+    .side h3{font-family:Georgia,serif;color:#dac79b;margin:0 0 10px;font-size:14px}
+    .side .row{display:flex;justify-content:space-between;font-size:10px;color:#a8b2bf;padding:5px 0;border-bottom:1px solid #1e2630}
+    .side .row b{color:#eee7d9}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <div id="topbar" class="glass">
+      <div class="brand">
+        <div><b>VOIDLINE TACTICS</b><small>SHROUDED REACH</small></div>
+      </div>
+      <div class="turn">TURN <span id="turnNo">1</span><small id="phaseText">PLAYER PHASE</small></div>
+      <div class="objective"><b>OBJECTIVE</b><span id="objectiveText">Destroy all enemy ships</span></div>
+    </div>
+    <button id="help">?</button>
+    <div id="toast"></div>
+
+    <div id="desktopSide">
+      <div id="leftSide" class="side glass"></div>
+      <div id="rightSide" class="side glass"></div>
+    </div>
+
+    <div id="bottom">
+      <div id="infoCard" class="glass">
+        <div>
+          <div class="shipName" id="shipName"></div>
+          <div class="shipClass" id="shipClass"></div>
+          <div class="bars">
+            <div class="stat"><label><span>HULL</span><span id="hullTxt"></span></label><div class="bar"><div id="hullBar" class="fill hull"></div></div></div>
+            <div class="stat"><label><span>SHIELD</span><span id="shieldTxt"></span></label><div class="bar"><div id="shieldBar" class="fill shield"></div></div></div>
+            <div class="stat"><label><span>ENERGY</span><span id="energyTxt"></span></label><div class="bar"><div id="energyBar" class="fill energy"></div></div></div>
+          </div>
+          <div class="miniStats"><span>AP <b id="apTxt"></b></span><span>CREW <b id="crewTxt"></b></span><span>FACING <b id="facingTxt"></b></span></div>
+        </div>
+        <div id="statusPill">READY</div>
+      </div>
+
+      <div id="actionsWrap">
+        <div id="actions">
+          <button class="act" data-action="move"><span class="ico">➤</span><b>MOVE</b><small>1 AP</small></button>
+          <button class="act" data-action="rotate"><span class="ico">⟳</span><b>ROTATE</b><small>1 AP</small></button>
+          <button class="act" data-action="broadside"><span class="ico">⇉</span><b>BROADSIDE</b><small>2 AP</small></button>
+          <button class="act" data-action="lance"><span class="ico">✦</span><b>LANCE</b><small>2 AP</small></button>
+          <button class="act" data-action="torpedo"><span class="ico">➜</span><b>TORPEDO</b><small>2 AP</small></button>
+          <button class="act" data-action="shield"><span class="ico">⬡</span><b>SHIELD</b><small>1 AP</small></button>
+        </div>
+        <button id="endTurn">⌛</button>
+      </div>
+      <div id="confirmBar">
+        <button id="cancelMove">CANCEL</button>
+        <button id="confirmMove">CONFIRM</button>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <div class="modal glass" id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const ui = {
+    turnNo: document.getElementById('turnNo'),
+    phaseText: document.getElementById('phaseText'),
+    shipName: document.getElementById('shipName'),
+    shipClass: document.getElementById('shipClass'),
+    hullTxt: document.getElementById('hullTxt'),
+    shieldTxt: document.getElementById('shieldTxt'),
+    energyTxt: document.getElementById('energyTxt'),
+    apTxt: document.getElementById('apTxt'),
+    crewTxt: document.getElementById('crewTxt'),
+    facingTxt: document.getElementById('facingTxt'),
+    hullBar: document.getElementById('hullBar'),
+    shieldBar: document.getElementById('shieldBar'),
+    energyBar: document.getElementById('energyBar'),
+    statusPill: document.getElementById('statusPill'),
+    toast: document.getElementById('toast'),
+    confirmBar: document.getElementById('confirmBar'),
+    confirmMove: document.getElementById('confirmMove'),
+    cancelMove: document.getElementById('cancelMove'),
+    overlay: document.getElementById('overlay'),
+    modal: document.getElementById('modalContent'),
+    leftSide: document.getElementById('leftSide'),
+    rightSide: document.getElementById('rightSide')
+  };
+
+  let W=390,H=844,topSafe=72,bottomSafe=225,battlefield={x:8,y:72,w:374,h:540};
+  function resize(){
+    W=innerWidth;H=innerHeight;
+    canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    topSafe = 72;
+    bottomSafe = W<900 || H>W ? 220 : 108;
+    battlefield = {x:8,y:topSafe,w:W-16,h:Math.max(180,H-topSafe-bottomSafe)};
+  }
+  addEventListener('resize',resize); resize();
+
+  const state = {
+    turn:1, phase:'player', selected:null, target:null, mode:null,
+    pending:null, preview:null, busy:false, gameOver:false,
+    anims:[], particles:[], shake:0, rewards:{credits:0,salvage:0},
+    upgrades:{lance:0,shield:0,reactor:0}
+  };
+
+  function mkShip(o){
+    return Object.assign({
+      team:'player',
+      type:'cruiser',
+      class:'CRUISER',
+      name:'Ship',
+      x:.5,y:.5,angle:-Math.PI/2,
+      hull:120,maxHull:120,shield:70,maxShield:70,energy:70,maxEnergy:70,ap:3,maxAp:3,crew:300,maxCrew:300,
+      move:130, armor:.12, broadsideRange:220, lanceRange:300, torpedoRange:320, alive:true, shieldBoost:0
+    },o);
+  }
+
+  const ships = [];
+  function resetBattle(){
+    ships.length=0;
+    ships.push(
+      mkShip({id:'p1',team:'player',type:'cruiser',name:"Sovereign's Fury",class:'CRUISER',x:.42,y:.78,angle:-Math.PI/2,hull:140,maxHull:140,shield:100,maxShield:100,energy:80,maxEnergy:80,crew:360,maxCrew:360,move:135}),
+      mkShip({id:'p2',team:'player',type:'frigate',name:'Avenger of Light',class:'FRIGATE',x:.69,y:.82,angle:-Math.PI/2,hull:90,maxHull:90,shield:60,maxShield:60,energy:65,maxEnergy:65,crew:190,maxCrew:190,move:165,broadsideRange:185,lanceRange:245,torpedoRange:320}),
+      mkShip({id:'e1',team:'enemy',type:'cruiser',class:'ENEMY CRUISER',name:'Ashen Crown',x:.50,y:.23,angle:Math.PI/2,hull:125,maxHull:125,shield:85,maxShield:85,energy:70,maxEnergy:70,crew:330,maxCrew:330,move:125}),
+      mkShip({id:'e2',team:'enemy',type:'destroyer',class:'ENEMY DESTROYER',name:'Red Wake',x:.78,y:.28,angle:Math.PI/2,hull:95,maxHull:95,shield:55,maxShield:55,energy:60,maxEnergy:60,crew:210,maxCrew:210,move:150,broadsideRange:190,lanceRange:245,torpedoRange:300})
+    );
+    for(const s of ships.filter(s=>s.team==='player')){
+      s.maxShield += state.upgrades.shield*15; s.shield = s.maxShield;
+      s.maxEnergy += state.upgrades.reactor*12; s.energy = s.maxEnergy;
+    }
+    state.selected = ships[0];
+    state.target = null;
+    state.mode = null;
+    state.pending = null;
+    state.preview = null;
+    state.busy = false;
+    state.gameOver = false;
+    ui.confirmBar.classList.remove('show');
+    updateUI();
+    toast('Move a ship, set facing, then fire from the correct arc.');
+  }
+  resetBattle();
+
+  function px(s){return battlefield.x+s.x*battlefield.w}
+  function py(s){return battlefield.y+s.y*battlefield.h}
+  function toNorm(x,y){return {x:(x-battlefield.x)/battlefield.w,y:(y-battlefield.y)/battlefield.h}}
+  function dist(a,b){const dx=px(a)-px(b), dy=py(a)-py(b); return Math.hypot(dx,dy)}
+  function angleTo(a,b){return Math.atan2(py(b)-py(a), px(b)-px(a))}
+  function normAngle(a){while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a}
+  function arcDiff(a,b){return Math.abs(normAngle(a-b))}
+  function lerp(a,b,t){return a+(b-a)*t}
+  function lerpAngle(a,b,t){const d=normAngle(b-a); return a + d*t}
+  function bezier(p0,p1,p2,t){const u=1-t; return {x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x, y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y};}
+  function bezierTan(p0,p1,p2,t){return {x:2*(1-t)*(p1.x-p0.x)+2*t*(p2.x-p1.x), y:2*(1-t)*(p1.y-p0.y)+2*t*(p2.y-p1.y)}}
+  function alive(team){return ships.filter(s=>s.alive&&(!team||s.team===team))}
+  function facingLabel(a){
+    const d=((a*180/Math.PI)%360+360)%360;
+    if(d<22.5||d>=337.5)return 'E';
+    if(d<67.5)return 'SE'; if(d<112.5)return 'S'; if(d<157.5)return 'SW';
+    if(d<202.5)return 'W'; if(d<247.5)return 'NW'; if(d<292.5)return 'N'; return 'NE';
+  }
+
+  function toast(msg){
+    ui.toast.textContent = msg;
+    ui.toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>ui.toast.classList.remove('show'), 2400);
+  }
+
+  function setMode(m){
+    if(state.phase!=='player' || state.busy || state.gameOver) return;
+    state.mode = state.mode===m ? null : m;
+    state.pending = null;
+    state.preview = null;
+    ui.confirmBar.classList.remove('show');
+    syncActionHighlights();
+    if(m==='move') toast('Tap inside the blue circle, then drag around the ghost ship to set facing.');
+    if(m==='rotate') toast('Tap around the ship to rotate on the spot.');
+    if(m==='broadside') toast('Tap an enemy in the left or right broadside arc. Tap again to fire.');
+    if(m==='lance') toast('Tap an enemy in the forward lance arc. Tap again to fire.');
+    if(m==='torpedo') toast('Tap an enemy in the forward torpedo arc. Tap again to fire.');
+    if(m==='shield') doShield();
+  }
+
+  function syncActionHighlights(){
+    document.querySelectorAll('.act').forEach(b=>b.classList.toggle('active', b.dataset.action===state.mode));
+  }
+
+  document.querySelectorAll('.act').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.action)));
+  document.getElementById('endTurn').addEventListener('click', endPlayerTurn);
+  ui.cancelMove.addEventListener('click',()=>{state.pending=null;state.mode=null;ui.confirmBar.classList.remove('show');syncActionHighlights();updateUI();});
+  ui.confirmMove.addEventListener('click', confirmPending);
+  document.getElementById('help').addEventListener('click', showHelp);
+
+  function pointerPos(e){
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {x:t.clientX-r.left, y:t.clientY-r.top};
+  }
+
+  let draggingFacing = false;
+  canvas.addEventListener('pointerdown', e => {
+    if(state.gameOver || state.busy || state.phase!=='player') return;
+    const p = pointerPos(e);
+    handleTap(p);
+    if(state.pending) draggingFacing = true;
+  });
+  canvas.addEventListener('pointermove', e => {
+    if(!draggingFacing || !state.pending) return;
+    const p = pointerPos(e);
+    updatePendingFacing(p);
+  });
+  addEventListener('pointerup', ()=> draggingFacing = false);
+
+  function handleTap(p){
+    if(p.y<battlefield.y || p.y>battlefield.y+battlefield.h) return;
+    const s = state.selected;
+
+    if(state.pending){
+      updatePendingFacing(p);
+      ui.confirmBar.classList.add('show');
+      updateUI();
+      return;
+    }
+
+    const friendly = alive('player').find(sh=>Math.hypot(p.x-px(sh),p.y-py(sh)) < shipRadius(sh)*1.7);
+    if(friendly && !state.mode){
+      state.selected = friendly;
+      state.target = null;
+      state.preview = null;
+      updateUI();
+      return;
+    }
+
+    if(state.mode==='move' && s){
+      const d = Math.hypot(p.x-px(s), p.y-py(s));
+      if(d<=s.move && d>18){
+        const n = toNorm(p.x,p.y);
+        if(n.x>.03 && n.x<.97 && n.y>.04 && n.y<.96){
+          state.pending = {type:'move', x:n.x, y:n.y, angle:s.angle};
+          ui.confirmBar.classList.add('show');
+          updateUI();
+        }
+      }else{
+        toast('Destination is outside movement range.');
+      }
+      return;
+    }
+
+    if(state.mode==='rotate' && s){
+      state.pending = {type:'rotate', x:s.x, y:s.y, angle:Math.atan2(p.y-py(s), p.x-px(s))};
+      ui.confirmBar.classList.add('show');
+      updateUI();
+      return;
+    }
+
+    const enemy = alive('enemy').find(sh=>Math.hypot(p.x-px(sh), p.y-py(sh)) < shipRadius(sh)*1.85);
+    if(enemy && ['broadside','lance','torpedo'].includes(state.mode)){
+      state.target = enemy;
+      handleAttackTarget(state.mode, s, enemy);
+      return;
+    }
+    if(enemy && !state.mode){
+      state.target = enemy;
+      state.preview = null;
+      updateUI();
+    }
+  }
+
+  function updatePendingFacing(p){
+    if(!state.pending) return;
+    const gx = battlefield.x + state.pending.x*battlefield.w;
+    const gy = battlefield.y + state.pending.y*battlefield.h;
+    state.pending.angle = Math.atan2(p.y-gy, p.x-gx);
+    updateUI();
+  }
+
+  function confirmPending(){
+    if(!state.pending || !state.selected || state.busy) return;
+    const s = state.selected;
+    const p = state.pending;
+    if(p.type==='move'){
+      if(s.ap<1){ toast('Not enough AP.'); return; }
+      s.ap -= 1; s.energy = Math.max(0, s.energy-4);
+      state.busy = true;
+      animateMove(s, {x:s.x,y:s.y,angle:s.angle}, {x:p.x,y:p.y,angle:p.angle}).then(()=>{
+        state.busy = false;
+        state.pending = null;
+        state.mode = null;
+        ui.confirmBar.classList.remove('show');
+        syncActionHighlights();
+        updateUI();
+      });
+    }else{
+      if(s.ap<1){ toast('Not enough AP.'); return; }
+      s.ap -= 1;
+      state.busy = true;
+      animateRotate(s, s.angle, p.angle, 260).then(()=>{
+        state.busy = false;
+        state.pending = null;
+        state.mode = null;
+        ui.confirmBar.classList.remove('show');
+        syncActionHighlights();
+        updateUI();
+      });
+    }
+    updateUI();
+  }
+
+  function handleAttackTarget(kind, s, t){
+    if(!s || !t) return;
+    const prev = state.preview;
+    if(prev && prev.kind===kind && prev.target===t){
+      tryAttack(kind, s, t, prev);
+      return;
+    }
+    const validity = validAttack(kind,s,t);
+    if(!validity.ok){ toast(validity.reason); state.preview = null; updateUI(); return; }
+    state.preview = buildPreview(kind,s,t);
+    updateUI();
+    toast('Preview shown. Tap the same target again to fire.');
+  }
+
+  function validAttack(kind,s,t){
+    const d = dist(s,t);
+    const a = angleTo(s,t);
+    if(kind==='broadside'){
+      const leftOk = arcDiff(a,s.angle-Math.PI/2) < Math.PI*.31;
+      const rightOk = arcDiff(a,s.angle+Math.PI/2) < Math.PI*.31;
+      if(d>s.broadsideRange) return {ok:false,reason:'Target is outside broadside range.'};
+      if(!(leftOk || rightOk)) return {ok:false,reason:'Target is not inside either broadside arc.'};
+      return {ok:true};
+    }
+    if(kind==='lance'){
+      if(d>s.lanceRange) return {ok:false,reason:'Target is outside lance range.'};
+      if(arcDiff(a,s.angle) > Math.PI*.29) return {ok:false,reason:'Target is outside the forward lance arc.'};
+      return {ok:true};
+    }
+    if(kind==='torpedo'){
+      if(d>s.torpedoRange) return {ok:false,reason:'Target is outside torpedo range.'};
+      if(arcDiff(a,s.angle) > Math.PI*.34) return {ok:false,reason:'Target is outside the forward torpedo arc.'};
+      return {ok:true};
+    }
+    return {ok:false,reason:'Invalid action.'};
+  }
+
+  function buildPreview(kind,s,t){
+    const d = dist(s,t);
+    let hit = kind==='lance' ? 92 : kind==='broadside' ? 84 : 78;
+    hit -= Math.min(20, Math.floor((d / (kind==='broadside'?s.broadsideRange:s[kind+'Range'])) * 18));
+    if(kind==='broadside') hit += 4;
+    hit = Math.max(45, Math.min(97, hit));
+    const base = kind==='lance' ? 38 + state.upgrades.lance*7 : kind==='torpedo' ? 45 : 30;
+    const shieldLo = kind==='lance' ? Math.round(base*1.0) : Math.round(base*.65);
+    const shieldHi = kind==='lance' ? Math.round(base*1.35) : Math.round(base*.95);
+    const hullLo = kind==='torpedo' ? Math.round(base*.55) : kind==='broadside' ? Math.round(base*.7) : Math.round(base*.45);
+    const hullHi = kind==='torpedo' ? Math.round(base*.9) : kind==='broadside' ? Math.round(base*1.15) : Math.round(base*.8);
+    return {kind, attacker:s, target:t, hit, shieldLo, shieldHi, hullLo, hullHi};
+  }
+
+  function tryAttack(kind,s,t,preview){
+    const apCost = 2;
+    const energyCost = kind==='lance' ? 18 : kind==='torpedo' ? 10 : 8;
+    if(s.ap<apCost){ toast('Not enough AP.'); return; }
+    if(s.energy<energyCost){ toast('Not enough Energy.'); return; }
+    const validity = validAttack(kind,s,t);
+    if(!validity.ok){ toast(validity.reason); return; }
+
+    s.ap -= apCost;
+    s.energy -= energyCost;
+    state.busy = true;
+    state.preview = null;
+    updateUI();
+
+    const hitRoll = Math.random()*100;
+    const willHit = hitRoll <= preview.hit;
+    const intercepted = kind==='torpedo' && willHit && Math.random() < 0.18;
+
+    let attackPromise;
+    if(kind==='lance') attackPromise = animateLance(s,t);
+    else if(kind==='torpedo') attackPromise = animateTorpedo(s,t);
+    else attackPromise = animateBroadside(s,t);
+
+    attackPromise.then(() => {
+      if(intercepted){
+        toast('Torpedo intercepted by point defence.');
+      }else if(!willHit){
+        toast(kind.toUpperCase()+': missed');
+      }else{
+        const base = kind==='lance' ? 38 + state.upgrades.lance*7 : kind==='torpedo' ? 45 : 30 + Math.floor(Math.random()*9);
+        applyDamage(t, base, kind);
+      }
+      state.busy = false;
+      state.mode = null;
+      syncActionHighlights();
+      updateUI();
+      checkEnd();
+    });
+  }
+
+  function applyDamage(t, base, kind){
+    let dmg = base;
+    let shieldD = 0, hullD = 0;
+    const shieldMul = kind==='lance' ? 1.35 : 1;
+    if(t.shield>0){
+      shieldD = Math.min(t.shield, Math.round(dmg*shieldMul));
+      t.shield -= shieldD;
+      dmg = Math.max(0, dmg - Math.round(shieldD / shieldMul));
+    }
+    if(dmg>0){
+      hullD = Math.max(1, Math.round(dmg*(1-t.armor)));
+      t.hull -= hullD;
+    }
+    addImpactBurst(px(t), py(t), kind==='lance' ? '#d46dff' : '#ff9d4c', 10);
+    state.shake = Math.max(state.shake, kind==='broadside' ? 6 : kind==='torpedo' ? 7 : 4);
+    if(t.hull<=0){
+      t.hull = 0;
+      t.alive = false;
+      explode(t);
+    }
+    toast(`${kind.toUpperCase()}: ${shieldD ? shieldD+' shield' : ''}${shieldD && hullD ? ' + ' : ''}${hullD ? hullD+' hull' : ''}${!shieldD && !hullD ? 'no damage' : ''}`);
+  }
+
+  function doShield(){
+    const s = state.selected;
+    if(!s) return;
+    if(s.ap<1 || s.energy<10){ toast('Need 1 AP and 10 Energy.'); state.mode=null; syncActionHighlights(); return; }
+    s.ap -= 1;
+    s.energy -= 10;
+    s.shield = Math.min(s.maxShield, s.shield + 24);
+    s.shieldBoost = 1;
+    state.mode = null;
+    syncActionHighlights();
+    updateUI();
+    toast('Shield reinforced.');
+  }
+
+  function endPlayerTurn(){
+    if(state.phase!=='player' || state.busy || state.gameOver) return;
+    state.phase = 'enemy';
+    state.mode = null;
+    state.pending = null;
+    state.preview = null;
+    ui.confirmBar.classList.remove('show');
+    syncActionHighlights();
+    disableActions(true);
+    updateUI();
+    setTimeout(enemyTurn, 300);
+  }
+
+  async function enemyTurn(){
+    for(const s of alive('enemy')){
+      if(!alive('player').length) break;
+      s.ap = Math.max(0,s.ap);
+      const t = alive('player').slice().sort((a,b)=>dist(s,a)-dist(s,b))[0];
+      const d = dist(s,t), a = angleTo(s,t);
+
+      if(s.ap>=1 && d > Math.min(s.broadsideRange, s.lanceRange)*.8){
+        const step = Math.min(s.move*.68, d-170);
+        const nx = px(s) + Math.cos(a)*step;
+        const ny = py(s) + Math.sin(a)*step;
+        const n = toNorm(nx,ny);
+        s.ap -= 1;
+        await animateMove(s, {x:s.x,y:s.y,angle:s.angle}, {x:Math.max(.05,Math.min(.95,n.x)), y:Math.max(.05,Math.min(.95,n.y)), angle:a});
+      } else {
+        await animateRotate(s, s.angle, a - Math.PI/2, 260);
+      }
+
+      if(!t.alive) continue;
+
+      if(s.ap>=2){
+        let kind = null;
+        if(validAttack('broadside',s,t).ok) kind = 'broadside';
+        else if(validAttack('lance',s,t).ok) kind = 'lance';
+        else if(validAttack('torpedo',s,t).ok) kind = 'torpedo';
+
+        if(kind){
+          s.ap -= 2;
+          s.energy -= kind==='lance'?18:kind==='torpedo'?10:8;
+          if(kind==='lance') await animateLance(s,t);
+          else if(kind==='torpedo') await animateTorpedo(s,t);
+          else await animateBroadside(s,t);
+          applyDamage(t, kind==='lance'?34:kind==='torpedo'?42:28+Math.floor(Math.random()*8), kind);
+          await wait(220);
+        }
+      }
+      if(!alive('player').length) break;
+    }
+
+    checkEnd();
+    if(state.gameOver) return;
+
+    state.turn++;
+    state.phase = 'player';
+    for(const s of alive()){
+      s.ap = s.maxAp;
+      s.energy = Math.min(s.maxEnergy, s.energy + 16);
+      s.shield = Math.min(s.maxShield, s.shield + (s.shieldBoost ? 4 : 8));
+      s.shieldBoost = 0;
+    }
+    if(!state.selected?.alive) state.selected = alive('player')[0];
+    disableActions(false);
+    updateUI();
+    toast('Your turn.');
+  }
+
+  function disableActions(v){
+    document.querySelectorAll('.act').forEach(b=>b.disabled=v);
+    document.getElementById('endTurn').disabled=v;
+  }
+  function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+
+  function animateMove(ship, from, to){
+    return new Promise(resolve=>{
+      const p0 = {x:from.x, y:from.y};
+      const p2 = {x:to.x, y:to.y};
+      const mx = (p0.x + p2.x)/2;
+      const my = (p0.y + p2.y)/2;
+      const dx = p2.x - p0.x, dy = p2.y - p0.y;
+      const len = Math.hypot(dx,dy) || 0.001;
+      const nx = -dy/len, ny = dx/len;
+      const curve = Math.min(0.05, 0.018 + len*0.08);
+      const p1 = {x:mx + nx*curve, y:my + ny*curve};
+      state.anims.push({type:'move', ship, p0,p1,p2, fromAngle:from.angle, toAngle:to.angle, start:performance.now(), dur1:760, dur2:260, phase:1, resolve});
+    });
+  }
+
+  function animateRotate(ship, fromAngle, toAngle, dur=260){
+    return new Promise(resolve=>{
+      state.anims.push({type:'rotate', ship, fromAngle, toAngle, start:performance.now(), dur, resolve});
+    });
+  }
+
+  function animateLance(a,b){
+    return new Promise(resolve=>{
+      state.anims.push({type:'lance', x1:px(a), y1:py(a), x2:px(b), y2:py(b), start:performance.now(), dur:420, resolve});
+    });
+  }
+
+  function animateTorpedo(a,b){
+    return new Promise(resolve=>{
+      state.anims.push({type:'torpedo', x1:px(a), y1:py(a), x2:px(b), y2:py(b), start:performance.now(), dur:760, resolve});
+    });
+  }
+
+  function animateBroadside(a,b){
+    return new Promise(resolve=>{
+      const left = arcDiff(angleTo(a,b), a.angle - Math.PI/2) < arcDiff(angleTo(a,b), a.angle + Math.PI/2);
+      const sideAngle = a.angle + (left ? -Math.PI/2 : Math.PI/2);
+      const sx = px(a), sy = py(a);
+      const startPoints = [];
+      for(let i=0;i<6;i++){
+        const spread = (i-2.5)*5;
+        startPoints.push({
+          x:sx + Math.cos(sideAngle)*8 + Math.cos(a.angle)*spread,
+          y:sy + Math.sin(sideAngle)*8 + Math.sin(a.angle)*spread
+        });
+      }
+      state.anims.push({type:'broadside', starts:startPoints, x2:px(b), y2:py(b), start:performance.now(), dur:560, resolve});
+    });
+  }
+
+  function explode(s){
+    addImpactBurst(px(s), py(s), '#ff9d4c', 24, true);
+  }
+
+  function addImpactBurst(x,y,color,count,big=false){
+    for(let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = (big?1.4:0.9) + Math.random()*(big?3.6:2.2);
+      state.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:1+Math.random()*(big?3.2:2.2),life:.9+Math.random()*.5,color,drag:.985});
+    }
+  }
+
+  function shipRadius(s){
+    return s.type==='frigate' ? 18 : s.type==='destroyer' ? 21 : 25;
+  }
+
+  function update(now){
+    state.shake *= 0.9;
+    // low hull smoke
+    for(const s of alive()){
+      if(s.hull/s.maxHull < 0.5 && Math.random() < 0.22){
+        const x = px(s) - 4 + Math.random()*8;
+        const y = py(s) - 3 + Math.random()*6;
+        state.particles.push({x,y,vx:(Math.random()-.5)*.35,vy:-0.5-Math.random()*.45,r:2+Math.random()*4,life:.55+Math.random()*.35,color:'rgba(120,126,136,.7)',drag:.99,smoke:true});
+      }
+      if(s.hull/s.maxHull < 0.25 && Math.random() < 0.08){
+        const x = px(s), y = py(s);
+        state.particles.push({x,y,vx:(Math.random()-.5)*1.1,vy:(Math.random()-.5)*1.1,r:1+Math.random()*2,life:.45+Math.random()*.2,color:'#ff9d4c',drag:.96});
+      }
+    }
+
+    state.anims = state.anims.filter(anim=>{
+      if(anim.type==='move'){
+        if(anim.phase===1){
+          const p = Math.min(1, (now-anim.start)/anim.dur1);
+          const pos = bezier(anim.p0, anim.p1, anim.p2, p);
+          anim.ship.x = pos.x; anim.ship.y = pos.y;
+          const tan = bezierTan(anim.p0, anim.p1, anim.p2, p);
+          const travelAngle = Math.atan2(tan.y, tan.x);
+          anim.travelAngle = travelAngle;
+          anim.ship.angle = lerpAngle(anim.fromAngle, travelAngle, Math.min(1,p*1.25));
+          if(Math.random() < 0.5){
+            const ex = px(anim.ship) - Math.cos(anim.ship.angle)*shipRadius(anim.ship)*0.9;
+            const ey = py(anim.ship) - Math.sin(anim.ship.angle)*shipRadius(anim.ship)*0.9;
+            state.particles.push({x:ex,y:ey,vx:-Math.cos(anim.ship.angle)*1.2+(Math.random()-.5)*.6,vy:-Math.sin(anim.ship.angle)*1.2+(Math.random()-.5)*.6,r:1+Math.random()*2,life:.35+Math.random()*.2,color:anim.ship.team==='player'?'#64c6ff':'#ff6d66',drag:.96});
+          }
+          if(p>=1){ anim.phase=2; anim.start=now; }
+          return true;
+        } else {
+          const p = Math.min(1, (now-anim.start)/anim.dur2);
+          anim.ship.angle = lerpAngle(anim.travelAngle || anim.fromAngle, anim.toAngle, p);
+          if(p>=1){
+            anim.ship.x = anim.p2.x; anim.ship.y = anim.p2.y; anim.ship.angle = anim.toAngle;
+            anim.resolve && anim.resolve(); return false;
+          }
+          return true;
+        }
+      }
+
+      if(anim.type==='rotate'){
+        const p = Math.min(1, (now-anim.start)/anim.dur);
+        anim.ship.angle = lerpAngle(anim.fromAngle, anim.toAngle, p);
+        if(p>=1){ anim.ship.angle = anim.toAngle; anim.resolve && anim.resolve(); return false; }
+        return true;
+      }
+
+      if(anim.type==='lance'){
+        const p = Math.min(1, (now-anim.start)/anim.dur);
+        anim.p = p;
+        if(p>=1){ anim.resolve && anim.resolve(); return false; }
+        return true;
+      }
+
+      if(anim.type==='torpedo'){
+        const p = Math.min(1, (now-anim.start)/anim.dur);
+        anim.p = p;
+        if(p>0.92 && !anim.burst){ addImpactBurst(anim.x2, anim.y2, '#ff9d4c', 8); anim.burst=true; }
+        if(p>=1){ anim.resolve && anim.resolve(); return false; }
+        return true;
+      }
+
+      if(anim.type==='broadside'){
+        const p = Math.min(1, (now-anim.start)/anim.dur);
+        anim.p = p;
+        if(p>0.55 && !anim.burst1){ addImpactBurst(anim.x2, anim.y2, '#ff9d4c', 6); anim.burst1=true; }
+        if(p>0.78 && !anim.burst2){ addImpactBurst(anim.x2+4, anim.y2-3, '#ff9d4c', 5); anim.burst2=true; }
+        if(p>=1){ anim.resolve && anim.resolve(); return false; }
+        return true;
+      }
+
+      return false;
+    });
+
+    state.particles = state.particles.filter(p=>{
+      p.life -= p.smoke ? 0.010 : 0.02;
+      if(p.life<=0) return false;
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= p.drag || .98; p.vy *= p.drag || .98;
+      if(p.smoke) p.r += .08;
+      return true;
+    });
+  }
+
+  function drawBackground(){
+    const g = ctx.createRadialGradient(W*.2,H*.28,20,W*.2,H*.28,Math.max(W,H)*.8);
+    g.addColorStop(0,'#171022'); g.addColorStop(.28,'#0c111a'); g.addColorStop(1,'#030509');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<4;i++){
+      const x=W*(.15+i*.27), y=battlefield.y+battlefield.h*(.15+(i%2)*.45);
+      const rg=ctx.createRadialGradient(x,y,0,x,y,Math.max(100,W*.38));
+      rg.addColorStop(0, i%2 ? 'rgba(31,77,107,.14)' : 'rgba(92,31,91,.12)');
+      rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+    }
+    for(let i=0;i<115;i++){
+      const x=(Math.sin(i*91.7+1337)*.5+.5)*W;
+      const y=battlefield.y+(Math.sin(i*47.3+2.4)*.5+.5)*battlefield.h;
+      const r=(i%17===0)?1.2:.55;
+      ctx.fillStyle=i%11===0?'rgba(173,211,255,.65)':'rgba(255,255,255,.42)';
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    }
+    [[.12,.62,9],[.87,.55,7],[.21,.18,5],[.65,.47,4],[.92,.20,6]].forEach(a=>{
+      const x=battlefield.x+a[0]*battlefield.w,y=battlefield.y+a[1]*battlefield.h,r=a[2];
+      ctx.fillStyle='#1a1c20';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(140,147,158,.18)';ctx.stroke();
+    });
+  }
+
+  function drawShip(s, ghost=false){
+    if(!s.alive) return;
+    const x=px(s), y=py(s), r=shipRadius(s);
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(s.angle);
+    ctx.globalAlpha = ghost ? 0.42 : 1;
+
+    if(s===state.selected && !ghost){
+      ctx.shadowColor='#63baff'; ctx.shadowBlur=18;
+      ctx.strokeStyle='rgba(99,186,255,.92)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.ellipse(0,0,r*1.1,r*1.48,0,0,Math.PI*2); ctx.stroke();
+      ctx.shadowBlur=0;
+    }
+
+    if(s.shield>0 && !ghost){
+      const ratio = s.shield/s.maxShield;
+      ctx.strokeStyle = s.team==='player' ? `rgba(88,173,255,${0.12+0.23*ratio})` : `rgba(239,93,104,${0.10+0.20*ratio})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0,0,r*1.12,r*1.48,0,0,Math.PI*2); ctx.stroke();
+    }
+
+    const friendly = s.team==='player';
+    const hullFill = friendly ? '#d0c3a5' : '#4d5158';
+    const trim = friendly ? '#8b7444' : '#8d333a';
+
+    ctx.fillStyle = hullFill;
+    ctx.strokeStyle = trim;
+    ctx.lineWidth = 1.2;
+
+    if(s.type==='frigate'){
+      ctx.beginPath();
+      ctx.moveTo(r*1.32,0);
+      ctx.lineTo(r*.18,-r*.34);
+      ctx.lineTo(-r*.92,-r*.26);
+      ctx.lineTo(-r*1.08,0);
+      ctx.lineTo(-r*.92,r*.26);
+      ctx.lineTo(r*.18,r*.34);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = friendly ? '#9b8967' : '#2f3339';
+      ctx.fillRect(-r*.48,-r*.07,r*1.0,r*.14);
+    } else if(s.type==='destroyer'){
+      ctx.beginPath();
+      ctx.moveTo(r*1.18,0);
+      ctx.lineTo(r*.48,-r*.42);
+      ctx.lineTo(-r*.18,-r*.34);
+      ctx.lineTo(-r*1.0,-r*.18);
+      ctx.lineTo(-r*.88,r*.18);
+      ctx.lineTo(-r*.18,r*.34);
+      ctx.lineTo(r*.48,r*.42);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = friendly ? '#9b8967' : '#2f3339';
+      ctx.fillRect(-r*.25,-r*.1,r*.9,r*.2);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(r*1.22,0);
+      ctx.lineTo(r*.55,-r*.42);
+      ctx.lineTo(-r*.38,-r*.48);
+      ctx.lineTo(-r*.94,-r*.26);
+      ctx.lineTo(-r*1.1,0);
+      ctx.lineTo(-r*.94,r*.26);
+      ctx.lineTo(-r*.38,r*.48);
+      ctx.lineTo(r*.55,r*.42);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = friendly ? '#8d7e60' : '#2c3036';
+      ctx.fillRect(-r*.6,-r*.1,r*1.45,r*.2);
+      ctx.fillStyle = friendly ? '#b99650' : '#7b3338';
+      for(let i=-1;i<=1;i++){
+        ctx.fillRect(-r*.25+i*r*.28,-r*.55,3,5);
+        ctx.fillRect(-r*.25+i*r*.28,r*.50,3,5);
+      }
+    }
+
+    ctx.fillStyle = friendly ? '#e6d8b9' : '#7a7e86';
+    ctx.beginPath();
+    ctx.moveTo(r*1.24,0);
+    ctx.lineTo(r*.82,-r*.18);
+    ctx.lineTo(r*.82,r*.18);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = friendly ? '#64c6ff' : '#ff6d66';
+    ctx.fillRect(-r*1.06,-r*.12,4,r*.24);
+
+    // damage flicker
+    if(!ghost && s.hull/s.maxHull < 0.35){
+      ctx.fillStyle='rgba(255,163,84,.45)';
+      ctx.beginPath(); ctx.arc(-r*.1,0,3,0,Math.PI*2); ctx.fill();
+    }
+
+    ctx.restore();
+
+    if(!ghost){
+      const bw=r*2.2, bx=x-bw/2, by=y+r*1.58;
+      ctx.fillStyle='rgba(0,0,0,.76)'; ctx.fillRect(bx,by,bw,5);
+      ctx.fillStyle=s.team==='player' ? '#65d58e' : '#ef646b'; ctx.fillRect(bx,by,bw*Math.max(0,s.hull/s.maxHull),2);
+      ctx.fillStyle=s.team==='player' ? '#55aef1' : '#b25b70'; ctx.fillRect(bx,by+3,bw*Math.max(0,s.shield/s.maxShield),2);
+    }
+  }
+
+  function drawOverlays(){
+    const s = state.selected;
+    if(!s || !s.alive) return;
+    const x = px(s), y = py(s);
+
+    if(['broadside','lance','torpedo'].includes(state.mode)){
+      if(state.mode==='broadside'){
+        drawFan(x,y,s.angle-Math.PI/2,Math.PI*.62,s.broadsideRange,'rgba(79,169,245,.13)','rgba(91,183,255,.5)');
+        drawFan(x,y,s.angle+Math.PI/2,Math.PI*.62,s.broadsideRange,'rgba(79,169,245,.13)','rgba(91,183,255,.5)');
+      }else{
+        const range = state.mode==='lance' ? s.lanceRange : s.torpedoRange;
+        const fill = state.mode==='lance' ? 'rgba(210,87,255,.12)' : 'rgba(255,151,67,.10)';
+        const stroke = state.mode==='lance' ? 'rgba(210,108,255,.5)' : 'rgba(255,157,76,.45)';
+        drawFan(x,y,s.angle,Math.PI*.58,range,fill,stroke);
+      }
+    }
+
+    if(state.mode==='move' || state.pending){
+      ctx.strokeStyle='rgba(91,183,255,.5)';
+      ctx.lineWidth=1.25; ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.arc(x,y,s.move,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(91,183,255,.06)';
+      ctx.beginPath(); ctx.arc(x,y,s.move,0,Math.PI*2); ctx.fill();
+    }
+
+    if(state.pending){
+      const p = state.pending;
+      const gx = battlefield.x+p.x*battlefield.w;
+      const gy = battlefield.y+p.y*battlefield.h;
+      const ghost = Object.assign({}, s, {x:p.x,y:p.y,angle:p.angle});
+      ctx.strokeStyle='rgba(137,213,255,.9)';
+      ctx.lineWidth=2; ctx.setLineDash([7,5]);
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo((x+gx)/2, (y+gy)/2-24, gx, gy); ctx.stroke(); ctx.setLineDash([]);
+      drawShip(ghost, true);
+      // facing ring & handle
+      ctx.strokeStyle='rgba(118,229,154,.6)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.arc(gx,gy,34,0,Math.PI*2); ctx.stroke();
+      const hx = gx + Math.cos(p.angle)*34;
+      const hy = gy + Math.sin(p.angle)*34;
+      ctx.fillStyle='#76e59a'; ctx.beginPath(); ctx.arc(hx,hy,7,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#76e59a'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(hx,hy); ctx.stroke();
+      // live arcs on ghost
+      if(p.type==='move'){
+        drawFan(gx,gy,p.angle-Math.PI/2,Math.PI*.62,s.broadsideRange,'rgba(79,169,245,.08)','rgba(91,183,255,.25)');
+        drawFan(gx,gy,p.angle+Math.PI/2,Math.PI*.62,s.broadsideRange,'rgba(79,169,245,.08)','rgba(91,183,255,.25)');
+        drawFan(gx,gy,p.angle,Math.PI*.58,s.lanceRange,'rgba(210,87,255,.05)','rgba(210,108,255,.22)');
+      }
+    }
+
+    if(state.target && state.target.alive){
+      const t=state.target;
+      ctx.strokeStyle='rgba(239,93,104,.95)';
+      ctx.lineWidth=1.4; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.arc(px(t),py(t),shipRadius(t)*1.65,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    if(state.preview && state.preview.target.alive){
+      const pv = state.preview;
+      drawPreviewCard(pv, px(pv.target), py(pv.target)-58);
+    }
+  }
+
+  function drawFan(x,y,a,width,range,fill,stroke){
+    ctx.fillStyle=fill; ctx.strokeStyle=stroke; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.arc(x,y,range,a-width/2,a+width/2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+
+  function drawPreviewCard(pv, x, y){
+    const w=132,h=58;
+    const bx=Math.max(8, Math.min(W-w-8, x-w/2));
+    const by=Math.max(battlefield.y+6, y-h);
+    ctx.fillStyle='rgba(8,11,17,.96)'; ctx.strokeStyle='rgba(182,150,88,.42)'; ctx.lineWidth=1;
+    roundRect(ctx,bx,by,w,h,8,true,true);
+    ctx.fillStyle='#dbcaa2'; ctx.font='bold 10px Georgia';
+    ctx.fillText(pv.kind.toUpperCase()+' PREVIEW', bx+8, by+13);
+    ctx.fillStyle='#dce8f4'; ctx.font='10px Inter, sans-serif';
+    ctx.fillText('Hit: '+pv.hit+'%', bx+8, by+27);
+    ctx.fillText('Shield: '+pv.shieldLo+'-'+pv.shieldHi, bx+8, by+40);
+    ctx.fillText('Hull: '+pv.hullLo+'-'+pv.hullHi, bx+74, by+40);
+    ctx.fillStyle='#8ecfff'; ctx.fillText('Tap again to fire', bx+8, by+53);
+  }
+
+  function roundRect(ctx,x,y,w,h,r,fill,stroke){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    if(fill) ctx.fill();
+    if(stroke) ctx.stroke();
+  }
+
+  function drawEffects(now){
+    for(const anim of state.anims){
+      if(anim.type==='lance'){
+        const p = anim.p || 0;
+        ctx.strokeStyle=`rgba(214,109,255,${1-p*.65})`;
+        ctx.lineWidth=3.7;
+        ctx.shadowColor='#d66dff'; ctx.shadowBlur=12;
+        ctx.beginPath(); ctx.moveTo(anim.x1,anim.y1); ctx.lineTo(anim.x2,anim.y2); ctx.stroke();
+        ctx.shadowBlur=0;
+      } else if(anim.type==='torpedo'){
+        const p = anim.p || 0;
+        const x = lerp(anim.x1, anim.x2, p);
+        const y = lerp(anim.y1, anim.y2, p);
+        ctx.strokeStyle='rgba(210,220,225,.45)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(anim.x1,anim.y1); ctx.lineTo(x,y); ctx.stroke();
+        ctx.fillStyle='#ffad5d'; ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fill();
+      } else if(anim.type==='broadside'){
+        const p = anim.p || 0;
+        ctx.strokeStyle='rgba(255,161,75,.95)';
+        for(let i=0;i<anim.starts.length;i++){
+          const st = anim.starts[i];
+          const delay = i * 0.06;
+          const tp = Math.max(0, Math.min(1, (p-delay) / 0.42));
+          if(tp<=0) continue;
+          ctx.lineWidth = 1.8 + (i%2)*0.4;
+          ctx.beginPath();
+          ctx.moveTo(st.x, st.y);
+          ctx.lineTo(lerp(st.x, anim.x2, tp), lerp(st.y, anim.y2, tp));
+          ctx.stroke();
+        }
+      }
+    }
+    for(const p of state.particles){
+      ctx.globalAlpha = Math.max(0,p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function render(now=performance.now()){
+    update(now);
+    drawBackground();
+    ctx.save();
+    if(state.shake>0){
+      const sx = (Math.random()-.5)*state.shake;
+      const sy = (Math.random()-.5)*state.shake;
+      ctx.translate(sx,sy);
+    }
+    drawOverlays();
+    ships.forEach(s=>drawShip(s));
+    drawEffects(now);
+    ctx.restore();
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+
+  function checkEnd(){
+    if(!alive('enemy').length){
+      state.gameOver = true;
+      setTimeout(showVictory, 500);
+    } else if(!alive('player').length){
+      state.gameOver = true;
+      setTimeout(showDefeat, 500);
+    }
+  }
+
+  function updateUI(){
+    const s = state.selected && state.selected.alive ? state.selected : alive('player')[0];
+    if(!s) return;
+    state.selected = s;
+    ui.shipName.textContent = s.name;
+    ui.shipClass.textContent = s.class;
+    ui.hullTxt.textContent = `${Math.ceil(s.hull)}/${s.maxHull}`;
+    ui.shieldTxt.textContent = `${Math.ceil(s.shield)}/${s.maxShield}`;
+    ui.energyTxt.textContent = `${Math.ceil(s.energy)}/${s.maxEnergy}`;
+    ui.apTxt.textContent = `${s.ap}/${s.maxAp}`;
+    ui.crewTxt.textContent = `${s.crew}/${s.maxCrew}`;
+    ui.facingTxt.textContent = facingLabel(s.angle);
+    ui.hullBar.style.width = (100*s.hull/s.maxHull)+'%';
+    ui.shieldBar.style.width = (100*s.shield/s.maxShield)+'%';
+    ui.energyBar.style.width = (100*s.energy/s.maxEnergy)+'%';
+    ui.statusPill.textContent = state.busy ? 'ANIMATING' : state.pending ? 'PLANNING' : state.mode ? state.mode.toUpperCase() : 'READY';
+    ui.turnNo.textContent = state.turn;
+    ui.phaseText.textContent = state.phase==='player' ? 'PLAYER PHASE' : 'ENEMY PHASE';
+
+    if(ui.leftSide){
+      ui.leftSide.innerHTML = `<h3>${s.name}</h3>
+        <div class="row"><span>Class</span><b>${s.class}</b></div>
+        <div class="row"><span>Hull</span><b>${Math.ceil(s.hull)}/${s.maxHull}</b></div>
+        <div class="row"><span>Shield</span><b>${Math.ceil(s.shield)}/${s.maxShield}</b></div>
+        <div class="row"><span>Energy</span><b>${Math.ceil(s.energy)}/${s.maxEnergy}</b></div>
+        <div class="row"><span>AP</span><b>${s.ap}/${s.maxAp}</b></div>
+        <div class="row"><span>Facing</span><b>${facingLabel(s.angle)}</b></div>`;
+      const t = state.target;
+      ui.rightSide.innerHTML = t ? `<h3>${t.name}</h3>
+        <div class="row"><span>Class</span><b>${t.class}</b></div>
+        <div class="row"><span>Hull</span><b>${Math.ceil(t.hull)}/${t.maxHull}</b></div>
+        <div class="row"><span>Shield</span><b>${Math.ceil(t.shield)}/${t.maxShield}</b></div>
+        <div class="row"><span>Status</span><b>${t.hull/t.maxHull<0.35 ? 'CRITICAL' : t.hull/t.maxHull<0.7 ? 'DAMAGED' : 'ACTIVE'}</b></div>` :
+        `<h3>Target</h3><div class="row"><span>Status</span><b>None</b></div>`;
+    }
+  }
+
+  function showHelp(){
+    ui.overlay.classList.add('show');
+    ui.modal.innerHTML = `<h2>HOW TO PLAY</h2>
+      <p><b>1.</b> Tap a player ship to select it.</p>
+      <p><b>2.</b> Tap <b>MOVE</b>, choose a destination in the blue circle, then drag around the ghost ship to set its facing. Confirm to watch the ship actually move into position.</p>
+      <p><b>3.</b> <b>Broadside</b> attacks only work from the left or right side arcs. <b>Lance</b> and <b>Torpedo</b> attacks fire from the forward arc.</p>
+      <p><b>4.</b> Tap an enemy once to see the attack preview. Tap the same target again to fire.</p>
+      <button class="primary" id="closeHelp">RETURN TO BATTLE</button>`;
+    document.getElementById('closeHelp').onclick = ()=>ui.overlay.classList.remove('show');
+  }
+
+  function showVictory(){
+    state.rewards.credits = 1000;
+    state.rewards.salvage = 220;
+    ui.overlay.classList.add('show');
+    ui.modal.innerHTML = `<h2>MISSION COMPLETE</h2>
+      <p>The enemy formation has been broken. Salvage crews recover useful technology from the wrecks.</p>
+      <div class="resultStats"><div><span>CREDITS</span><b>+1,000</b></div><div><span>SALVAGE</span><b>+220</b></div></div>
+      <button class="primary" id="openUpgrades">OPEN SHIPYARD</button>`;
+    document.getElementById('openUpgrades').onclick = showUpgrades;
+  }
+
+  function showDefeat(){
+    ui.overlay.classList.add('show');
+    ui.modal.innerHTML = `<h2>FLEET LOST</h2>
+      <p>Your formation collapsed. Use facing more carefully and try to bring broadsides to bear before exposing damaged ships.</p>
+      <button class="primary" id="retry">RETRY MISSION</button>`;
+    document.getElementById('retry').onclick = ()=>{
+      ui.overlay.classList.remove('show');
+      state.turn = 1;
+      resetBattle();
+    };
+  }
+
+  function showUpgrades(){
+    ui.modal.innerHTML = `<h2>SHIPYARD</h2>
+      <p>Choose one persistent upgrade. This remains intentionally small so the prototype proves the combat → reward → upgrade loop without exploding scope.</p>
+      <div class="upgrades">
+        <div class="upgrade"><b>Lance Focusing Array</b><small>+7 lance damage per level. Pushes your cruiser toward a stronger precision build.</small><button data-up="lance">INSTALL</button></div>
+        <div class="upgrade"><b>Reinforced Void Shield</b><small>+15 maximum shields on each player ship per level.</small><button data-up="shield">INSTALL</button></div>
+        <div class="upgrade"><b>Augmented Reactor</b><small>+12 maximum energy on each player ship per level.</small><button data-up="reactor">INSTALL</button></div>
+      </div>
+      <button class="primary" id="nextMission">REPLAY TEST BATTLE</button>`;
+    ui.modal.querySelectorAll('[data-up]').forEach(b=>b.onclick = ()=>{
+      const k = b.dataset.up;
+      state.upgrades[k]++;
+      b.textContent = 'INSTALLED Lv.' + state.upgrades[k];
+      b.disabled = true;
+    });
+    document.getElementById('nextMission').onclick = ()=>{
+      ui.overlay.classList.remove('show');
+      state.turn = 1;
+      resetBattle();
+    };
+  }
+
+  updateUI();
+})();
+</script>
+</body>
+</html>
