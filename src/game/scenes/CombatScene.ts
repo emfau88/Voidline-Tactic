@@ -23,6 +23,7 @@ import { ShipView } from '../presentation/ShipView';
 import { weaponOrigins } from '../presentation/shipPresentation';
 import { CombatHud } from '../../ui/CombatHud';
 import type { ActionMode } from '../../ui/CombatHud';
+import { getStarterShipId } from '../../app/starterSelection';
 
 interface PendingMove {
   readonly type: 'move' | 'rotate';
@@ -32,7 +33,7 @@ interface PendingMove {
 
 export class CombatScene extends Phaser.Scene {
   private combatState!: CombatState;
-  private selectedShipId = 'p-cruiser';
+  private selectedShipId: string = getStarterShipId();
   private targetShipId?: string;
   private mode?: ActionMode;
   private pending?: PendingMove;
@@ -41,6 +42,8 @@ export class CombatScene extends Phaser.Scene {
   private hud!: CombatHud;
   private overlay!: Phaser.GameObjects.Graphics;
   private vfx!: Phaser.GameObjects.Graphics;
+  private baseCameraZoom = 0.39;
+  private cameraZoomFactor = 1;
   private readonly shipViews = new Map<string, ShipView>();
 
   public constructor() {
@@ -48,14 +51,12 @@ export class CombatScene extends Phaser.Scene {
   }
 
   public create(): void {
-    this.cameras.main.setViewport(0, 62, 390, 580);
-    this.cameras.main.setZoom(0.39);
-    this.cameras.main.centerOn(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2);
+    this.layoutCamera();
     this.cameras.main.setBackgroundColor('#05070c');
     this.createBattlefield();
     this.overlay = this.add.graphics().setDepth(10);
     this.vfx = this.add.graphics().setDepth(40);
-    this.combatState = createCombatState(0x51a7c0de);
+    this.combatState = createCombatState(0x51a7c0de, getStarterShipId());
     this.createShipViews();
     this.hud = new CombatHud({
       onAction: (action) => this.handleAction(action),
@@ -63,9 +64,16 @@ export class CombatScene extends Phaser.Scene {
       onConfirm: () => void this.confirmAction(),
       onCancel: () => this.cancelAction(),
       onRestart: () => this.restartBattle(),
+      onZoom: (direction) => this.adjustCameraZoom(direction),
+      onZoomReset: () => this.resetCameraZoom(),
     });
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => this.handlePointerDown(pointer));
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => this.handlePointerMove(pointer));
+    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown, _deltaX: number, deltaY: number) => {
+      this.adjustCameraZoom(deltaY > 0 ? -1 : 1);
+    });
+    this.scale.on('resize', this.layoutCamera, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.layoutCamera, this));
     this.refresh();
     this.hud.toast('Wähle ein Schiff oder plane direkt seine erste Bewegung.');
     const shell = document.getElementById('game-shell');
@@ -76,7 +84,7 @@ export class CombatScene extends Phaser.Scene {
   private createBattlefield(): void {
     this.add
       .image(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
-      .setDisplaySize(BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT)
+      .setDisplaySize(BATTLEFIELD_WIDTH * 1.28, BATTLEFIELD_HEIGHT * 1.16)
       .setDepth(-30);
 
     const farStars = this.add.graphics().setDepth(-22);
@@ -103,6 +111,30 @@ export class CombatScene extends Phaser.Scene {
     const boundary = this.add.graphics().setDepth(-12);
     boundary.lineStyle(3, 0x826c45, 0.24);
     boundary.strokeRect(8, 8, BATTLEFIELD_WIDTH - 16, BATTLEFIELD_HEIGHT - 16);
+  }
+
+  private layoutCamera(): void {
+    const width = this.scale.width || 390;
+    const height = this.scale.height || 844;
+    const topInset = 62;
+    const hudHeight = Math.max(218, Math.min(270, height * 0.27));
+    const viewportHeight = Math.max(300, height - topInset - hudHeight);
+    this.cameras.main.setViewport(0, topInset, width, viewportHeight);
+    this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);
+    this.cameras.main.setZoom(this.baseCameraZoom * this.cameraZoomFactor);
+    this.cameras.main.centerOn(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2);
+    this.hud?.setZoom(this.cameraZoomFactor);
+  }
+
+  private adjustCameraZoom(direction: number): void {
+    if (this.busy) return;
+    this.cameraZoomFactor = Phaser.Math.Clamp(this.cameraZoomFactor + direction * 0.1, 0.8, 1.4);
+    this.layoutCamera();
+  }
+
+  private resetCameraZoom(): void {
+    this.cameraZoomFactor = 1;
+    this.layoutCamera();
   }
 
   private createShipViews(): void {
@@ -408,8 +440,8 @@ export class CombatScene extends Phaser.Scene {
 
   private restartBattle(): void {
     this.hud.closeResult();
-    this.combatState = createCombatState(0x51a7c0de);
-    this.selectedShipId = 'p-cruiser';
+    this.combatState = createCombatState(0x51a7c0de, getStarterShipId());
+    this.selectedShipId = getStarterShipId();
     this.targetShipId = undefined;
     this.mode = undefined;
     this.pending = undefined;

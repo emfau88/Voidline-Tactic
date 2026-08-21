@@ -17,6 +17,8 @@ export interface HudCallbacks {
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
   readonly onRestart: () => void;
+  readonly onZoom: (direction: number) => void;
+  readonly onZoomReset: () => void;
 }
 
 export interface HudViewModel {
@@ -89,10 +91,20 @@ export class CombatHud {
     requiredElement<HTMLButtonElement>('confirm-button').addEventListener('click', callbacks.onConfirm);
     requiredElement<HTMLButtonElement>('cancel-button').addEventListener('click', callbacks.onCancel);
     requiredElement<HTMLButtonElement>('restart-button').addEventListener('click', callbacks.onRestart);
+    requiredElement<HTMLButtonElement>('zoom-out-button').addEventListener('click', () => callbacks.onZoom(-1));
+    requiredElement<HTMLButtonElement>('zoom-in-button').addEventListener('click', () => callbacks.onZoom(1));
+    requiredElement<HTMLButtonElement>('zoom-reset-button').addEventListener('click', callbacks.onZoomReset);
     const helpButton = requiredElement<HTMLButtonElement>('help-button');
     helpButton.addEventListener('click', () => this.helpDialog.showModal());
     helpButton.disabled = false;
+    requiredElement<HTMLButtonElement>('zoom-out-button').disabled = false;
+    requiredElement<HTMLButtonElement>('zoom-in-button').disabled = false;
+    requiredElement<HTMLButtonElement>('zoom-reset-button').disabled = false;
     requiredElement<HTMLButtonElement>('close-help-button').addEventListener('click', () => this.helpDialog.close());
+  }
+
+  public setZoom(factor: number): void {
+    setText('zoom-reset-button', `${Math.round(factor * 100)}%`);
   }
 
   public update(model: HudViewModel): void {

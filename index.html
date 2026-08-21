@@ -8,14 +8,79 @@
       content="Voidline Tactics – rundenbasierte mobile-first Flottentaktik im Browser."
     />
     <meta name="theme-color" content="#05070c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Voidline" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <title>Voidline Tactics</title>
   </head>
   <body>
     <main id="app" aria-label="Voidline Tactics">
-      <section id="game-shell" aria-label="Mission: Erster Kontakt" aria-busy="true">
-        <div id="game-root" aria-label="Taktisches Spielfeld"></div>
+      <section id="game-shell" data-screen="menu" aria-label="Voidline Tactics" aria-busy="false">
+        <svg class="icon-sprite" aria-hidden="true">
+          <symbol id="icon-move" viewBox="0 0 24 24"><path d="M4 19 20 12 4 5l3 7-3 7Z"/><path d="M7 12h9"/></symbol>
+          <symbol id="icon-rotate" viewBox="0 0 24 24"><path d="M19 8V3l-2 2a8 8 0 1 0 2.4 8"/><path d="M19 3h-5"/></symbol>
+          <symbol id="icon-broadside" viewBox="0 0 24 24"><path d="M12 4 9 9v6l3 5 3-5V9l-3-5Z"/><path d="M7 8H3M7 12H2M7 16H3M17 8h4M17 12h5M17 16h4"/></symbol>
+          <symbol id="icon-lance" viewBox="0 0 24 24"><path d="m12 3 3 6-3 12-3-12 3-6Z"/><path d="M12 3v18M5 12h14"/></symbol>
+          <symbol id="icon-torpedo" viewBox="0 0 24 24"><path d="M4 12h12M13 7l6 5-6 5"/><path d="M4 9v6"/></symbol>
+          <symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 4.4-2.8 7.7-7 10-4.2-2.3-7-5.6-7-10V6l7-3Z"/><path d="M12 7v10"/></symbol>
+          <symbol id="icon-turn" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 4c0 4 3 5 4 8-1 3-4 4-4 8M16 4c0 4-3 5-4 8 1 3 4 4 4 8"/><path d="M9 17h6"/></symbol>
+        </svg>
+        <section id="main-menu" aria-labelledby="menu-title">
+          <div class="menu-stars" aria-hidden="true"></div>
+          <header class="menu-header">
+            <div>
+              <small>VOIDLINE FLEET COMMAND · DEVELOPMENT BUILD</small>
+              <h1 id="menu-title">WÄHLE DEIN<br><span>STARTSCHIFF</span></h1>
+              <p>Stelle dein Flaggschiff zusammen und führe die Formation durch den ersten Kontakt.</p>
+            </div>
+            <button class="menu-fullscreen-button" type="button" data-fullscreen aria-pressed="false" title="Vollbild öffnen">
+              <span aria-hidden="true">⛶</span><span>VOLLBILD</span>
+            </button>
+          </header>
 
-        <header id="topbar" class="panel">
+          <div class="starter-grid" aria-label="Verfügbare Startschiffe">
+            <button class="starter-card selected" type="button" data-starter="p-cruiser" aria-pressed="true">
+              <span class="starter-role">LINIENSCHIFF · AUSGEWOGEN</span>
+              <img src="assets/ships/player-cruiser-v2.png" alt="Sovereign's Fury von oben">
+              <span class="starter-name">Sovereign's Fury</span>
+              <span class="starter-class">CRUISER</span>
+              <span class="starter-stats"><b>140</b> Hülle · <b>115</b> Schild · <b>3</b> AP</span>
+              <span class="starter-bonus">FLAGGSCHIFF-MODUL · +15 SCHILD</span>
+              <span class="mount-list"><i>MASS DRIVER</i><i>RIFT LANCE</i><i>VOID TORPEDO</i></span>
+            </button>
+            <button class="starter-card" type="button" data-starter="p-frigate" aria-pressed="false">
+              <span class="starter-role">JAGDSCHIFF · MOBIL</span>
+              <img src="assets/ships/player-frigate-v1.png" alt="Aster Vale von oben">
+              <span class="starter-name">Aster Vale</span>
+              <span class="starter-class">FRIGATE</span>
+              <span class="starter-stats"><b>90</b> Hülle · <b>350</b> Bewegung · <b>80</b> Energie</span>
+              <span class="starter-bonus">FLAGGSCHIFF-MODUL · VECTOR DRIVE</span>
+              <span class="mount-list"><i>RIFT LANCE</i><i>2× VOID TORPEDO</i></span>
+            </button>
+          </div>
+
+          <section class="refit-preview" aria-labelledby="refit-title">
+            <div class="refit-heading">
+              <div><small>NACH DER MISSION</small><strong id="refit-title">REFIT-VORSCHAU</strong></div>
+              <span>SHIPYARD · M5</span>
+            </div>
+            <div class="upgrade-track">
+              <article><span>01</span><b>WAFFENBUCHT</b><small>neue sichtbare Hardpoints und Waffenvarianten</small></article>
+              <article><span>02</span><b>SCHILDMATRIX</b><small>mehr Kapazität oder schnellere Regeneration</small></article>
+              <article><span>03</span><b>VECTORDRIVE</b><small>Reichweite gegen Energieverbrauch tauschen</small></article>
+            </div>
+          </section>
+
+          <footer class="menu-footer">
+            <p id="menu-status" role="status">Ausgewählt: <strong id="selected-starter-label">Sovereign's Fury</strong></p>
+            <button id="start-button" type="button"><span>MISSION 01</span><strong>ERSTEN KONTAKT STARTEN</strong><small>2-Schiff-Formation · taktischer Einsatz</small></button>
+          </footer>
+        </section>
+
+        <div id="game-root" class="battle-ui" aria-label="Taktisches Spielfeld"></div>
+
+        <header id="topbar" class="panel battle-ui">
           <div class="brand-block">
             <strong>VOIDLINE</strong>
             <small>ERSTER KONTAKT</small>
@@ -30,11 +95,17 @@
           </div>
         </header>
 
-        <button id="help-button" class="icon-button" type="button" aria-label="Spielhilfe öffnen" disabled>?</button>
-        <div id="toast" role="status" aria-live="polite"></div>
-        <div id="loading-label" role="status">FLUGDATEN WERDEN GELADEN…</div>
+        <nav id="view-controls" class="battle-ui" aria-label="Ansicht steuern">
+          <button id="zoom-out-button" type="button" aria-label="Herauszoomen" disabled>−</button>
+          <button id="zoom-reset-button" type="button" aria-label="Zoom zurücksetzen" disabled>100%</button>
+          <button id="zoom-in-button" type="button" aria-label="Hineinzoomen" disabled>+</button>
+          <button id="fullscreen-button" type="button" data-fullscreen aria-label="Vollbild umschalten" aria-pressed="false" disabled>⛶</button>
+          <button id="help-button" type="button" aria-label="Spielhilfe öffnen" disabled>?</button>
+        </nav>
+        <div id="toast" class="battle-ui" role="status" aria-live="polite"></div>
+        <div id="loading-label" class="battle-ui" role="status">FLUGDATEN WERDEN GELADEN…</div>
 
-        <aside id="target-card" class="panel" hidden aria-label="Zielvorschau">
+        <aside id="target-card" class="panel battle-ui" hidden aria-label="Zielvorschau">
           <div class="card-heading">
             <div>
               <strong id="target-name">Kein Ziel</strong>
@@ -51,7 +122,7 @@
           <p id="preview-damage"></p>
         </aside>
 
-        <footer id="combat-hud">
+        <footer id="combat-hud" class="battle-ui">
           <section id="ship-card" class="panel" aria-label="Ausgewähltes Schiff">
             <div class="card-heading">
               <div>
@@ -81,13 +152,13 @@
           </section>
 
           <nav id="action-grid" aria-label="Schiffsaktionen">
-            <button type="button" data-action="move" disabled><span>➤</span><strong>BEWEGEN</strong><small>1 AP</small></button>
-            <button type="button" data-action="rotate" disabled><span>⟳</span><strong>DREHEN</strong><small>1 AP</small></button>
-            <button type="button" data-action="broadside" disabled><span>⇉</span><strong>BREITSEITE</strong><small>2 AP</small></button>
-            <button type="button" data-action="lance" disabled><span>✦</span><strong>LANZE</strong><small>2 AP</small></button>
-            <button type="button" data-action="torpedo" disabled><span>➜</span><strong>TORPEDO</strong><small>2 AP</small></button>
-            <button type="button" data-action="shield" disabled><span>⬡</span><strong>SCHILD</strong><small>1 AP</small></button>
-            <button id="end-turn-button" type="button" disabled><span>⌛</span><strong>RUNDE</strong><small>beenden</small></button>
+            <button type="button" data-action="move" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>BEWEGEN</strong><small>1 AP · 4 EN</small></button>
+            <button type="button" data-action="rotate" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>DREHEN</strong><small>1 AP</small></button>
+            <button type="button" data-action="broadside" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>BREITSEITE</strong><small>2 AP · 8 EN</small></button>
+            <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>2 AP · 18 EN</small></button>
+            <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>2 AP · 10 EN</small></button>
+            <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>SCHILD</strong><small>1 AP · 10 EN</small></button>
+            <button id="end-turn-button" type="button" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-turn"/></svg></span><strong>RUNDE</strong><small>beenden</small></button>
           </nav>
 
           <div id="confirm-bar" hidden>

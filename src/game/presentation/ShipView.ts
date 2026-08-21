@@ -7,6 +7,7 @@ export class ShipView extends Phaser.GameObjects.Container {
   private readonly engineGlow: Phaser.GameObjects.Graphics;
   private readonly status: Phaser.GameObjects.Graphics;
   private readonly bars: Phaser.GameObjects.Graphics;
+  private readonly mounts: Phaser.GameObjects.Graphics;
   private readonly art?: Phaser.GameObjects.Image;
 
   public constructor(scene: Phaser.Scene, ship: ShipState) {
@@ -16,13 +17,14 @@ export class ShipView extends Phaser.GameObjects.Container {
     this.engineGlow = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     this.status = scene.add.graphics();
     this.bars = scene.add.graphics();
+    this.mounts = scene.add.graphics();
     if (presentation) {
       this.art = scene.add
         .image(0, 0, presentation.texture)
         .setDisplaySize(ship.radius * presentation.spriteWidthInRadii, ship.radius * presentation.spriteLengthInRadii)
         .setRotation(Math.PI / 2);
     }
-    this.add([this.status, this.engineGlow, this.hullGraphics, ...(this.art ? [this.art] : []), this.bars]);
+    this.add([this.status, this.engineGlow, this.hullGraphics, ...(this.art ? [this.art] : []), this.mounts, this.bars]);
     this.setDepth(20);
     scene.add.existing(this);
     scene.tweens.add({
@@ -59,6 +61,7 @@ export class ShipView extends Phaser.GameObjects.Container {
     this.engineGlow.clear();
     this.status.clear();
     this.bars.clear();
+    this.mounts.clear();
 
     if (selected) {
       this.status.lineStyle(4, 0x63baff, 0.95);
@@ -104,6 +107,24 @@ export class ShipView extends Phaser.GameObjects.Container {
       this.hullGraphics.fillCircle(-length * 0.53, 0, Math.max(5, ship.radius * 0.13));
     } else {
       this.art.setTint(ship.hull / ship.maxHull < 0.35 ? 0xffb2a4 : 0xffffff);
+    }
+
+    if (presentation) {
+      const mountAlpha = selected ? 0.95 : 0.58;
+      const mountRadius = Math.max(2.4, ship.radius * 0.065);
+      const drawMount = (x: number, y: number, color: number, radius = mountRadius): void => {
+        this.mounts.fillStyle(0x02050a, 0.82);
+        this.mounts.fillCircle(x * ship.radius, y * ship.radius, radius * 1.6);
+        this.mounts.fillStyle(color, mountAlpha);
+        this.mounts.fillCircle(x * ship.radius, y * ship.radius, radius);
+      };
+      for (const point of presentation.hardpoints.lance) drawMount(point.x, point.y, 0xd986ff, mountRadius * 1.15);
+      for (const point of presentation.hardpoints.torpedo) drawMount(point.x, point.y, 0xffb15f);
+      const broadsideMounts = [
+        ...presentation.hardpoints.portBroadside,
+        ...presentation.hardpoints.starboardBroadside,
+      ];
+      for (const point of broadsideMounts) drawMount(point.x, point.y, 0x79d2ff, mountRadius * 0.86);
     }
 
     const barWidth = ship.radius * 2.35;

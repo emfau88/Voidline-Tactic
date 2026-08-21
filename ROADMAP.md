@@ -21,7 +21,9 @@ Stand: 21. August 2026
 ## M1 – Mobile-first Produktionsfundament ✅
 
 - ✅ Phaser 4, TypeScript, Vite und Vitest pinnen
-- ✅ 390×844 Referenzviewport mit responsivem FIT-Scaling
+- ✅ 390×844 Referenzviewport für reproduzierbare Mobile-QA
+- ✅ dynamische Vollbreiten-Shell mit Safe Areas statt fest eingeschlossener 390:844-Säule
+- ✅ Browser-Fullscreen, fullscreen-fähiges Web-App-Manifest, Plattform-Fallback sowie kontrollierter 80–140-%-Zoom
 - ✅ Boot- und Combat-Szene anlegen
 - ✅ Playwright-Konfiguration für Mobile und Desktop
 - ✅ CI und GitHub Pages Deployment live verifiziert
@@ -56,14 +58,19 @@ Stand: 21. August 2026
 - ⏳ originale Audio-Busse, Varianten und Mobile-Audio-Unlock
 - ✅ originaler Nebula-Base-Layer mit zwei deterministisch driftenden Sternlayern
 - 🚧 taktisches HUD-Polish und Asset-Loading-Feedback
+- ✅ erster HUD-System-Pass mit größeren Hierarchien, originalen Vektor-Icons und sichtbaren Aktionskosten
+- ✅ sichtbare Lance-, Torpedo- und Broadside-Mounts auf den Schiffen
 - ✅ drei reproduzierbare Mobile-Screenshots für README und visuelle Standabnahme
 
-## M5 – Reward, Shipyard und Persistenz ⏳
+## M5 – Reward, Shipyard und Persistenz 🚧
 
-- Mission Results, Credits und Salvage
-- drei Trade-off-Upgrades
-- versioniertes LocalStorage-Save
-- Replay-Loop und ein zweiter Schwierigkeitszustand
+- ✅ Hauptmenü mit Cruiser-/Frigate-Startwahl und klarer Loadout-Darstellung
+- ✅ zwei spielwirksame Flaggschiff-Module: Bulwark-Schild und Vector Drive
+- ✅ Refit-Vorschau für Waffenbucht, Schildmatrix und Vector Drive
+- ⏳ Mission Results, Credits und Salvage
+- ⏳ drei tatsächlich kauf-/ausrüstbare Trade-off-Upgrades
+- ⏳ versioniertes LocalStorage-Save
+- ⏳ Replay-Loop und ein zweiter Schwierigkeitszustand
 
 ## M6 – Qualität und Vertical-Slice-Release ⏳
 
@@ -82,4 +89,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-M4 wird über die Hebel 1–10 der [priorisierten Mockup-Gap-Analyse](docs/planning/TOP_20_LEVERS.md) geschlossen. Als nächstes entstehen eine gekrümmte Movement-/Facing-Vorschau, klarere Feuergeometrie, gestaffelte Waffen- und Treffer-Choreografien sowie ein konsistentes taktisches HUD-System. Danach folgen originale Audio-Busse mit sauberem Mobile-Audio-Unlock.
+Der Mobile-Shell-Baseline-Pass aus direktem Spieltest-Feedback ist abgeschlossen: Vollbreite, Fullscreen-Fallback, Zoom, Startschiffwahl, Flaggschiff-Module und der erste HUD-System-Pass sind integriert. Als nächstes folgen der zweite HUD-Pass, gekrümmte Movement-/Facing-Vorschau, echte Loadout-Slots mit weiteren sichtbaren Waffenvarianten und gestaffelte Waffen-/Treffer-Choreografien. Die Reihenfolge steht in der aktualisierten [Top-20-Gap-Analyse](docs/planning/TOP_20_LEVERS.md).

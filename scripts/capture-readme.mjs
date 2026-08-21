@@ -20,6 +20,14 @@ const page = await context.newPage();
 
 try {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.locator('#main-menu').waitFor({ state: 'visible' });
+  await page.waitForTimeout(500);
+  await page.screenshot({
+    path: path.join(outputDirectory, 'mobile-fleet-selection.png'),
+    fullPage: true,
+  });
+
+  await page.getByRole('button', { name: /ERSTEN KONTAKT STARTEN/ }).click();
   await page.waitForFunction(
     () => document.querySelector('#game-shell')?.getAttribute('data-game-ready') === 'true',
   );
@@ -35,17 +43,12 @@ try {
   if (!box) throw new Error('Canvas has no layout box.');
 
   await page.getByRole('button', { name: /BEWEGEN/ }).click();
-  await canvas.click({ position: { x: box.width * 0.5, y: box.height * 0.56 } });
+  await canvas.click({ position: { x: box.width * 0.5, y: box.height * 0.505 } });
   await page.locator('#confirm-bar').waitFor({ state: 'visible', timeout: 5_000 });
   await page.waitForTimeout(250);
-  await page.screenshot({
-    path: path.join(outputDirectory, 'mobile-movement-planning.png'),
-    fullPage: true,
-  });
-
   await page.locator('#confirm-button').click();
   await page.getByRole('button', { name: /TORPEDO/ }).click();
-  await canvas.click({ position: { x: box.width * 0.705, y: box.height * 0.285 } });
+  await canvas.click({ position: { x: box.width * 0.69, y: box.height * 0.253 } });
   await page.locator('#target-card').waitFor({ state: 'visible', timeout: 5_000 });
   await page.waitForTimeout(250);
   await page.screenshot({

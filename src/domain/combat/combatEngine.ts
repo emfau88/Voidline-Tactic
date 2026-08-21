@@ -25,12 +25,19 @@ import type {
   WeaponKind,
 } from './types';
 
-function createShipState(definition: (typeof SHIPS)[number]): ShipState {
+function createShipState(definition: (typeof SHIPS)[number], flagshipId?: string): ShipState {
+  const isFlagship = definition.id === flagshipId;
+  const maxShield = definition.maxShield + (isFlagship && definition.id === 'p-cruiser' ? 15 : 0);
+  const maxEnergy = definition.maxEnergy + (isFlagship && definition.id === 'p-frigate' ? 12 : 0);
+  const moveRange = definition.moveRange + (isFlagship && definition.id === 'p-frigate' ? 35 : 0);
   return {
     ...definition,
+    maxShield,
+    maxEnergy,
+    moveRange,
     hull: definition.maxHull,
-    shield: definition.maxShield,
-    energy: definition.maxEnergy,
+    shield: maxShield,
+    energy: maxEnergy,
     ap: definition.maxAp,
     position: { ...definition.startPosition },
     facing: definition.startFacing,
@@ -38,8 +45,8 @@ function createShipState(definition: (typeof SHIPS)[number]): ShipState {
   };
 }
 
-export function createCombatState(seed = Date.now()): CombatState {
-  const ships = Object.fromEntries(SHIPS.map((definition) => [definition.id, createShipState(definition)]));
+export function createCombatState(seed = Date.now(), flagshipId?: string): CombatState {
+  const ships = Object.fromEntries(SHIPS.map((definition) => [definition.id, createShipState(definition, flagshipId)]));
   return {
     turn: 1,
     phase: 'player',

@@ -6,7 +6,15 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ### Added
 
-- drei reproduzierbare 390×844-Mobile-Screenshots für Gefechtsübersicht, Bewegungsplanung und gültige Zielprognose
+- Vollbreiten-Mobile-Shell mit Safe-Area-Behandlung und dynamischem Phaser-Resize
+- Browser-Fullscreen-Steuerung samt erklärtem Fallback für Plattformen ohne Web-Fullscreen
+- fullscreen-fähiges Web-App-Manifest, Portrait-Ausrichtung, iOS-Standalone-Metadaten und originales App-Icon
+- taktische 80–140-%-Zoomsteuerung über Touch-Buttons und Mausrad
+- Startmenü mit Cruiser-/Frigate-Auswahl, Loadout-Darstellung und Refit-Vorschau
+- spielwirksame Bulwark- und Vector-Drive-Flaggschiff-Module samt Unit-Test
+- originale SVG-Aktionsicons und sichtbare Mount-Marker für vorhandene Schiffwaffen
+- neuer README-Screenshot der Startschiff- und Refit-Oberfläche
+- drei reproduzierbare 390×844-Mobile-Screenshots für Startschiffwahl, Gefechtsübersicht und gültige Zielprognose
 - Capture-Skript und npm-Befehl zur konsistenten Aktualisierung der README-Galerie
 - priorisierte Top-20-Gap-Analyse mit messbaren Abnahmekriterien für den Weg zum Mockup-Niveau
 - Asset-Manifest mit Herkunfts-, Rechte-, Versions- und Abnahmestatus
@@ -25,6 +33,10 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ### Changed
 
+- Mobile-Shell nutzt die gesamte verfügbare Phone-Breite statt das 390:844-Verhältnis als CSS-Maximum zu erzwingen
+- Combat-Kamera berechnet Viewport und Basiszoom aus der realen Gerätegröße
+- HUD besitzt größere Typografie, deutlichere Zustände und vollständig sichtbare AP-/Energiekosten
+- Startschiffwahl legt das initial aktive Flaggschiff und ein klassenspezifisches Modul fest
 - README um aktuelle Spielbilder, verifizierten Live-Link und die Mockup-Gap-Analyse erweitert
 - M4-Roadmap in grundlegende abgeschlossene VFX und noch ausstehendes Choreografie-/Audio-Polish aufgeteilt
 - M4 – Originale Art und Combat Feel gestartet

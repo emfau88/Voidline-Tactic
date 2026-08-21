@@ -8,6 +8,18 @@ function replaceShip(state: CombatState, ship: ShipState): CombatState {
 }
 
 describe('combat engine', () => {
+  it('applies the selected flagship doctrine without changing the escort', () => {
+    const cruiserStart = createCombatState(1, 'p-cruiser');
+    const frigateStart = createCombatState(1, 'p-frigate');
+
+    expect(cruiserStart.ships['p-cruiser'].maxShield).toBe(115);
+    expect(cruiserStart.ships['p-cruiser'].shield).toBe(115);
+    expect(cruiserStart.ships['p-frigate'].moveRange).toBe(315);
+    expect(frigateStart.ships['p-frigate'].moveRange).toBe(350);
+    expect(frigateStart.ships['p-frigate'].maxEnergy).toBe(80);
+    expect(frigateStart.ships['p-cruiser'].maxShield).toBe(100);
+  });
+
   it('uses fixed world units for movement', () => {
     const state = createCombatState(1);
     const ship = state.ships['p-cruiser'];

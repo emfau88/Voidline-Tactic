@@ -6,13 +6,13 @@ Rundenbasierte 2D-Flottentaktik für den Browser: Schiffe positionieren, Facing 
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
 
-Der aktuelle Stand ist ein vollständig bedienbarer 2-gegen-2-Mobile-Kampf mit vier originalen Schiffen, eigenem Nebula-Schlachtfeld und Hardpoint-basierten Kampf-VFX. Er funktioniert mit Touch und Maus. Der öffentliche Link wurde zuletzt am **21. August 2026** auf Mobile-Chromium geprüft und wird nach jedem Push erst nach Typecheck, Unit Tests, Production Build und Browser-Tests veröffentlicht.
+Der aktuelle Stand ist ein vollständig bedienbarer 2-gegen-2-Mobile-Kampf mit Startschiffwahl, zwei echten Flaggschiff-Modulen, vier originalen Schiffen, eigenem Nebula-Schlachtfeld und Hardpoint-basierten Kampf-VFX. Die App nutzt auf Phones die volle verfügbare Breite, bietet 80–140 % taktischen Zoom und aktiviert den Browser-Vollbildmodus, sofern die Plattform ihn für Webseiten erlaubt. Auf iOS ergänzt ein fullscreen-fähiges Web-App-Manifest den „Zum Home-Bildschirm“-Fallback. Der öffentliche Link wurde zuletzt am **21. August 2026** auf Mobile-Chromium geprüft und wird nach jedem Push erst nach Typecheck, Unit Tests, Production Build und Browser-Tests veröffentlicht.
 
 ## Aktueller Mobile-Build
 
-| Gefechtsübersicht | Bewegung und Facing | Ziel- und Schadensprognose |
+| Startschiff und Refit-Vorschau | Gefechtsübersicht | Ziel- und Schadensprognose |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-combat-overview.png" alt="Mobile Gefechtsübersicht mit vier Schiffen" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-movement-planning.png" alt="Touch-Bewegungsplanung mit Reichweite und Facing" width="260">](docs/screenshots/mobile-movement-planning.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Torpedo-Zielvorschau mit Trefferchance und Schadensprognose" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Mobile Startschiffwahl mit Refit-Vorschau" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Mobile Gefechtsübersicht mit vier Schiffen" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Torpedo-Zielvorschau mit Trefferchance und Schadensprognose" width="260">](docs/screenshots/mobile-target-preview.png) |
 
 Die Galerie lässt sich reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisieren.
 
@@ -29,6 +29,8 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 ## Projektstatus
 
 - ✅ mobile-first App-Shell und responsives Touch-HUD
+- ✅ echte Mobile-Vollbreite, Safe Areas, Fullscreen-Fallback und 80–140 % taktischer Zoom
+- ✅ Startmenü mit Cruiser-/Frigate-Wahl, Flaggschiff-Modul und Refit-Vorschau
 - ✅ deterministischer Combat Core mit seedbarem Zufall
 - ✅ Movement, Facing, drei Waffen, Shield, Gegner-KI und Sieg/Niederlage
 - ✅ Unit- und Browser-Tests für Mobile und Desktop
@@ -36,7 +38,7 @@ Broadside wirkt seitlich, Lance nach vorn und Torpedo auf größere Distanz. Akt
 - ✅ vier originale Schiffsassets mit dokumentierter Herkunft und vollständigen Hardpoints
 - ✅ originärer Nebula-Hintergrund mit dezentem Zwei-Layer-Stern-Parallax
 - ✅ grundlegende Hardpoint-basierte Combat-VFX und Reduced-Motion-Fallbacks
-- 🚧 taktisches HUD-Polish, tiefere VFX-Choreografien und Audio
+- 🚧 zweiter taktischer HUD-Pass, tiefere VFX-Choreografien und Audio
 - ⏳ Reward, Shipyard, Upgrades und Persistenz
 
 Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md). Die [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) messen die Lücke zu den Konzeptbildern und priorisieren die nächsten Produktionsschritte.
