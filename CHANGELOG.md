@@ -12,6 +12,12 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 - Vitest- und Playwright-Grundkonfiguration
 - `ROADMAP.md` als lebender Projektstatus
 - `CHANGELOG.md` als chronologische Änderungshistorie
+- renderer-unabhängiger Combat Core in festen 1000×1500 World Units
+- datengetriebene Definitionen für vier Schiffe und Broadside, Lance und Torpedo
+- Commands und Events für Bewegung, Rotation, Angriffe, Schild und Rundenwechsel
+- seedbarer Zufall für reproduzierbare Treffer- und Schadensauflösung
+- gemeinsame Waffenvalidierung für Preview, Spieler und Gegner-KI
+- sieben Unit Tests für Bewegung, Arcs, Kosten, Schaden, Determinismus und Phasen
 
 ## [0.0.1] – 2026-08-21
 

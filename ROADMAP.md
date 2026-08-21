@@ -27,15 +27,16 @@ Stand: 21. August 2026
 - ⏳ CI und GitHub Pages Deployment
 - ⏳ README um Live-Link und Entwickler-Workflow ergänzen
 
-## M2 – Deterministischer Combat Core ⏳
+## M2 – Deterministischer Combat Core ✅
 
-- feste World Units unabhängig vom Viewport
-- Combat State, Commands, Events und seedbarer Zufall
-- Turn Flow, AP, Energy, Hull und Shield
-- gemeinsame Regeln für Preview, Spieler und KI
-- Unit Tests für Winkel, Reichweite, Kosten und Schaden
+- ✅ feste 1000×1500 World Units unabhängig vom Viewport
+- ✅ Combat State, Commands, Events und seedbarer Zufall
+- ✅ Turn Flow, AP, Energy, Hull, Shield und Phasenregeneration
+- ✅ gemeinsame Regeln für Preview, Spieler und KI
+- ✅ datengetriebene Definitionen für vier Schiffe und drei Waffen
+- ✅ Unit Tests für Winkel, Reichweite, Kosten, Schaden, Phasen und KI
 
-## M3 – Spielbarer Mobile-Greybox-Slice ⏳
+## M3 – Spielbarer Mobile-Greybox-Slice 🚧
 
 - 2 Spieler- gegen 2 Gegnerschiffe
 - Auswahl, Movement Radius, Ghost Path und Facing
@@ -76,4 +77,4 @@ Stand: 21. August 2026
 
 ## Nächster überprüfbarer Meilenstein
 
-Ein deterministischer Combat Core mit getesteten World Units, vier datengetriebenen Schiffen und identischer Waffenvalidierung für Preview, Spieler und KI.
+Ein auf echtem Touch-Viewport vollständig spielbarer Kampf: Schiff wählen, bewegen, Facing setzen, Waffen-Preview bestätigen, Gegnerzug ausführen und Sieg/Niederlage erreichen.
