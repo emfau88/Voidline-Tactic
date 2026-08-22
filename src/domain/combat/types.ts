@@ -61,6 +61,7 @@ export interface WeaponCooldowns {
 
 export interface ShipState extends ShipDefinition {
   readonly starterModuleId?: StarterModuleId;
+  readonly navigationZone?: string;
   readonly hull: number;
   readonly shield: number;
   readonly energy: number;
@@ -97,6 +98,7 @@ export interface ProjectileState {
 }
 
 export interface CombatState {
+  readonly controlMode?: 'direct' | 'fleet';
   readonly elapsedMs: number;
   readonly status: CombatStatus;
   readonly ships: Readonly<Record<string, ShipState>>;

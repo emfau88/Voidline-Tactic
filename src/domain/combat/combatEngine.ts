@@ -38,7 +38,7 @@ import type {
 
 const ZERO_COOLDOWNS = { broadside: 0, lance: 0, torpedo: 0, shield: 0 } as const;
 
-function createShipState(
+export function createShipState(
   definition: ShipDefinition,
   flagshipId: string,
   upgrades: readonly UpgradeId[] = [],
@@ -107,6 +107,7 @@ export function createCombatState(
   const position = objectivePosition(missionId);
   const mission = MISSIONS[missionId];
   return {
+    controlMode: 'direct',
     elapsedMs: 0,
     status: 'active',
     ships: Object.fromEntries(fleet.map((definition) => [
@@ -216,6 +217,9 @@ export function getAbilityPreview(
   if (ship.energy < weapon.energyCost) return invalidPreview(ability, 'Not enough Energy.');
   const target = targetId ? state.ships[targetId] : undefined;
   if (!target?.alive || target.team === ship.team) return invalidPreview(ability, 'Designate an enemy target.');
+  if (state.controlMode === 'fleet' && ship.navigationZone !== target.navigationZone) {
+    return invalidPreview(ability, 'Target is in another fleet corridor.');
+  }
   const measuredDistance = distance(ship.position, target.position);
   if (measuredDistance > weapon.range) return invalidPreview(ability, 'Target is outside weapon range.');
   if (!isInsideArc(ship, target, weapon)) return invalidPreview(ability, 'Target is outside the weapon arc.');
@@ -274,7 +278,9 @@ export function designateTarget(state: CombatState, shipId: string, targetId: st
     return { state, events: [], error: 'Designate a living enemy target.' };
   }
   const ships = { ...state.ships, [shipId]: { ...ship, targetId } };
-  const escort = Object.values(ships).find((candidate) => candidate.role === 'escort' && candidate.alive);
+  const escort = state.controlMode !== 'fleet'
+    ? Object.values(ships).find((candidate) => candidate.role === 'escort' && candidate.alive)
+    : undefined;
   if (escort) ships[escort.id] = { ...escort, targetId };
   return { state: { ...state, ships }, events: [{ type: 'target-designated', shipId, targetId }] };
 }
@@ -614,7 +620,7 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
   let state: CombatState = { ...initialState, elapsedMs: initialState.elapsedMs + deltaMs, ships };
 
   for (const ship of Object.values(ships)) {
-    if (!ship.alive || ship.role === 'flagship') continue;
+    if (initialState.controlMode === 'fleet' || !ship.alive || ship.role === 'flagship') continue;
     if (ship.aiThinkMs <= 0) ships[ship.id] = planAutonomousShip({ ...state, ships }, ship);
   }
   for (const ship of Object.values(ships)) {
@@ -634,7 +640,12 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
     const target = ships[ship.lanceTargetId];
     const weapon = WEAPONS.lance;
     ships[ship.id] = { ...ship, lanceChargeMs: 0, lanceTargetId: undefined };
-    if (target?.alive && distance(ship.position, target.position) <= weapon.range && isInsideArc(ship, target, weapon)) {
+    if (
+      target?.alive
+      && (initialState.controlMode !== 'fleet' || ship.navigationZone === target.navigationZone)
+      && distance(ship.position, target.position) <= weapon.range
+      && isInsideArc(ship, target, weapon)
+    ) {
       events.push({ type: 'weapon-fired', shipId: ship.id, targetId: target.id, weapon: 'lance' });
       damageTarget(ships, ship.id, target.id, 'lance', weapon.damage, weapon.shieldMultiplier, events);
     } else {
@@ -654,6 +665,7 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
       ship.weapons.includes('broadside') &&
       ship.cooldowns.broadside <= 0 &&
       ship.energy >= broadside.energyCost &&
+      (initialState.controlMode !== 'fleet' || ship.navigationZone === target.navigationZone) &&
       distance(ship.position, target.position) <= broadside.range &&
       isInsideArc(ship, target, broadside)
     ) {
@@ -670,6 +682,7 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
   state = { ...state, ships };
   for (const ship of Object.values(ships)) {
     if (!ship.alive || ship.role === 'flagship' || ship.lanceChargeMs > 0 || ship.aiThinkMs > 80) continue;
+    if (initialState.controlMode === 'fleet' && ship.team === 'player') continue;
     const target = ship.targetId ? ships[ship.targetId] : undefined;
     if (!target?.alive) continue;
     if (ship.shield < ship.maxShield * 0.2 && ship.cooldowns.shield <= 0 && ship.energy >= SHIELD_BOOST_COST) {
