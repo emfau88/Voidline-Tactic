@@ -60,6 +60,7 @@ export class CombatScene extends Phaser.Scene {
   private readonly shipViews = new Map<string, ShipView>();
   private readonly projectileViews = new Map<string, ProjectileView>();
   private readonly telegraphLabels = new Map<string, Phaser.GameObjects.Text>();
+  private readonly pendingImpactDelays = new Map<string, number>();
   private readonly touchPointers = new Map<number, { x: number; y: number }>();
   private pinchStartDistance = 0;
   private pinchStartZoom = 1;
@@ -541,10 +542,20 @@ export class CombatScene extends Phaser.Scene {
     for (const event of events) {
       switch (event.type) {
         case 'weapon-fired':
-          this.showWeaponFire(event.shipId, event.targetId, event.weapon);
+          this.pendingImpactDelays.set(
+            this.impactKey(event.shipId, event.targetId, event.weapon),
+            this.showWeaponFire(event.shipId, event.targetId, event.weapon),
+          );
           break;
         case 'attack-resolved':
-          this.showImpact(event.targetId, event.shieldDamage, event.hullDamage);
+          this.showImpact(
+            event.targetId,
+            event.shieldDamage,
+            event.hullDamage,
+            event.weapon,
+            this.pendingImpactDelays.get(this.impactKey(event.shipId, event.targetId, event.weapon)) ?? 0,
+          );
+          this.pendingImpactDelays.delete(this.impactKey(event.shipId, event.targetId, event.weapon));
           break;
         case 'shield-boosted':
           this.showShieldBoost(event.shipId);
@@ -571,45 +582,137 @@ export class CombatScene extends Phaser.Scene {
     }
   }
 
-  private showWeaponFire(shipId: string, targetId: string, weapon: 'broadside' | 'lance' | 'torpedo'): void {
+  private impactKey(shipId: string, targetId: string, weapon: 'broadside' | 'lance' | 'torpedo'): string {
+    return `${shipId}:${targetId}:${weapon}`;
+  }
+
+  private showWeaponFire(shipId: string, targetId: string, weapon: 'broadside' | 'lance' | 'torpedo'): number {
     const ship = this.combatState.ships[shipId];
     const target = this.combatState.ships[targetId];
-    if (!ship || !target) return;
+    if (!ship || !target) return 0;
     const origins = weaponOrigins(ship, target.position, weapon);
     if (weapon === 'torpedo') {
       const origin = origins[0] ?? ship.position;
       const flash = this.add.circle(origin.x, origin.y, 16, 0xffb464, 0.9).setBlendMode(Phaser.BlendModes.ADD).setDepth(44);
       this.tweens.add({ targets: flash, scale: 2.4, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
-      return;
+      return 0;
     }
+
+    if (weapon === 'broadside') {
+      const travelMs = Phaser.Math.Clamp(distance(ship.position, target.position) * 0.42, 190, 390);
+      const impactPoint = { ...target.position };
+      const salvoDelay = 92;
+      origins.forEach((origin, index) => {
+        this.time.delayedCall(index * salvoDelay, () => this.emitBroadsideRound(origin, impactPoint, ship.team === 'player', travelMs, index));
+      });
+      const view = this.shipViews.get(shipId);
+      if (view) {
+        this.tweens.killTweensOf(view);
+        this.tweens.add({
+          targets: view,
+          scaleX: { from: 0.96, to: 1 },
+          scaleY: { from: 1.045, to: 1 },
+          duration: Math.max(190, origins.length * salvoDelay + 90),
+          ease: 'Back.Out',
+        });
+      }
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) this.cameras.main.shake(110, 0.0032);
+      return Math.round(Math.max(0, origins.length - 1) * salvoDelay + travelMs);
+    }
+
     const beam = this.add.graphics().setDepth(43);
-    const color = weapon === 'lance' ? 0xe06dff : 0xffb15f;
+    const color = 0xe06dff;
     for (const [index, origin] of origins.entries()) {
-      const spread = weapon === 'broadside' ? (index - (origins.length - 1) / 2) * 12 : 0;
-      beam.lineStyle(weapon === 'lance' ? 12 : 7, color, 0.22);
+      const spread = (index - (origins.length - 1) / 2) * 5;
+      beam.lineStyle(12, color, 0.22);
       beam.lineBetween(origin.x, origin.y, target.position.x + spread, target.position.y - spread * 0.3);
-      beam.lineStyle(weapon === 'lance' ? 4 : 2, 0xfff3dc, 0.95);
+      beam.lineStyle(4, 0xfff3dc, 0.95);
       beam.lineBetween(origin.x, origin.y, target.position.x + spread, target.position.y - spread * 0.3);
     }
-    this.tweens.add({ targets: beam, alpha: 0, duration: weapon === 'lance' ? 360 : 240, onComplete: () => beam.destroy() });
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) this.cameras.main.shake(weapon === 'lance' ? 120 : 70, weapon === 'lance' ? 0.004 : 0.002);
+    const bloom = this.add.circle(target.position.x, target.position.y, 42, 0xdf69ff, 0.36).setBlendMode(Phaser.BlendModes.ADD).setDepth(42);
+    this.tweens.add({ targets: bloom, scale: 2.7, alpha: 0, duration: 330, onComplete: () => bloom.destroy() });
+    this.tweens.add({ targets: beam, alpha: 0, duration: 360, onComplete: () => beam.destroy() });
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) this.cameras.main.shake(150, 0.005);
+    return 210;
   }
 
-  private showImpact(targetId: string, shieldDamage: number, hullDamage: number): void {
+  private emitBroadsideRound(origin: Vector2, target: Vector2, friendly: boolean, travelMs: number, index: number): void {
+    const color = friendly ? 0xffb45f : 0xff715f;
+    const muzzle = this.add.circle(origin.x, origin.y, 10 + index * 0.7, 0xffe0a6, 0.95).setBlendMode(Phaser.BlendModes.ADD).setDepth(46);
+    const muzzleRing = this.add.circle(origin.x, origin.y, 15, 0, 0).setStrokeStyle(4, color, 0.85).setDepth(45);
+    this.tweens.add({ targets: muzzle, scale: 3.3, alpha: 0, duration: 150, onComplete: () => muzzle.destroy() });
+    this.tweens.add({ targets: muzzleRing, scale: 2.5, alpha: 0, duration: 190, onComplete: () => muzzleRing.destroy() });
+
+    const angle = angleBetween(origin, target);
+    const trail = this.add.rectangle(-18, 0, 38, 5, color, 0.5).setOrigin(1, 0.5);
+    const core = this.add.rectangle(0, 0, 20, 7, 0xfff4d5, 1).setOrigin(0.5);
+    const glow = this.add.circle(0, 0, 13, color, 0.34).setBlendMode(Phaser.BlendModes.ADD);
+    const bolt = this.add.container(origin.x, origin.y, [trail, glow, core]).setRotation(angle).setDepth(45);
+    this.tweens.add({
+      targets: bolt,
+      x: target.x,
+      y: target.y,
+      duration: travelMs,
+      ease: 'Quad.In',
+      onComplete: () => {
+        bolt.destroy(true);
+        this.showMicroImpact(target, color, index);
+      },
+    });
+  }
+
+  private showMicroImpact(position: Vector2, color: number, index: number): void {
+    const flash = this.add.circle(position.x, position.y, 14 + index * 2, color, 0.7).setBlendMode(Phaser.BlendModes.ADD).setDepth(46);
+    const ring = this.add.circle(position.x, position.y, 17, 0, 0).setStrokeStyle(3, 0xffe5b5, 0.78).setDepth(47);
+    this.tweens.add({ targets: flash, scale: 2.8, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
+    this.tweens.add({ targets: ring, scale: 2.1, alpha: 0, duration: 230, onComplete: () => ring.destroy() });
+  }
+
+  private showImpact(
+    targetId: string,
+    shieldDamage: number,
+    hullDamage: number,
+    weapon: 'broadside' | 'lance' | 'torpedo',
+    delayMs = 0,
+  ): void {
     const target = this.combatState.ships[targetId];
     if (!target) return;
-    const color = shieldDamage > 0 ? 0x5ab6ff : 0xff8a5c;
-    const impact = this.add.circle(target.position.x, target.position.y, 24, color, 0.75).setDepth(45);
-    const ring = this.add.circle(target.position.x, target.position.y, 28, 0, 0).setStrokeStyle(5, color, 0.9).setDepth(46);
-    const damage = this.add
-      .text(target.position.x, target.position.y - target.radius * 1.5, `−${shieldDamage + hullDamage}`, {
-        fontFamily: 'Inter, Arial, sans-serif', fontSize: '28px', fontStyle: 'bold', color: shieldDamage > 0 ? '#8fd5ff' : '#ffac87',
-      })
-      .setOrigin(0.5)
-      .setDepth(47);
-    this.tweens.add({ targets: impact, scale: 2.2, alpha: 0, duration: 280, onComplete: () => impact.destroy() });
-    this.tweens.add({ targets: ring, scale: 2.8, alpha: 0, duration: 380, onComplete: () => ring.destroy() });
-    this.tweens.add({ targets: damage, y: damage.y - 55, alpha: 0, duration: 720, onComplete: () => damage.destroy() });
+    const impactPosition = { ...target.position };
+    this.time.delayedCall(delayMs, () => {
+      const color = shieldDamage > 0 ? 0x5ab6ff : 0xff8a5c;
+      const scale = weapon === 'lance' ? 1.45 : weapon === 'torpedo' ? 1.25 : 1;
+      const impact = this.add.circle(impactPosition.x, impactPosition.y, 28 * scale, color, 0.78).setBlendMode(Phaser.BlendModes.ADD).setDepth(45);
+      const ring = this.add.circle(impactPosition.x, impactPosition.y, 34 * scale, 0, 0).setStrokeStyle(6, color, 0.92).setDepth(46);
+      const damage = this.add
+        .text(impactPosition.x, impactPosition.y - target.radius * 1.65, `−${shieldDamage + hullDamage}`, {
+          fontFamily: 'Inter, Arial, sans-serif', fontSize: '30px', fontStyle: 'bold', color: shieldDamage > 0 ? '#bce9ff' : '#ffc09f',
+          stroke: '#05070c', strokeThickness: 5,
+        })
+        .setOrigin(0.5)
+        .setDepth(49);
+      this.tweens.add({ targets: impact, scale: 3.4, alpha: 0, duration: 360, onComplete: () => impact.destroy() });
+      this.tweens.add({ targets: ring, scale: 3.1, alpha: 0, duration: 480, ease: 'Cubic.Out', onComplete: () => ring.destroy() });
+      this.tweens.add({ targets: damage, y: damage.y - 62, alpha: 0, duration: 820, onComplete: () => damage.destroy() });
+
+      if (hullDamage > 0) {
+        for (let index = 0; index < 7; index += 1) {
+          const angle = (Math.PI * 2 * index) / 7 + 0.25;
+          const shard = this.add.triangle(impactPosition.x, impactPosition.y, 7, 0, -4, -3, -4, 3, 0xffba76, 0.9).setRotation(angle).setDepth(48);
+          this.tweens.add({
+            targets: shard,
+            x: impactPosition.x + Math.cos(angle) * (70 + index * 5),
+            y: impactPosition.y + Math.sin(angle) * (70 + index * 5),
+            rotation: angle + 2.2,
+            alpha: 0,
+            duration: 420 + index * 25,
+            onComplete: () => shard.destroy(),
+          });
+        }
+      }
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && weapon !== 'broadside') {
+        this.cameras.main.shake(weapon === 'lance' ? 150 : 110, weapon === 'lance' ? 0.006 : 0.004);
+      }
+    });
   }
 
   private showShieldBoost(shipId: string): void {
