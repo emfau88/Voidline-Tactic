@@ -96,6 +96,24 @@ describe('real-time combat engine', () => {
     expect(reinforced.events).toContainEqual(expect.objectContaining({ type: 'reinforcement-spawned', team: 'player' }));
   });
 
+  it('requires strategic objectives before resolving relay and shipyard victories', () => {
+    const mission = createCombatState('p-cruiser', 'mission-2');
+    const ships = Object.fromEntries(Object.values(mission.ships).map((ship) => [ship.id, ship.team === 'enemy'
+      ? { ...ship, alive: false, hull: 0 }
+      : freeze(ship)]));
+    const unsecured = stepCombat({ ...mission, ships }, 100);
+
+    expect(unsecured.state.status).toBe('active');
+    expect(unsecured.events).not.toContainEqual(expect.objectContaining({ type: 'combat-ended' }));
+
+    const secured = stepCombat({
+      ...unsecured.state,
+      objective: { ...unsecured.state.objective, owner: 'player', captureProgress: 1 },
+    }, 100);
+    expect(secured.state.status).toBe('player-won');
+    expect(secured.events).toContainEqual(expect.objectContaining({ type: 'combat-ended', status: 'player-won' }));
+  });
+
   it('accepts a drawn flagship course and clamps it to the battlefield', () => {
     const state = createCombatState();
     const result = setCourse(state, state.flagshipId, [{ x: -500, y: 900 }, { x: 5_000, y: 300 }]);

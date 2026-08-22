@@ -549,8 +549,11 @@ function tickObjective(
   let nextReinforcementId = state.nextReinforcementId;
 
   if (owner && objective.kind === 'shipyard' && spawnCooldownMs <= 0) {
+    const ownerHasLivingShip = Object.values(ships).some((ship) => ship.alive && ship.team === owner);
     const activeDrones = Object.values(ships).filter((ship) => ship.alive && ship.team === owner && ship.id.includes('-drone-')).length;
-    if (activeDrones < 3) {
+    if (!ownerHasLivingShip) {
+      spawnCooldownMs = 2_000;
+    } else if (activeDrones < 3) {
       const reinforcementState = { ...state, ships, nextReinforcementId };
       const reinforcement = createReinforcement(reinforcementState, owner);
       ships[reinforcement.id] = reinforcement;
@@ -574,7 +577,12 @@ function resolveCombatStatus(state: CombatState, events: CombatEvent[]): CombatS
   const playersAlive = getLivingShips(state, 'player').length > 0;
   const enemiesAlive = getLivingShips(state, 'enemy').length > 0;
   if (playersAlive && enemiesAlive) return state;
-  const status = playersAlive ? 'player-won' : 'enemy-won';
+  if (!playersAlive) {
+    events.push({ type: 'combat-ended', status: 'enemy-won' });
+    return { ...state, status: 'enemy-won' };
+  }
+  if (state.objective.kind !== 'eliminate' && state.objective.owner !== 'player') return state;
+  const status = 'player-won';
   events.push({ type: 'combat-ended', status });
   return { ...state, status };
 }
