@@ -339,19 +339,19 @@ function escortDestination(state: CombatState, escort: ShipState, flagship: Ship
 function hostileDestination(ship: ShipState, target: ShipState): Vector2 {
   const targetAngle = angleBetween(ship.position, target.position);
   const separation = distance(ship.position, target.position);
-  if (separation > 430) return { ...target.position };
-  if (separation < 175) {
+  if (separation > 720) return { ...target.position };
+  if (separation < 260) {
     return {
-      x: ship.position.x - Math.cos(targetAngle) * 260,
-      y: ship.position.y - Math.sin(targetAngle) * 260,
+      x: ship.position.x - Math.cos(targetAngle) * 390,
+      y: ship.position.y - Math.sin(targetAngle) * 390,
     };
   }
   const broadsideShip = ship.weapons.includes('broadside');
   const orbitDirection = ship.id === 'e-cruiser' ? 1 : -1;
   const desiredAngle = targetAngle + (broadsideShip ? orbitDirection * Math.PI / 2 : orbitDirection * Math.PI / 3);
   return {
-    x: ship.position.x + Math.cos(desiredAngle) * 330,
-    y: ship.position.y + Math.sin(desiredAngle) * 330,
+    x: ship.position.x + Math.cos(desiredAngle) * 520,
+    y: ship.position.y + Math.sin(desiredAngle) * 520,
   };
 }
 

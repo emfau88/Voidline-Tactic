@@ -40,7 +40,7 @@ interface ProjectileView {
 }
 
 const ESCORT_DIRECTIVES: readonly EscortDirective[] = ['follow', 'flank-left', 'flank-right', 'protect'];
-const DEFAULT_CAMERA_ZOOM = 1.35;
+const DEFAULT_CAMERA_ZOOM = 1.25;
 const COURSE_DRAWING_ENABLED = false;
 
 export class CombatScene extends Phaser.Scene {
@@ -63,7 +63,9 @@ export class CombatScene extends Phaser.Scene {
   private readonly touchPointers = new Map<number, { x: number; y: number }>();
   private pinchStartDistance = 0;
   private pinchStartZoom = 1;
+  private lastGestureMidpoint?: { x: number; y: number };
   private gestureActive = false;
+  private cameraResumeTimer?: Phaser.Time.TimerEvent;
   private removePinchListeners?: () => void;
   private resizeObserver?: ResizeObserver;
 
@@ -82,7 +84,7 @@ export class CombatScene extends Phaser.Scene {
     this.cameraAnchor = this.add.zone(flagship.position.x, flagship.position.y, 1, 1).setVisible(false);
     this.cameras.main.setBounds(0, 0, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT);
     this.updateCameraAnchor(true);
-    this.cameras.main.startFollow(this.cameraAnchor, true, 0.065, 0.065);
+    this.resumeCameraFollow();
     this.createTelegraphLabels();
     this.hud = new CombatHud({
       onAction: (action) => this.handleAction(action),
@@ -111,7 +113,7 @@ export class CombatScene extends Phaser.Scene {
 
     this.syncPresentation();
     this.refreshHud();
-    this.hud.toast('LIVE: Mit dem Steuerstick den Sollkurs setzen. Loslassen hält den Kurs.');
+    this.hud.toast('LIVE · Steuerstick links, Systeme rechts. Zwei Finger zoomen und verschieben die Karte.');
     const shell = document.getElementById('game-shell');
     shell?.setAttribute('aria-busy', 'false');
     if (shell) shell.dataset.gameReady = 'true';
@@ -138,11 +140,15 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createBattlefield(): void {
-    this.add
-      .image(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
-      .setDisplaySize(BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT)
-      .setAlpha(0.92)
-      .setDepth(-30);
+    const backgroundWidth = BATTLEFIELD_WIDTH / 2 + 4;
+    for (let index = 0; index < 2; index += 1) {
+      this.add
+        .image(backgroundWidth * (index + 0.5) - index * 4, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
+        .setDisplaySize(backgroundWidth, BATTLEFIELD_HEIGHT * 1.34)
+        .setFlipX(index === 1)
+        .setAlpha(0.92)
+        .setDepth(-30);
+    }
     this.add
       .rectangle(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT, 0x204469, 0.13)
       .setBlendMode(Phaser.BlendModes.SCREEN)
@@ -194,11 +200,12 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private layoutCamera(): void {
-    const width = this.scale.width || 390;
-    const height = this.scale.height || 844;
-    const topInset = 62 * RENDER_DENSITY;
-    const hudHeight = Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
-    const viewportHeight = Math.max(300 * RENDER_DENSITY, height - topInset - hudHeight);
+    const width = this.scale.width || 844;
+    const height = this.scale.height || 390;
+    const landscape = width >= height;
+    const topInset = (landscape ? 48 : 62) * RENDER_DENSITY;
+    const hudHeight = landscape ? 0 : Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
+    const viewportHeight = Math.max((landscape ? 220 : 300) * RENDER_DENSITY, height - topInset - hudHeight);
     this.cameras.main.setViewport(0, topInset, width, viewportHeight);
     this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);
     this.cameras.main.setZoom(this.baseCameraZoom * this.cameraZoomFactor);
@@ -218,7 +225,7 @@ export class CombatScene extends Phaser.Scene {
 
   private applyCameraZoom(factor: number, focus?: { x: number; y: number }): void {
     const camera = this.cameras.main;
-    const nextFactor = Phaser.Math.Clamp(factor, 0.8, 1.8);
+    const nextFactor = Phaser.Math.Clamp(factor, 0.65, 2.4);
     const worldBefore = focus ? camera.getWorldPoint(focus.x, focus.y) : undefined;
     this.cameraZoomFactor = nextFactor;
     camera.setZoom(this.baseCameraZoom * nextFactor);
@@ -739,10 +746,12 @@ export class CombatScene extends Phaser.Scene {
       this.touchPointers.set(event.pointerId, position(event));
       if (this.touchPointers.size === 2) {
         this.gestureActive = true;
+        this.suspendCameraFollow();
         this.routeDrawing = false;
         this.routeSamples = [];
         this.pinchStartDistance = Math.max(1, touchDistance());
         this.pinchStartZoom = this.cameraZoomFactor;
+        this.lastGestureMidpoint = midpoint();
       }
     };
     const onPointerMove = (event: PointerEvent): void => {
@@ -750,12 +759,24 @@ export class CombatScene extends Phaser.Scene {
       this.touchPointers.set(event.pointerId, position(event));
       if (this.touchPointers.size !== 2 || this.pinchStartDistance <= 0) return;
       event.preventDefault();
-      this.applyCameraZoom(this.pinchStartZoom * (touchDistance() / this.pinchStartDistance), midpoint());
+      const currentMidpoint = midpoint();
+      this.applyCameraZoom(this.pinchStartZoom * (touchDistance() / this.pinchStartDistance), currentMidpoint);
+      if (this.lastGestureMidpoint) {
+        this.cameras.main.scrollX -= (currentMidpoint.x - this.lastGestureMidpoint.x) / this.cameras.main.zoom;
+        this.cameras.main.scrollY -= (currentMidpoint.y - this.lastGestureMidpoint.y) / this.cameras.main.zoom;
+      }
+      this.lastGestureMidpoint = currentMidpoint;
     };
     const onPointerUp = (event: PointerEvent): void => {
       this.touchPointers.delete(event.pointerId);
-      if (this.touchPointers.size < 2) this.pinchStartDistance = 0;
-      if (this.touchPointers.size === 0) window.setTimeout(() => (this.gestureActive = false), 80);
+      if (this.touchPointers.size < 2) {
+        this.pinchStartDistance = 0;
+        this.lastGestureMidpoint = undefined;
+      }
+      if (this.touchPointers.size === 0) {
+        window.setTimeout(() => (this.gestureActive = false), 80);
+        this.scheduleCameraFollow();
+      }
     };
     canvas.addEventListener('pointerdown', onPointerDown, { passive: true });
     canvas.addEventListener('pointermove', onPointerMove, { passive: false });
@@ -767,6 +788,23 @@ export class CombatScene extends Phaser.Scene {
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
     };
+  }
+
+  private suspendCameraFollow(): void {
+    this.cameraResumeTimer?.remove(false);
+    this.cameraResumeTimer = undefined;
+    this.cameras.main.stopFollow();
+  }
+
+  private scheduleCameraFollow(): void {
+    this.cameraResumeTimer?.remove(false);
+    this.cameraResumeTimer = this.time.delayedCall(2_200, () => this.resumeCameraFollow());
+  }
+
+  private resumeCameraFollow(): void {
+    if (!this.cameraAnchor) return;
+    this.cameraResumeTimer = undefined;
+    this.cameras.main.startFollow(this.cameraAnchor, true, 0.055, 0.055);
   }
 
   private bindHiDpiResize(): void {

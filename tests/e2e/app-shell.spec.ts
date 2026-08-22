@@ -39,13 +39,13 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.getByRole('button', { name: /ROUTE/ })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Taktische Pause' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Vollbild umschalten' })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('135%');
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('125%');
   await page.getByRole('button', { name: 'Hineinzoomen' }).click();
-  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('145%');
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('135%');
 
   const shellWidth = await page.locator('#game-shell').evaluate((element) => element.getBoundingClientRect().width);
   const innerWidth = await page.evaluate(() => window.innerWidth);
-  expect(Math.abs(shellWidth - Math.min(innerWidth, 620))).toBeLessThanOrEqual(1);
+  expect(Math.abs(shellWidth - innerWidth)).toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => document.body.scrollWidth <= window.innerWidth)).toBe(true);
   const density = await page.locator('#game-root canvas').evaluate((element) => {
     const canvas = element as HTMLCanvasElement;
@@ -75,14 +75,14 @@ test('sets and holds a joystick heading while route drawing stays dormant', asyn
   const box = await stick.boundingBox();
   if (!box) throw new Error('Flight stick has no layout box.');
 
-  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '-1.5708');
-  await page.mouse.move(box.x + box.width * 0.82, box.y + box.height * 0.5);
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '0.0000');
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.18);
   await page.mouse.down();
   await page.mouse.up();
 
-  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '0.0000');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '-1.5708');
   await expect(page.locator('#game-shell')).toHaveAttribute('data-course-points', '0');
-  await expect(page.locator('#flight-stick-readout')).toHaveText('SOLLKURS O');
+  await expect(page.locator('#flight-stick-readout')).toHaveText('SOLLKURS N');
   await expect(page.getByRole('button', { name: /ROUTE/ })).toContainText('INAKTIV');
 });
 
@@ -143,5 +143,5 @@ test('supports two-finger pinch zoom around the touch midpoint', async ({ page }
     emit('pointerup', 41, bounds.width * 0.3, bounds.height * 0.43);
     emit('pointerup', 42, bounds.width * 0.7, bounds.height * 0.43);
   });
-  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('180%');
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('240%');
 });

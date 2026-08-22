@@ -5,21 +5,21 @@ import { SHIP_PRESENTATIONS, weaponOrigins } from '../../src/game/presentation/s
 describe('ship presentation hardpoints', () => {
   it('rotates the player cruiser lance origin with its facing', () => {
     const cruiser = createCombatState().ships['p-cruiser'];
-    const [origin] = weaponOrigins(cruiser, { x: cruiser.position.x, y: 0 }, 'lance');
+    const [origin] = weaponOrigins(cruiser, { x: cruiser.position.x + 300, y: cruiser.position.y }, 'lance');
 
-    expect(origin.x).toBeCloseTo(cruiser.position.x, 5);
-    expect(origin.y).toBeCloseTo(cruiser.position.y - cruiser.radius * 1.28, 5);
+    expect(origin.x).toBeCloseTo(cruiser.position.x + cruiser.radius * 1.28, 5);
+    expect(origin.y).toBeCloseTo(cruiser.position.y, 5);
   });
 
   it('chooses the broadside hardpoints on the side facing the target', () => {
     const cruiser = createCombatState().ships['p-cruiser'];
-    const easternOrigins = weaponOrigins(cruiser, { x: cruiser.position.x + 300, y: cruiser.position.y }, 'broadside');
-    const westernOrigins = weaponOrigins(cruiser, { x: cruiser.position.x - 300, y: cruiser.position.y }, 'broadside');
+    const southernOrigins = weaponOrigins(cruiser, { x: cruiser.position.x, y: cruiser.position.y + 300 }, 'broadside');
+    const northernOrigins = weaponOrigins(cruiser, { x: cruiser.position.x, y: cruiser.position.y - 300 }, 'broadside');
 
-    expect(easternOrigins).toHaveLength(3);
-    expect(westernOrigins).toHaveLength(3);
-    expect(easternOrigins.every((origin) => origin.x > cruiser.position.x)).toBe(true);
-    expect(westernOrigins.every((origin) => origin.x < cruiser.position.x)).toBe(true);
+    expect(southernOrigins).toHaveLength(3);
+    expect(northernOrigins).toHaveLength(3);
+    expect(southernOrigins.every((origin) => origin.y > cruiser.position.y)).toBe(true);
+    expect(northernOrigins.every((origin) => origin.y < cruiser.position.y)).toBe(true);
   });
 
   it('defines distinct runtime art and weapon origins for all four ships', () => {

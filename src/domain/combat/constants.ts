@@ -1,13 +1,13 @@
-export const BATTLEFIELD_WIDTH = 1_000;
-export const BATTLEFIELD_HEIGHT = 1_500;
-export const BATTLEFIELD_MARGIN = 55;
+export const BATTLEFIELD_WIDTH = 2_400;
+export const BATTLEFIELD_HEIGHT = 1_400;
+export const BATTLEFIELD_MARGIN = 80;
 
 export const FIXED_STEP_MS = 1_000 / 30;
 export const COURSE_REACHED_DISTANCE = 42;
 export const AI_THINK_INTERVAL_MS = 650;
 
-export const NEBULA_CENTER = { x: 515, y: 790 } as const;
-export const NEBULA_RADIUS = 185;
+export const NEBULA_CENTER = { x: 1_320, y: 700 } as const;
+export const NEBULA_RADIUS = 260;
 export const NEBULA_DAMAGE_REDUCTION = 0.25;
 
 export const SHIELD_BOOST_COST = 16;

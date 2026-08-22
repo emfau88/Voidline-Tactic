@@ -1,11 +1,11 @@
 {
   "name": "Voidline Tactics",
   "short_name": "Voidline",
-  "description": "Mobile-first turn-based fleet tactics.",
+  "description": "Mobile-first real-time fleet tactics with tactical pause.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
-  "orientation": "portrait-primary",
+  "orientation": "landscape-primary",
   "background_color": "#03050a",
   "theme_color": "#05070c",
   "icons": [

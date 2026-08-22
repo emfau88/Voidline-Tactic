@@ -9,7 +9,14 @@ import {
   steerShip,
   stepCombat,
 } from '../../src/domain/combat/combatEngine';
-import { NEBULA_CENTER, SHIELD_BOOST_DURATION_MS, SHIELD_BOOST_RESTORE } from '../../src/domain/combat/constants';
+import {
+  BATTLEFIELD_HEIGHT,
+  BATTLEFIELD_MARGIN,
+  BATTLEFIELD_WIDTH,
+  NEBULA_CENTER,
+  SHIELD_BOOST_DURATION_MS,
+  SHIELD_BOOST_RESTORE,
+} from '../../src/domain/combat/constants';
 import type { CombatEvent, CombatState, ShipState } from '../../src/domain/combat/types';
 
 function replaceShip(state: CombatState, ship: ShipState): CombatState {
@@ -64,17 +71,17 @@ describe('real-time combat engine', () => {
     expect(result.error).toBeUndefined();
     expect(result.state.ships[state.flagshipId].course).toHaveLength(2);
     for (const point of result.state.ships[state.flagshipId].course) {
-      expect(point.x).toBeGreaterThan(55);
-      expect(point.x).toBeLessThan(945);
-      expect(point.y).toBeGreaterThan(55);
-      expect(point.y).toBeLessThan(1_445);
+      expect(point.x).toBeGreaterThan(BATTLEFIELD_MARGIN);
+      expect(point.x).toBeLessThan(BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN);
+      expect(point.y).toBeGreaterThan(BATTLEFIELD_MARGIN);
+      expect(point.y).toBeLessThan(BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN);
     }
   });
 
   it('moves continuously and respects the configured turn rate', () => {
     let state = createCombatState();
     const before = state.ships[state.flagshipId];
-    state = setCourse(state, before.id, [{ x: before.position.x + 400, y: before.position.y }]).state;
+    state = setCourse(state, before.id, [{ x: before.position.x, y: before.position.y - 400 }]).state;
     const result = stepCombat(state, 1_000);
     const after = result.state.ships[before.id];
 
@@ -86,16 +93,16 @@ describe('real-time combat engine', () => {
   it('turns toward a joystick heading and keeps it after input release', () => {
     const state = createCombatState();
     const flagship = state.ships[state.flagshipId];
-    const steered = steerShip(state, flagship.id, 0);
+    const steered = steerShip(state, flagship.id, -Math.PI / 2);
 
     expect(steered.error).toBeUndefined();
-    expect(steered.state.ships[flagship.id].desiredHeading).toBe(0);
+    expect(steered.state.ships[flagship.id].desiredHeading).toBe(-Math.PI / 2);
     expect(steered.state.ships[flagship.id].course).toEqual([]);
     const firstStep = stepCombat(steered.state, 500).state;
     const secondStep = stepCombat(firstStep, 500).state;
-    expect(firstStep.ships[flagship.id].facing).toBeGreaterThan(flagship.facing);
-    expect(secondStep.ships[flagship.id].facing).toBeGreaterThan(firstStep.ships[flagship.id].facing);
-    expect(secondStep.ships[flagship.id].desiredHeading).toBe(0);
+    expect(firstStep.ships[flagship.id].facing).toBeLessThan(flagship.facing);
+    expect(secondStep.ships[flagship.id].facing).toBeLessThan(firstStep.ships[flagship.id].facing);
+    expect(secondStep.ships[flagship.id].desiredHeading).toBe(-Math.PI / 2);
   });
 
   it('is deterministic for identical fixed-step input', () => {
@@ -138,7 +145,8 @@ describe('real-time combat engine', () => {
     state = activateAbility(state, 'p-cruiser', 'lance').state;
     const attacker = state.ships['p-cruiser'];
     const target = state.ships['e-cruiser'];
-    state = replaceShip(state, { ...target, position: { x: attacker.position.x, y: attacker.position.y + 250 } });
+    state = replaceShip(state, { ...attacker, autoFire: false });
+    state = replaceShip(state, { ...target, position: { x: attacker.position.x - 250, y: attacker.position.y } });
     const result = stepCombat(state, 1_600);
 
     expect(result.events).toContainEqual(expect.objectContaining({ type: 'ability-failed', ability: 'lance' }));
@@ -170,11 +178,11 @@ describe('real-time combat engine', () => {
 
   it('shows the nebula reduction in the deterministic ability preview', () => {
     let state = createCombatState();
-    const attacker = freeze({ ...state.ships['p-cruiser'], position: { x: NEBULA_CENTER.x, y: NEBULA_CENTER.y + 300 } });
+    const attacker = freeze({ ...state.ships['p-cruiser'], position: { x: NEBULA_CENTER.x - 300, y: NEBULA_CENTER.y }, facing: 0 });
     const coveredTarget = freeze({ ...state.ships['e-cruiser'], position: { ...NEBULA_CENTER } });
     state = replaceShip(replaceShip(state, attacker), coveredTarget);
     const covered = getAbilityPreview(state, attacker.id, 'lance', coveredTarget.id);
-    state = replaceShip(state, { ...coveredTarget, position: { x: NEBULA_CENTER.x, y: NEBULA_CENTER.y - 250 } });
+    state = replaceShip(state, { ...coveredTarget, position: { x: NEBULA_CENTER.x + 350, y: NEBULA_CENTER.y } });
     const exposed = getAbilityPreview(state, attacker.id, 'lance', coveredTarget.id);
 
     expect(covered.valid).toBe(true);
