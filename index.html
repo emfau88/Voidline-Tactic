@@ -37,7 +37,7 @@
             <div>
               <small>VOIDLINE FLEET COMMAND · DEVELOPMENT BUILD</small>
               <h1 id="menu-title">WÄHLE DEIN<br><span>STARTSCHIFF</span></h1>
-              <p>Steuere dein Flaggschiff direkt, führe die Eskorte und entscheide den Kampf in Echtzeit.</p>
+              <p>Kommandiere einen kleinen Verband indirekt, kontrolliere drei Raumkorridore und entscheide eine dynamische Flottenschlacht.</p>
             </div>
             <button class="menu-fullscreen-button" type="button" data-fullscreen aria-pressed="false" title="Vollbild öffnen">
               <span aria-hidden="true">⛶</span><span>VOLLBILD</span>
@@ -75,7 +75,7 @@
 
           <section class="refit-preview" id="campaign-panel" aria-labelledby="campaign-title">
             <div class="refit-heading">
-              <div><small>VOIDLINE-KAMPAGNE</small><strong id="campaign-title">DREI MISSIONEN</strong></div>
+              <div><small>SPIELBARER PROOF OF CONCEPT</small><strong id="campaign-title">FLEET CORRIDORS</strong></div>
               <span id="campaign-salvage">0 SALVAGE</span>
             </div>
             <section id="starter-refit" aria-labelledby="starter-refit-title">
@@ -96,13 +96,13 @@
             </section>
             <div class="mission-track" aria-label="Missionsauswahl">
               <button class="selected" type="button" data-mission="mission-1" aria-pressed="true">
-                <span>01</span><b>ERSTER KONTAKT</b><small>1v1-Kalibrierung</small>
+                <span>01</span><b>KORRIDORBRUCH</b><small>3 Routen · 2 Ziele</small>
               </button>
               <button type="button" data-mission="mission-2" aria-pressed="false" disabled>
-                <span>02</span><b>RELAISKNOTEN</b><small>Kontrollpunkt</small>
+                <span>02</span><b>NÄCHSTER EINSATZ</b><small>Nach dem PoC</small>
               </button>
               <button type="button" data-mission="mission-3" aria-pressed="false" disabled>
-                <span>03</span><b>GEBROCHENE WERFT</b><small>Drohnenproduktion</small>
+                <span>03</span><b>FLOTTENKAMPAGNE</b><small>Roadmap</small>
               </button>
             </div>
             <div class="campaign-briefing">
@@ -130,8 +130,9 @@
           </div>
           <div class="objective-block">
             <small>ZIEL</small>
-            <strong id="objective-label">Feinde ausschalten</strong>
+            <strong id="objective-label">Command Ship ausschalten</strong>
           </div>
+          <strong id="supply-label">45 SUPPLY</strong>
         </header>
 
         <nav id="time-controls" class="battle-ui" aria-label="Simulationsgeschwindigkeit">
@@ -144,11 +145,17 @@
           <button id="zoom-out-button" type="button" aria-label="Herauszoomen" disabled>−</button>
           <button id="zoom-reset-button" type="button" aria-label="Zoom zurücksetzen" disabled>100%</button>
           <button id="zoom-in-button" type="button" aria-label="Hineinzoomen" disabled>+</button>
+          <button id="fleet-focus-button" type="button" aria-label="Eigene Flotte auf der Karte zeigen" disabled>◎</button>
           <button id="fullscreen-button" type="button" data-fullscreen aria-label="Vollbild umschalten" aria-pressed="false" disabled>⛶</button>
           <button id="help-button" type="button" aria-label="Spielhilfe öffnen" disabled>?</button>
         </nav>
         <div id="toast" class="battle-ui" role="status" aria-live="polite"></div>
-        <div id="loading-label" class="battle-ui" role="status">FLUGDATEN WERDEN GELADEN…</div>
+        <aside id="command-guide" class="panel battle-ui" aria-live="polite">
+          <span id="command-guide-step">1</span>
+          <p><strong id="command-guide-title">SCHIFF AUSGEWÄHLT</strong><small id="command-guide-copy">Bestimme unten links zuerst das Verhalten.</small></p>
+          <button id="close-command-guide" type="button" aria-label="Kurzanleitung schließen">×</button>
+        </aside>
+        <div id="loading-label" class="battle-ui" role="status">FLOTTENDATEN WERDEN GELADEN…</div>
 
         <aside id="target-card" class="panel battle-ui" hidden aria-label="Zielvorschau">
           <div class="card-heading">
@@ -195,24 +202,44 @@
           </div>
         </section>
 
+        <section id="deployment-panel" class="panel battle-ui" aria-label="Verstärkungen anfordern">
+          <header><strong>VERSTÄRKUNG</strong><small>VERSORGUNG <span id="deployment-supply">45 / 100</span></small></header>
+          <div class="deploy-lanes" aria-label="Einsatzkorridor">
+            <button type="button" data-deploy-lane="upper">OBEN</button>
+            <button class="active" type="button" data-deploy-lane="center">MITTE</button>
+            <button type="button" data-deploy-lane="lower">UNTEN</button>
+          </div>
+          <div class="deploy-ships">
+            <button type="button" data-deploy="frigate"><strong>FREGATTE</strong><small>30 SUP</small></button>
+            <button type="button" data-deploy="destroyer"><strong>ZERSTÖRER</strong><small>55 SUP</small></button>
+          </div>
+        </section>
+
         <footer id="combat-hud" class="battle-ui">
           <div id="control-deck">
-            <section id="flight-control" aria-label="Direkte Flugsteuerung">
-              <button id="flight-stick" type="button" aria-label="Steuerjoystick für den Sollkurs" disabled>
-                <span class="stick-cross" aria-hidden="true"></span>
-                <span id="flight-stick-knob" aria-hidden="true"><svg><use href="#icon-move"/></svg></span>
-              </button>
-              <strong>STEUERSTICK</strong>
-              <small id="flight-stick-readout">SOLLKURS N</small>
+            <section id="fleet-command-panel" aria-label="Indirekte Flottenbefehle">
+              <div class="command-heading"><strong id="command-group-title">ROUTENGRUPPE</strong><small id="command-group-count">AUTONOM</small></div>
+              <div class="stance-grid" aria-label="Haltung">
+                <button type="button" data-stance="advance"><strong>▲</strong><small>ANGRIFF</small></button>
+                <button type="button" data-stance="broadside"><strong>↔</strong><small>BREITSEITE</small></button>
+                <button type="button" data-stance="hold"><strong>◆</strong><small>HALT</small></button>
+                <button type="button" data-stance="keep-range"><strong>◎</strong><small>ABSTAND</small></button>
+                <button type="button" data-stance="retreat"><strong>▼</strong><small>ZURÜCK</small></button>
+              </div>
+              <div class="lane-grid" aria-label="Korridor zuweisen">
+                <button type="button" data-lane="upper">OBERE ROUTE</button>
+                <button type="button" data-lane="center">MITTLERE ROUTE</button>
+                <button type="button" data-lane="lower">UNTERE ROUTE</button>
+              </div>
+              <button id="transfer-selected-button" type="button">AUSGEWÄHLTES SCHIFF AUF DIESE ROUTE VERLEGEN</button>
             </section>
 
-            <nav id="action-grid" aria-label="Schiffsaktionen">
-              <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>ZIEL</strong><small>Tap / wechseln</small></button>
+            <small id="optional-systems-label">OPTIONAL · EINZELSCHIFF</small>
+            <nav id="action-grid" aria-label="Optionale Systeme des ausgewählten Schiffs">
+              <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>FOKUS</strong><small>Erfassen</small></button>
               <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>bereit · 18 EN</small></button>
               <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>bereit · 12 EN</small></button>
               <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>BOOST</strong><small>bereit · 16 EN</small></button>
-              <button type="button" data-action="escort" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>ESKORTE</strong><small>folgen</small></button>
-              <button class="dormant" type="button" data-action="course" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>ROUTE</strong><small>INAKTIV</small></button>
             </nav>
           </div>
         </footer>
@@ -220,12 +247,12 @@
         <dialog id="help-dialog" class="modal panel">
           <h2>SO SPIELST DU</h2>
           <ol>
-            <li>Dein vor dem Start montierter Aegis-Emitter oder Vector-Drive ist am Flaggschiff sichtbar und verändert dessen Werte.</li>
-            <li>Drücke den Steuerstick in die gewünschte Richtung. Das Flaggschiff wendet träge und hält den Sollkurs nach dem Loslassen.</li>
-            <li>Standardbatterien feuern automatisch aus den Breitseiten. Tippe einen Gegner direkt an oder wechsle ihn mit ZIEL.</li>
-            <li>Lanze, Torpedo und Schild-Boost löst du selbst aus. Die Lanze kündigt ihren Schuss sichtbar an.</li>
-            <li>PAUSE friert den Kampf ein; PLANEN läuft mit ¼ Tempo. Torpedos sind physische, verlässliche Projektile.</li>
-            <li>Mission 1 ist ein reines 1v1. Eskorte und Kontrollpunkte kommen erst später; zwei Finger zoomen und verschieben die Karte.</li>
+            <li>Tippe ein eigenes Schiff an und gib ihm eine Haltung: Vorrücken, Breitseite, Halten, Distanz oder Rückzug.</li>
+            <li>Weise OBEN, MITTE oder UNTEN zu. Ein Korridorwechsel erfolgt nachvollziehbar über den nächsten Knoten.</li>
+            <li>Tippe einen Gegner an, um ihn als Fokusziel zu markieren. Standardwaffen feuern automatisch; Spezialwaffen löst du rechts aus.</li>
+            <li>Das Relais oben erhöht Supply, die Werft unten beschleunigt Verstärkungen. Die Mitte ist der direkte, riskante Weg.</li>
+            <li>Fordere Fregatten oder Zerstörer für einen gewählten Korridor an. Pro Seite sind höchstens sieben Schiffe aktiv.</li>
+            <li>Wische frei über die Karte. Pinch zoomt am Berührungspunkt; ◎ zentriert nur auf ausdrücklichen Wunsch auf deine Flotte.</li>
           </ol>
           <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>
         </dialog>

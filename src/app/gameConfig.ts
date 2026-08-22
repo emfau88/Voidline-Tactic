@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from '../game/scenes/BootScene';
-import { CombatScene } from '../game/scenes/CombatScene';
+import { FleetCombatScene } from '../game/scenes/FleetCombatScene';
 import { GAME_HEIGHT, GAME_WIDTH, RENDER_DENSITY } from './display';
 
 export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
@@ -25,6 +25,6 @@ export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
       width,
       height,
     },
-    scene: [BootScene, CombatScene],
+    scene: [BootScene, FleetCombatScene],
   };
 }

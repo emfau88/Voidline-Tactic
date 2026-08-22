@@ -117,5 +117,5 @@ export function laneChangeRoute(position: Vector2, fromLane: LaneId, toLane: Lan
 }
 
 export function laneLabel(laneId: LaneId): string {
-  return LANES[laneId].shortName;
+  return laneId === 'upper' ? 'OBEN' : laneId === 'center' ? 'MITTE' : 'UNTEN';
 }

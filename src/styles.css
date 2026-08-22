@@ -6,6 +6,233 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Fleet Corridors command layer. The battlefield remains full-bleed; these pods float above it. */
+#supply-label {
+  color: #8ee5ff;
+  font-size: clamp(0.62rem, 1.6vw, 0.82rem);
+  letter-spacing: 0.11em;
+  white-space: nowrap;
+}
+
+#fleet-command-panel,
+#deployment-panel {
+  border: 1px solid rgba(116, 196, 234, 0.34);
+  background: linear-gradient(145deg, rgba(6, 17, 29, 0.91), rgba(8, 19, 31, 0.72));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38), inset 0 0 22px rgba(66, 155, 207, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+#fleet-command-panel {
+  position: fixed;
+  z-index: 14;
+  left: max(10px, env(safe-area-inset-left));
+  bottom: max(9px, env(safe-area-inset-bottom));
+  width: min(45vw, 390px);
+  min-width: 286px;
+  padding: 8px;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.command-heading,
+#deployment-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 6px;
+  color: #d8f3ff;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+}
+
+.command-heading small,
+#deployment-panel header small { color: #72bddf; }
+
+.stance-grid,
+.lane-grid,
+.deploy-lanes,
+.deploy-ships {
+  display: grid;
+  gap: 5px;
+}
+
+.stance-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.lane-grid,
+.deploy-lanes { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 5px; }
+.deploy-ships { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 5px; }
+
+.stance-grid button,
+.lane-grid button,
+.deploy-lanes button,
+.deploy-ships button {
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid rgba(114, 181, 215, 0.26);
+  border-radius: 5px;
+  color: #b8d5e3;
+  background: rgba(19, 41, 58, 0.74);
+  padding: 3px;
+  font: inherit;
+  letter-spacing: 0.04em;
+}
+
+.stance-grid button { display: grid; place-items: center; gap: 0; }
+.stance-grid button strong { color: #8edbff; font-size: 0.93rem; line-height: 1; }
+.stance-grid button small,
+.lane-grid button,
+.deploy-lanes button { font-size: clamp(0.42rem, 1.1vw, 0.55rem); font-weight: 800; }
+.deploy-ships button { display: flex; align-items: center; justify-content: space-between; padding: 5px 7px; }
+.deploy-ships button strong { font-size: 0.57rem; }
+.deploy-ships button small { color: #76c9ea; font-size: 0.48rem; }
+
+.stance-grid button.active,
+.lane-grid button.active,
+.deploy-lanes button.active {
+  border-color: rgba(103, 218, 255, 0.9);
+  color: #f2fbff;
+  background: linear-gradient(180deg, rgba(31, 109, 146, 0.88), rgba(13, 55, 78, 0.92));
+  box-shadow: 0 0 14px rgba(72, 190, 238, 0.26);
+}
+
+#deployment-panel {
+  position: fixed;
+  z-index: 13;
+  top: clamp(112px, 27vh, 152px);
+  left: max(10px, env(safe-area-inset-left));
+  width: clamp(210px, 27vw, 260px);
+  padding: 7px;
+  border-radius: 7px;
+}
+
+#combat-hud,
+#control-deck {
+  pointer-events: none;
+  position: static;
+  width: 0;
+  height: 0;
+}
+
+#fleet-command-panel,
+#action-grid { pointer-events: auto; }
+
+#action-grid {
+  position: fixed;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(9px, env(safe-area-inset-bottom));
+  width: min(42vw, 330px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(54px, 1fr));
+  gap: 7px;
+}
+
+#action-grid button {
+  min-width: 0;
+  width: auto;
+  height: clamp(58px, 14vh, 76px);
+  border-radius: 50%;
+}
+
+#action-grid button > strong { font-size: clamp(0.48rem, 1.4vw, 0.68rem); }
+#action-grid button > small { font-size: clamp(0.38rem, 1vw, 0.48rem); }
+
+@media (orientation: portrait) {
+  #fleet-command-panel { width: calc(100vw - 20px); min-width: 0; bottom: max(8px, env(safe-area-inset-bottom)); }
+  #action-grid { right: 10px; bottom: 124px; width: min(74vw, 330px); }
+  #deployment-panel { top: 168px; }
+}
+
+#command-guide {
+  position: fixed;
+  z-index: 18;
+  top: 44px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 24px;
+  width: min(410px, 46vw);
+  min-height: 46px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 7px;
+  border-color: rgba(100, 199, 242, 0.45);
+  border-radius: 7px;
+  background: rgba(5, 16, 27, 0.92);
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+#command-guide[hidden] { display: none; }
+#command-guide-step {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid #6bd4ff;
+  border-radius: 50%;
+  color: #dff8ff;
+  font-size: 11px;
+  font-weight: 900;
+}
+#command-guide p { min-width: 0; margin: 0; }
+#command-guide strong,
+#command-guide small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#command-guide strong { color: #dff5ff; font-size: 8px; letter-spacing: 0.08em; }
+#command-guide small { margin-top: 2px; color: #9db6c5; font-size: 7px; }
+#close-command-guide { min-width: 24px; min-height: 28px; padding: 0; border: 0; background: transparent; color: #8199a8; font-size: 17px; pointer-events: auto; }
+
+#transfer-selected-button {
+  width: 100%;
+  min-height: 24px;
+  margin-top: 5px;
+  padding: 3px 6px;
+  border: 1px dashed rgba(104, 181, 216, 0.32);
+  border-radius: 4px;
+  background: rgba(8, 24, 36, 0.7);
+  color: #8fc6dd;
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+#transfer-selected-button:disabled { opacity: 0.35; }
+
+#optional-systems-label {
+  position: fixed;
+  z-index: 14;
+  right: max(13px, env(safe-area-inset-right));
+  bottom: max(82px, calc(env(safe-area-inset-bottom) + 77px));
+  color: #83a7b8;
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  #command-guide { top: 42px; width: min(390px, 42vw); }
+  #game-shell[data-screen='battle'] #fleet-command-panel { bottom: 7px; }
+  #optional-systems-label { bottom: 80px; }
+  #game-shell[data-screen='battle'] #topbar {
+    grid-template-columns: auto auto;
+    justify-content: start;
+    gap: 18px;
+  }
+  #game-shell[data-screen='battle'] #topbar .objective-block { display: none; }
+}
+
+@media (orientation: portrait) {
+  #command-guide { top: 48px; width: calc(100vw - 28px); }
+  #optional-systems-label { bottom: 196px; }
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  #fleet-command-panel { width: min(43vw, 370px); padding: 6px; }
+  .stance-grid button { min-height: 30px; }
+  .lane-grid button { min-height: 27px; }
+  #deployment-panel { top: 102px; width: 224px; padding: 5px; }
+  .deploy-lanes button, .deploy-ships button { min-height: 26px; }
+  #action-grid { width: min(40vw, 310px); gap: 6px; }
+  #action-grid button { height: clamp(54px, 15vh, 66px); }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -2130,4 +2357,88 @@ button:focus-visible {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Final fleet overrides intentionally follow the legacy direct-control rules. */
+#game-shell[data-screen='battle'] #topbar {
+  height: 38px;
+  grid-template-columns: minmax(82px, 0.55fr) auto minmax(170px, 1fr) auto;
+  gap: 10px;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding: 0 8px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(90deg, rgba(5, 13, 22, 0.94), rgba(7, 17, 27, 0.82));
+}
+
+#game-shell[data-screen='battle'] #supply-label {
+  justify-self: end;
+  color: #8ee5ff;
+  font-family: Inter, sans-serif;
+  font-size: clamp(7px, 1.3vw, 11px);
+}
+
+#game-shell[data-screen='battle'] #combat-hud {
+  position: static;
+  inset: auto;
+  width: auto;
+  height: 0;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  filter: none;
+}
+
+#game-shell[data-screen='battle'] #control-deck {
+  position: static;
+  display: block;
+  width: auto;
+  height: 0;
+  margin: 0;
+}
+
+#game-shell[data-screen='battle'] #fleet-command-panel {
+  position: fixed;
+  left: max(10px, env(safe-area-inset-left));
+  bottom: max(9px, env(safe-area-inset-bottom));
+  display: block;
+  width: min(45vw, 390px);
+  min-width: 286px;
+  height: auto;
+}
+
+#game-shell[data-screen='battle'] #action-grid {
+  position: fixed;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(9px, env(safe-area-inset-bottom));
+  left: auto;
+  display: flex;
+  width: auto;
+  height: 70px;
+  align-items: end;
+  gap: 7px;
+  margin: 0;
+}
+
+#game-shell[data-screen='battle'] #action-grid button[data-action='target'] { width: 48px; height: 48px; }
+#game-shell[data-screen='battle'] #action-grid button[data-action='shield'] { width: 54px; height: 54px; }
+#game-shell[data-screen='battle'] #action-grid button[data-action='lance'] { width: 62px; height: 62px; }
+#game-shell[data-screen='battle'] #action-grid button[data-action='torpedo'] { width: 70px; height: 70px; }
+
+@media (max-height: 430px) and (orientation: landscape) {
+  #game-shell[data-screen='battle'] #topbar .brand-block small,
+  #game-shell[data-screen='battle'] #topbar .objective-block small { display: none; }
+  #game-shell[data-screen='battle'] #topbar .brand-block strong,
+  #game-shell[data-screen='battle'] #topbar .turn-block strong { font-size: 9px; }
+  #game-shell[data-screen='battle'] #topbar .turn-block small,
+  #game-shell[data-screen='battle'] #topbar .objective-block strong { font-size: 6px; }
+  #game-shell[data-screen='battle'] #fleet-command-panel { width: min(43vw, 370px); min-width: 280px; }
+}
+
+@media (orientation: portrait) {
+  #game-shell[data-screen='battle'] #topbar { grid-template-columns: auto 1fr auto; }
+  #game-shell[data-screen='battle'] #topbar .objective-block { display: none; }
+  #game-shell[data-screen='battle'] #fleet-command-panel { width: calc(100vw - 20px); min-width: 0; }
+  #game-shell[data-screen='battle'] #action-grid { bottom: 124px; }
 }

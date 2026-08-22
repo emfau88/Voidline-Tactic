@@ -56,13 +56,12 @@ function selectStarterModule(moduleId: StarterModuleId): void {
   const status = document.getElementById('starter-module-status');
   const startStatus = document.getElementById('start-loadout-status');
   if (status) status.textContent = `${definition.name.toUpperCase()} · MONTIERT`;
-  if (startStatus) startStatus.textContent = `1 Schiff · 1 Gegner · ${definition.name}`;
+  if (startStatus) startStatus.textContent = `2 Schiffe · 3 Korridore · ${definition.name}`;
   if (startButton) startButton.disabled = false;
 }
 
 function updateCampaignUi(): void {
   const campaign = getCampaignState();
-  const mission = MISSIONS[campaign.selectedMissionId];
   for (const button of missionButtons) {
     const missionId = button.dataset.mission as MissionId;
     const definition = MISSIONS[missionId];
@@ -76,17 +75,15 @@ function updateCampaignUi(): void {
   const briefingCopy = document.getElementById('mission-briefing-copy');
   const startNumber = document.getElementById('start-mission-number');
   const startName = document.getElementById('start-mission-name');
-  if (salvage) salvage.textContent = `${campaign.salvage} SALVAGE · ${campaign.upgrades.length} UPGRADES`;
-  if (briefingTitle) briefingTitle.textContent = `MISSION 0${mission.number} · ${mission.name.toUpperCase()}`;
-  if (briefingCopy) briefingCopy.textContent = mission.briefing;
-  if (startNumber) startNumber.textContent = `MISSION 0${mission.number}`;
-  if (startName) startName.textContent = `${mission.name.toUpperCase()} STARTEN`;
+  if (salvage) salvage.textContent = 'PROOF OF CONCEPT · FLEET CORRIDORS';
+  if (briefingTitle) briefingTitle.textContent = 'EINSATZ 01 · KORRIDORBRUCH';
+  if (briefingCopy) briefingCopy.textContent = 'Führe deinen Verband indirekt über drei Routen, sichere Relais und Werft und zerstöre das gegnerische Command Ship.';
+  if (startNumber) startNumber.textContent = 'EINSATZ 01';
+  if (startName) startName.textContent = 'FLEET CORRIDORS STARTEN';
   const startStatus = document.getElementById('start-loadout-status');
   if (startStatus && selectedStarterModule) {
     const module = STARTER_MODULES[selectedStarterModule];
-    startStatus.textContent = mission.number === 1
-      ? `1 Schiff · 1 Gegner · ${module.name}`
-      : `Flaggschiff + Eskorte · ${module.name}`;
+    startStatus.textContent = `2 Schiffe · 3 Korridore · ${module.name}`;
   }
 }
 
