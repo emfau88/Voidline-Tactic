@@ -1,7 +1,9 @@
 # Prolog und modulare Schiffe
 
 Stand: 22. August 2026  
-Status: verbindliche Produktrichtung, Umsetzung geplant
+Status: verbindliche Produktrichtung, erste spielbare Stufe umgesetzt
+
+Aktueller Zwischenstand: Vor Mission 1 muss bereits **ein** sichtbares Support-Modul gewählt werden. Aegis-Emitter und Vector-Drive erscheinen im Menü und im Gefecht und verändern echte Werte. Mission 1 ist ein echtes 1v1 ohne Eskorte. Kleine eigene Starterhüllen, die zusätzliche Waffenmontage und Reward→Refit bleiben die nächsten Ausbaustufen.
 
 ## Ziel
 
@@ -52,6 +54,8 @@ Vor Mission 1 werden genau zwei Slots bestückt:
 
 1. **Waffe:** Auto Cannon oder Twin Rockets
 2. **Support:** Pulse Engine oder Front Shield
+
+Die erste implementierte Stufe deckt den Support-Slot mit **Aegis-Emitter** oder **Vector-Drive** ab und erzwingt diese Montage vor dem Start. Der Waffen-Slot folgt als nächster Teilmeilenstein; er darf nicht nur als Menüwahl existieren, sondern benötigt Hardpoint, Schussbild und Balancewirkung.
 
 Jedes Modul benötigt fünf zusammengehörige Bestandteile:
 

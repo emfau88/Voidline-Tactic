@@ -18,12 +18,16 @@ Dieses Manifest dokumentiert Herkunft, Status und Runtime-Verwendung aller Produ
 | `ship-enemy-cruiser` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-cruiser-v1.png` | approved |
 | `ship-enemy-destroyer` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-destroyer-v1.png` | approved |
 | `battlefield-nebula` | 2:3 Environment Base | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 2 | `public/assets/backgrounds/battlefield-nebula-v2.jpg` | approved |
+| `module-aegis-emitter` | transparentes Shield-Emitter-Layer | Projektowner; originäres SVG unter Projektregie | originär erstellt | Runtime 1 | `public/assets/modules/aegis-emitter-v1.svg` | approved |
+| `module-vector-drive` | transparentes Engine-Layer | Projektowner; originäres SVG unter Projektregie | originär erstellt | Runtime 1 | `public/assets/modules/vector-drive-v1.svg` | approved |
 
 Abnahme `ship-player-cruiser`: 21. August 2026; 390×844 und 1423×800, Bewegung/Rotation, dunkler und heller Kontrastgrund, Engine-Emissive, Lance-Hardpoint und Schildkontakt geprüft.
 
 Abnahme übrige Flotte: 21. August 2026; echte Alpha-Transparenz technisch geprüft, Silhouettenvergleich auf dunklem/hellem Grund, 390×844-Flottenansicht, Fraktions-/Klassenlesbarkeit, Selection-/Shield-Geometrie und alle Weapon-/Engine-Hardpoints geprüft.
 
 Abnahme `battlefield-nebula`: 21. August 2026; 390×844 mit kompletter Flotte, HUD, Status-Bars und taktischem Overlay geprüft; zentraler Korridor bleibt kontrastarm, Randnebel überstrahlen keine Schiffe. Runtime 2 exportiert die volle 1024×1536-Source-Auflösung als rund 100-KB-JPEG, damit Pinch-Zoom nicht mehr den 512×768-Export hochskaliert.
+
+Abnahme `module-aegis-emitter` und `module-vector-drive`: 22. August 2026; echte SVG-Transparenz, Montage auf beiden aktuellen Spielerhüllen, Menü-Preview bei 844×390 sowie Phaser-Layer im 1v1 geprüft. Zwei Built-in-ImageGen-Explorationen wurden wegen als Pixel gerendertem Schachbrett statt echter Alpha-Transparenz verworfen und nicht ins Repository übernommen.
 
 ## Referenzen
 

@@ -4,6 +4,23 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Visible Preflight Module and True 1v1 — 2026-08-22
+
+#### Added
+
+- verpflichtende Modulmontage vor dem ersten Kampf; Start bleibt vorher gesperrt
+- Aegis-Emitter mit +12 Schild und Vector-Drive mit +10 Tempo sowie +12 % Drehrate
+- eigenständige transparente SVG-Module mit identischer Darstellung in Starterkarte und Phaser-Schiffscontainer
+- Combat-/DOM-Diagnose für Startermodul und tatsächliche Schiffszahl
+- Unit-Regression für beide Startermodule sowie Mobile-/Desktop-E2E für Montage und sichtbaren Layer
+
+#### Changed
+
+- „Erster Kontakt“ von 2v2 auf echtes 1v1 reduziert: nur gewähltes Schiff gegen den schwächeren Cinder Scout
+- Eskorte samt fünfter HUD-Aktion aus Mission 1 entfernt; das Solo-Dock nutzt vier größere Aktionen
+- Missionsbriefing, Startstatus, Hilfe, Screenshots, README und Roadmap an den echten Prologstand angepasst
+- Unit-Suite von 18 auf 19 Tests erweitert; weiterhin 24 Browserläufe auf zwei Mobilegrößen und Desktop
+
 ### Prologue-first Product Direction — 2026-08-22
 
 #### Designed

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150" role="img" aria-label="Vector drive module">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d566b"/>
+      <stop offset="0.48" stop-color="#152838"/>
+      <stop offset="1" stop-color="#050d16"/>
+    </linearGradient>
+    <linearGradient id="nozzle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#05080c"/>
+      <stop offset="0.5" stop-color="#71828c"/>
+      <stop offset="1" stop-color="#05080c"/>
+    </linearGradient>
+    <radialGradient id="exhaust">
+      <stop offset="0" stop-color="#e8ffff"/>
+      <stop offset="0.28" stop-color="#70e8ff"/>
+      <stop offset="0.65" stop-color="#087fc8"/>
+      <stop offset="1" stop-color="#031528"/>
+    </radialGradient>
+    <filter id="driveGlow" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path d="M83 41h54l14 22-16 24h-50L69 63z" fill="#d6c9ab" stroke="#ae7d35" stroke-width="4"/>
+  <path d="M91 49h38l10 14-10 16H91L81 63z" fill="#102333" stroke="#57c8f2" stroke-width="2"/>
+  <g transform="translate(55 74)">
+    <path d="M-29-42-13-56h26l16 14v77L17 48h-34L-29 35z" fill="url(#hull)" stroke="#b68945" stroke-width="4"/>
+    <path d="M-39-10-62 5l-7 26 32-14zM39-10 62 5l7 26-32-14z" fill="#1c3346" stroke="#b68945" stroke-width="4"/>
+    <path d="M-15-31h30v60h-30z" fill="#07111b" stroke="#47738d" stroke-width="3"/>
+    <path d="M-7-22h14v42H-7z" fill="#2fc9ff" filter="url(#driveGlow)"/>
+    <path d="M-20 31h40v18h-40z" fill="url(#nozzle)" stroke="#c1944d" stroke-width="3"/>
+    <ellipse cy="48" rx="16" ry="10" fill="url(#exhaust)" stroke="#58dfff" stroke-width="3" filter="url(#driveGlow)"/>
+  </g>
+  <g transform="translate(165 74)">
+    <path d="M-29-42-13-56h26l16 14v77L17 48h-34L-29 35z" fill="url(#hull)" stroke="#b68945" stroke-width="4"/>
+    <path d="M-39-10-62 5l-7 26 32-14zM39-10 62 5l7 26-32-14z" fill="#1c3346" stroke="#b68945" stroke-width="4"/>
+    <path d="M-15-31h30v60h-30z" fill="#07111b" stroke="#47738d" stroke-width="3"/>
+    <path d="M-7-22h14v42H-7z" fill="#2fc9ff" filter="url(#driveGlow)"/>
+    <path d="M-20 31h40v18h-40z" fill="url(#nozzle)" stroke="#c1944d" stroke-width="3"/>
+    <ellipse cy="48" rx="16" ry="10" fill="url(#exhaust)" stroke="#58dfff" stroke-width="3" filter="url(#driveGlow)"/>
+  </g>
+</svg>

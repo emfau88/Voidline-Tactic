@@ -2,6 +2,7 @@ import { SHIELD_BOOST_COST } from '../domain/combat/constants';
 import { WEAPONS } from '../domain/combat/content';
 import { distance, normalizeAngle } from '../domain/combat/math';
 import { UPGRADES } from '../domain/combat/missions';
+import { STARTER_MODULES } from '../domain/combat/starterModules';
 import type { AbilityPreview, CombatState, EscortDirective, MissionId, ShipState, TimeScale, UpgradeId } from '../domain/combat/types';
 
 export type ActionMode = 'course' | 'target';
@@ -87,6 +88,7 @@ export class CombatHud {
   private readonly resultDialog = requiredElement<HTMLDialogElement>('result-dialog');
   private readonly flightStick = requiredElement<HTMLButtonElement>('flight-stick');
   private readonly flightStickKnob = requiredElement<HTMLElement>('flight-stick-knob');
+  private readonly actionGrid = requiredElement<HTMLElement>('action-grid');
   private toastTimer?: number;
 
   public constructor(callbacks: HudCallbacks) {
@@ -125,7 +127,8 @@ export class CombatHud {
       : '';
     setText('objective-label', `${state.objective.label}${captureSuffix}`);
     setText('ship-name', flagship.name);
-    setText('ship-class', `${flagship.class.toUpperCase()} · FLAGGSCHIFF`);
+    const starterModule = flagship.starterModuleId ? STARTER_MODULES[flagship.starterModuleId] : undefined;
+    setText('ship-class', `${flagship.class.toUpperCase()} · ${starterModule?.name.toUpperCase() ?? 'FLAGGSCHIFF'}`);
     setText('ship-hull-text', `${flagship.hull}/${flagship.maxHull}`);
     setText('ship-shield-text', `${flagship.shield}/${flagship.maxShield}`);
     setText('ship-energy-text', `${Math.floor(flagship.energy)}/${flagship.maxEnergy}`);
@@ -172,8 +175,10 @@ export class CombatHud {
       );
     }
 
+    this.actionGrid.classList.toggle('solo', !escort?.alive);
     for (const button of this.actionButtons) {
       const action = button.dataset.action as HudAction;
+      button.hidden = action === 'escort' && !escort?.alive;
       const lanceUnavailable = !flagship.weapons.includes('lance') || flagship.cooldowns.lance > 0 || flagship.energy < WEAPONS.lance.energyCost;
       const torpedoUnavailable = !flagship.weapons.includes('torpedo') || flagship.cooldowns.torpedo > 0 || flagship.energy < WEAPONS.torpedo.energyCost;
       const disabled = state.status !== 'active' || !flagship.alive ||
@@ -189,7 +194,7 @@ export class CombatHud {
       if (action === 'lance') small.textContent = `${formatCooldown(flagship.cooldowns.lance)} · 18 EN`;
       if (action === 'torpedo') small.textContent = `${formatCooldown(flagship.cooldowns.torpedo)} · 12 EN`;
       if (action === 'shield') small.textContent = `${formatCooldown(flagship.cooldowns.shield)} · ${SHIELD_BOOST_COST} EN`;
-      if (action === 'escort') small.textContent = escort ? directiveLabel(state.escortDirective) : 'VERLOREN';
+      if (action === 'escort') small.textContent = escort ? directiveLabel(state.escortDirective) : 'NICHT AKTIV';
       if (action === 'target') small.textContent = target ? 'WECHSELN' : 'TAP / WECHSEL';
       if (action === 'course') small.textContent = 'INAKTIV';
     }

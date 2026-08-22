@@ -47,20 +47,28 @@
           <div class="starter-grid" aria-label="Verfügbare Startschiffe">
             <button class="starter-card selected" type="button" data-starter="p-cruiser" aria-pressed="true">
               <span class="starter-role">LINIENSCHIFF · AUSGEWOGEN</span>
-              <img src="assets/ships/player-cruiser-v2.png" alt="Sovereign's Fury von oben">
+              <span class="starter-visual">
+                <img class="starter-hull" src="assets/ships/player-cruiser-v2.png" alt="Sovereign's Fury von oben">
+                <img class="starter-module-mount aegis" data-mounted-module="aegis-emitter" src="assets/modules/aegis-emitter-v1.svg" alt="">
+                <img class="starter-module-mount vector" data-mounted-module="vector-drive" src="assets/modules/vector-drive-v1.svg" alt="">
+              </span>
               <span class="starter-name">Sovereign's Fury</span>
               <span class="starter-class">CRUISER</span>
               <span class="starter-stats"><b>112</b> Hülle · <b>83</b> Schild · <b>58</b> Tempo</span>
-              <span class="starter-bonus">FLAGGSCHIFF-MODUL · +15 SCHILD</span>
+              <span class="starter-bonus">KLASSENDOKTRIN · +15 SCHILD</span>
               <span class="mount-list"><i>MASS DRIVER</i><i>RIFT LANCE</i><i>VOID TORPEDO</i></span>
             </button>
             <button class="starter-card" type="button" data-starter="p-frigate" aria-pressed="false">
               <span class="starter-role">JAGDSCHIFF · MOBIL</span>
-              <img src="assets/ships/player-frigate-v1.png" alt="Aster Vale von oben">
+              <span class="starter-visual">
+                <img class="starter-hull" src="assets/ships/player-frigate-v1.png" alt="Aster Vale von oben">
+                <img class="starter-module-mount aegis" data-mounted-module="aegis-emitter" src="assets/modules/aegis-emitter-v1.svg" alt="">
+                <img class="starter-module-mount vector" data-mounted-module="vector-drive" src="assets/modules/vector-drive-v1.svg" alt="">
+              </span>
               <span class="starter-name">Aster Vale</span>
               <span class="starter-class">FRIGATE</span>
               <span class="starter-stats"><b>72</b> Hülle · <b>38</b> Schild · <b>90</b> Tempo</span>
-              <span class="starter-bonus">FLAGGSCHIFF-MODUL · VECTOR DRIVE</span>
+              <span class="starter-bonus">KLASSENDOKTRIN · +12 ENERGIE · +8 TEMPO</span>
               <span class="mount-list"><i>RIFT LANCE</i><i>2× VOID TORPEDO</i></span>
             </button>
           </div>
@@ -70,9 +78,25 @@
               <div><small>VOIDLINE-KAMPAGNE</small><strong id="campaign-title">DREI MISSIONEN</strong></div>
               <span id="campaign-salvage">0 SALVAGE</span>
             </div>
+            <section id="starter-refit" aria-labelledby="starter-refit-title">
+              <div class="starter-refit-heading">
+                <div><small>SCHRITT 2 · VOR DEM START</small><strong id="starter-refit-title">1 MODUL MONTIEREN</strong></div>
+                <span id="starter-module-status">ERFORDERLICH</span>
+              </div>
+              <div class="starter-module-grid">
+                <button type="button" data-starter-module="aegis-emitter" aria-pressed="false">
+                  <img src="assets/modules/aegis-emitter-v1.svg" alt="">
+                  <span><strong>AEGIS</strong><small>+12 Schild</small></span>
+                </button>
+                <button type="button" data-starter-module="vector-drive" aria-pressed="false">
+                  <img src="assets/modules/vector-drive-v1.svg" alt="">
+                  <span><strong>VECTOR</strong><small>Tempo + Drehen</small></span>
+                </button>
+              </div>
+            </section>
             <div class="mission-track" aria-label="Missionsauswahl">
               <button class="selected" type="button" data-mission="mission-1" aria-pressed="true">
-                <span>01</span><b>ERSTER KONTAKT</b><small>Abfanggefecht</small>
+                <span>01</span><b>ERSTER KONTAKT</b><small>1v1-Kalibrierung</small>
               </button>
               <button type="button" data-mission="mission-2" aria-pressed="false" disabled>
                 <span>02</span><b>RELAISKNOTEN</b><small>Kontrollpunkt</small>
@@ -89,7 +113,7 @@
 
           <footer class="menu-footer">
             <p id="menu-status" role="status">Ausgewählt: <strong id="selected-starter-label">Sovereign's Fury</strong></p>
-            <button id="start-button" type="button"><span id="start-mission-number">MISSION 01</span><strong id="start-mission-name">ERSTEN KONTAKT STARTEN</strong><small>Flaggschiff + AI-Eskorte · Echtzeit</small></button>
+            <button id="start-button" type="button" disabled><span id="start-mission-number">MISSION 01</span><strong id="start-mission-name">ERSTEN KONTAKT STARTEN</strong><small id="start-loadout-status">Zuerst ein sichtbares Modul montieren</small></button>
           </footer>
         </section>
 
@@ -196,11 +220,12 @@
         <dialog id="help-dialog" class="modal panel">
           <h2>SO SPIELST DU</h2>
           <ol>
+            <li>Dein vor dem Start montierter Aegis-Emitter oder Vector-Drive ist am Flaggschiff sichtbar und verändert dessen Werte.</li>
             <li>Drücke den Steuerstick in die gewünschte Richtung. Das Flaggschiff wendet träge und hält den Sollkurs nach dem Loslassen.</li>
             <li>Standardbatterien feuern automatisch aus den Breitseiten. Tippe einen Gegner direkt an oder wechsle ihn mit ZIEL.</li>
             <li>Lanze, Torpedo und Schild-Boost löst du selbst aus. Die Lanze kündigt ihren Schuss sichtbar an.</li>
             <li>PAUSE friert den Kampf ein; PLANEN läuft mit ¼ Tempo. Torpedos sind physische, verlässliche Projektile.</li>
-            <li>Die frühere Routenzeichnung bleibt vorerst inaktiv. Im cyanfarbenen Nebel erleiden Schiffe 25 % weniger Schaden; zwei Finger zoomen.</li>
+            <li>Mission 1 ist ein reines 1v1. Eskorte und Kontrollpunkte kommen erst später; zwei Finger zoomen und verschieben die Karte.</li>
           </ol>
           <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>
         </dialog>

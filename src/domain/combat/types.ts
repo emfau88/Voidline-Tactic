@@ -9,6 +9,7 @@ export type TimeScale = 0 | 0.25 | 1;
 export type ManualAbility = 'lance' | 'torpedo' | 'shield';
 export type MissionId = 'mission-1' | 'mission-2' | 'mission-3';
 export type UpgradeId = 'reinforced-hull' | 'vector-thrusters' | 'escort-plating' | 'flux-capacitor';
+export type StarterModuleId = 'aegis-emitter' | 'vector-drive';
 export type ObjectiveKind = 'eliminate' | 'relay' | 'shipyard';
 
 export interface Vector2 {
@@ -59,6 +60,7 @@ export interface WeaponCooldowns {
 }
 
 export interface ShipState extends ShipDefinition {
+  readonly starterModuleId?: StarterModuleId;
   readonly hull: number;
   readonly shield: number;
   readonly energy: number;
@@ -103,6 +105,7 @@ export interface CombatState {
   readonly flagshipId: string;
   readonly escortDirective: EscortDirective;
   readonly missionId: MissionId;
+  readonly starterModuleId?: StarterModuleId;
   readonly upgrades: readonly UpgradeId[];
   readonly objective: ObjectiveState;
   readonly nextReinforcementId: number;

@@ -5,8 +5,13 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'WÄHLE DEIN STARTSCHIFF' })).toBeVisible();
 });
 
-async function startBattle(page: import('@playwright/test').Page, starter?: 'p-cruiser' | 'p-frigate'): Promise<void> {
+async function startBattle(
+  page: import('@playwright/test').Page,
+  starter?: 'p-cruiser' | 'p-frigate',
+  module: 'aegis-emitter' | 'vector-drive' = 'aegis-emitter',
+): Promise<void> {
   if (starter) await page.locator(`[data-starter="${starter}"]`).click();
+  await page.locator(`button[data-starter-module="${module}"]`).click();
   await page.locator('#start-button').click();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-game-ready', 'true', { timeout: 10_000 });
   await expect(page.locator('#game-shell')).toHaveAttribute('aria-busy', 'false');
@@ -37,11 +42,20 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.locator('[data-mission="mission-1"]')).toBeEnabled();
   await expect(page.locator('[data-mission="mission-2"]')).toBeDisabled();
   await expect(page.locator('[data-mission="mission-3"]')).toBeDisabled();
-  await startBattle(page, 'p-frigate');
+  await expect(page.locator('#start-button')).toBeDisabled();
+  await page.locator('button[data-starter-module="vector-drive"]').click();
+  await expect(page.locator('#start-button')).toBeEnabled();
+  await expect(page.locator('button[data-starter-module="vector-drive"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.starter-card.selected [data-mounted-module="vector-drive"]')).toHaveCSS('opacity', '1');
+  await startBattle(page, 'p-frigate', 'vector-drive');
   await expect(page).toHaveTitle('Voidline Tactics');
   await expect(page.locator('#game-root canvas')).toBeVisible();
   await expect(page.locator('#ship-name')).toHaveText('Aster Vale');
+  await expect(page.locator('#ship-class')).toContainText('VECTOR-DRIVE');
   await expect(page.locator('#ship-energy-text')).toHaveText('80/80');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-starter-module', 'vector-drive');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-ship-count', '2');
+  await expect(page.locator('[data-action="escort"]')).toBeHidden();
   await expect(page.getByRole('button', { name: /Steuerjoystick/ })).toBeVisible();
   await expect(page.locator('[data-action="course"]')).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Taktische Pause' })).toBeVisible();
@@ -71,14 +85,16 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
       return {
         freeRatio: (bottomEdge - topEdge) / window.innerHeight,
         stick: { width: rect('flight-stick').width, height: rect('flight-stick').height },
-        targetAction: { width: rect('action-grid').width / 5, height: rect('action-grid').height },
+        actions: [...document.querySelectorAll<HTMLElement>('#action-grid button:not([hidden])')]
+          .map((button) => ({ width: button.getBoundingClientRect().width, height: button.getBoundingClientRect().height }))
+          .filter((button) => button.width > 0 && button.height > 0),
       };
     });
     expect(layout.freeRatio).toBeGreaterThanOrEqual(0.68);
     expect(layout.stick.width).toBeGreaterThanOrEqual(64);
     expect(layout.stick.height).toBeGreaterThanOrEqual(64);
-    expect(layout.targetAction.width).toBeGreaterThanOrEqual(44);
-    expect(layout.targetAction.height).toBeGreaterThanOrEqual(44);
+    expect(Math.min(...layout.actions.map((action) => action.width))).toBeGreaterThanOrEqual(44);
+    expect(Math.min(...layout.actions.map((action) => action.height))).toBeGreaterThanOrEqual(44);
   }
 });
 
@@ -132,19 +148,27 @@ test('sets and holds a joystick heading while route drawing stays dormant', asyn
 test('marks a focus target and arms the telegraphed lance', async ({ page }) => {
   await startBattle(page, 'p-cruiser');
   await pauseBattle(page);
-  await clickShip(page, 'e-cruiser', { x: 24, y: 0 });
+  await clickShip(page, 'e-destroyer', { x: 24, y: 0 });
   await expect(page.locator('#target-card')).toBeVisible();
-  await expect(page.locator('#target-name')).toHaveText('Ashen Crown');
+  await expect(page.locator('#target-name')).toHaveText('Cinder Scout');
   await page.getByRole('button', { name: /ZIEL/ }).click();
-  await expect(page.locator('#target-name')).toHaveText('Red Wake');
-  await page.getByRole('button', { name: /ZIEL/ }).click();
-  await expect(page.locator('#target-name')).toHaveText('Ashen Crown');
+  await expect(page.locator('#target-name')).toHaveText('Cinder Scout');
   await page.getByRole('button', { name: /LANZE/ }).click();
   await expect(page.locator('#ship-status')).toContainText('LANZE');
   await expect(page.locator('#toast')).toContainText('RIFT LANCE LÄDT');
 });
 
 test('launches a physical torpedo and changes escort doctrine', async ({ page }) => {
+  await page.evaluate(() => window.localStorage.setItem('voidline-campaign-v1', JSON.stringify({
+    version: 1,
+    selectedMissionId: 'mission-1',
+    unlockedMission: 2,
+    completedMissions: ['mission-1'],
+    salvage: 120,
+    upgrades: [],
+  })));
+  await page.reload();
+  await page.locator('[data-mission="mission-2"]').click();
   await startBattle(page, 'p-frigate');
   await pauseBattle(page);
   await page.getByRole('button', { name: /ZIEL/ }).click();

@@ -2,7 +2,7 @@
 
 Stand: 22. August 2026
 
-Bewertungsbasis: aktueller Battlefield-first-Landscape-Build auf 844×390 und 667×375, drei reproduzierbare Screenshots, 18 Unit-Tests, 24 automatisierte Mobile-/Desktop-Browser-Läufe und die Konzeptbilder unter `docs/reference/mockups/`. Ein vollständiger externer Drei-Missionen-Playtest auf realen Phones steht noch aus.
+Bewertungsbasis: aktueller Battlefield-first-Landscape-Build auf 844×390 und 667×375, drei reproduzierbare Screenshots, 19 Unit-Tests, 24 automatisierte Mobile-/Desktop-Browser-Läufe und die Konzeptbilder unter `docs/reference/mockups/`. Ein vollständiger externer Drei-Missionen-Playtest auf realen Phones steht noch aus.
 
 ## Ehrliche Standortbestimmung
 
@@ -15,10 +15,10 @@ Bewertungsbasis: aktueller Battlefield-first-Landscape-Build auf 844×390 und 66
 | Combat-Regeln und Flow | 81 % | Joystick-Echtzeit, längere Reichweiten, drei eskalierende Missionen, siegrelevante Capture-Ziele und Werft-Drohnen bilden einen echten Slice; Balance ist noch nicht extern validiert. |
 | VFX und Treffergefühl | 54 % | Broadside hat einen vollständigen ersten Produktionspass; Lance, Torpedo, Damage States, Explosionen und Pooling liegen sichtbar darunter. |
 | Audio | 0 % | größter vollständig fehlender Qualitätsmultiplikator. |
-| Meta-Loop und Progression | 55 % | Missionsfreischaltung, Salvage, vier Upgrades, Continue/Replay und persistenter Save funktionieren; der neue persönliche Prolog mit kleinen Hüllen, sichtbarer Montage und 1v1 fehlt noch. |
-| Gesamtprodukt | **ca. 68 %** | der funktionale Drei-Missionen-Slice besitzt jetzt eine belastbare Mobile-Kommandoansicht; die neue Zielkurve legt zusätzlich offen, dass persönlicher Einstieg, modularer Refit, Audio, Trefferzustände und finaler UI-/VFX-Polish fehlen. |
+| Meta-Loop und Progression | 62 % | sichtbares Startmodul, echtes 1v1, Missionsfreischaltung, Salvage, vier Upgrades, Continue/Replay und Save funktionieren; kleine Starterhüllen, Waffenmontage und Reward→Refit fehlen. |
+| Gesamtprodukt | **ca. 70 %** | die erste persönliche Prologstufe und die Mobile-Kommandoansicht sind belastbar; zum Ziel fehlen der vollständige modulare Refit, Audio, Trefferzustände und finaler UI-/VFX-Polish. |
 
-Die 68 % sind keine Zeitschätzung. Sie bewerten die wahrnehmbare Produktreife gegen das jetzt präzisere Ziel. Der Abstand ist nicht primär „mehr Systeme“, sondern ein verständlicher persönlicher Einstieg, sichtbare Konsequenz, Qualität, Rückmeldung und Beweis durch echte Erstspieler.
+Die 70 % sind keine Zeitschätzung. Sie bewerten die wahrnehmbare Produktreife gegen das präzisere Ziel. Der Einstieg hat nun eine erste sichtbare Konsequenz; der verbleibende Abstand liegt bei vollständigem Refit, Qualität, Rückmeldung und Beweis durch echte Erstspieler.
 
 ## Die nächsten 20 Hebel in Prioritätsreihenfolge
 

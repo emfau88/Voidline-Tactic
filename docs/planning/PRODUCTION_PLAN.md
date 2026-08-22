@@ -39,7 +39,7 @@ Stärken:
 
 Aktuelle Produktionsrisiken:
 
-- der funktionale aktuelle Einstieg beginnt noch mit großen Schiffen und zu vielen gleichzeitig verfügbaren Systemen statt mit persönlicher Hüllenwahl, sichtbarer Montage und einem 1-gegen-1
+- der Einstieg besitzt jetzt sichtbare Support-Montage und echtes 1v1, verwendet aber noch große Übergangsschiffe und bietet noch keine Waffenmontage oder Reward→Refit
 - Landscape-Joystick und Drei-Missionen-Flow sind technisch abgesichert, aber noch nicht als vollständige Kampagne extern playgetestet
 - `CombatScene` bündelt noch Eingabe, Kamera und VFX und sollte vor größerem Content modularisiert werden
 - VFX werden noch ad hoc erzeugt statt gepoolt
@@ -58,7 +58,7 @@ Ergebnis:
 - physische Torpedos und Lance-Telegraph
 - Pause, ¼-Tempo und Live
 - neuer Mobile-HUD und reproduzierbare Screenshots
-- 18 Unit- und 24 E2E-Läufe auf zwei Mobile-Landscape-Größen und Desktop grün
+- 19 Unit- und 24 E2E-Läufe auf zwei Mobile-Landscape-Größen und Desktop grün
 
 Commit: `e0bc84a`
 
@@ -67,7 +67,7 @@ Commit: `e0bc84a`
 - absoluter Richtungs-Joystick mit persistentem Sollkurs
 - Zwei-Daumen-HUD, Kursvektor und 125-%-Kamera
 - frühere Kurszeichnung dormant und reversibel erhalten
-- 18 Unit- und 24 E2E-Läufe grün
+- 19 Unit- und 24 E2E-Läufe grün
 
 Commit: `06f9b51`
 
@@ -96,11 +96,11 @@ Commit: `17218da`
 
 ### B0. Prologue Loadout Slice
 
-- zwei kleine Starterhüllen mit unterschiedlichen Bewegungs-/Defensivrollen
-- datengetriebene Weapon-, Engine- und Shield-Emitter-Sockets
-- vor Mission 1 genau eine Waffe und ein Support-Modul sichtbar montieren
-- Menü-Preview und Kampfschiff verwenden dasselbe Loadout
-- 1-gegen-1-Kalibrierungsflug mit progressiver Freischaltung der HUD-Aktionen
+- ⏳ zwei kleine Starterhüllen mit unterschiedlichen Bewegungs-/Defensivrollen
+- 🚧 datengetriebene Weapon-, Engine- und Shield-Emitter-Sockets; Support-Layer steht, Weapon-Socket folgt
+- 🚧 vor Mission 1 genau eine Waffe und ein Support-Modul sichtbar montieren; Support-Auswahl steht
+- ✅ Menü-Preview und Kampfschiff verwenden dasselbe Startermodul
+- ✅ 1-gegen-1-Kalibrierungsflug; Eskorte und ihre HUD-Aktion sind dort entfernt
 - Salvage, Modulbelohnung, erneuter Refit und Vorschau späterer Hüllen
 - bestehende Cruiser-/Frigate-Modelle als spätere Tier-2-/Tier-3-Ziele neu positionieren
 

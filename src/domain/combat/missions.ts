@@ -50,10 +50,10 @@ export const MISSIONS: Readonly<Record<MissionId, MissionDefinition>> = {
     id: 'mission-1',
     number: 1,
     name: 'Erster Kontakt',
-    subtitle: 'Abfanggefecht',
-    briefing: 'Zwei Vorpostenschiffe blockieren die Voidline. Breche den Verband und sichere erste Bergungsgüter.',
+    subtitle: '1v1-Kalibrierung',
+    briefing: 'Teste dein sichtbar montiertes Startmodul gegen einen einzelnen Cinder Scout. Keine Eskorte, kein Flottenchaos.',
     objectiveKind: 'eliminate',
-    objectiveLabel: 'Feindverband ausschalten',
+    objectiveLabel: 'Cinder Scout ausschalten',
     salvage: 120,
     upgradeChoices: ['reinforced-hull', 'vector-thrusters'],
   },
@@ -100,9 +100,28 @@ function raider(id: string, name: string, x: number, y: number): ShipDefinition 
   });
 }
 
-export function createMissionFleet(missionId: MissionId): readonly ShipDefinition[] {
+function calibrationDrone(): ShipDefinition {
+  const base = SHIPS.find((ship) => ship.id === 'e-destroyer')!;
+  return cloneShip(base, {
+    id: 'e-destroyer',
+    name: 'Cinder Scout',
+    maxHull: 44,
+    maxShield: 18,
+    maxEnergy: 58,
+    maxSpeed: 68,
+    radius: 32,
+    weapons: ['broadside'],
+    startPosition: { x: 1_650, y: 700 },
+  });
+}
+
+export function createMissionFleet(missionId: MissionId, flagshipId = 'p-cruiser'): readonly ShipDefinition[] {
+  if (missionId === 'mission-1') {
+    const starter = SHIPS.find((ship) => ship.id === flagshipId && ship.team === 'player')
+      ?? SHIPS.find((ship) => ship.id === 'p-cruiser')!;
+    return [cloneShip(starter), calibrationDrone()];
+  }
   const fleet = SHIPS.map((ship) => cloneShip(ship));
-  if (missionId === 'mission-1') return fleet;
   fleet.push(raider('e-raider-1', 'Sable Knife', 2_060, 1_090));
   if (missionId === 'mission-3') {
     fleet.push(raider('e-raider-2', 'Cinder Fang', 2_110, 310));

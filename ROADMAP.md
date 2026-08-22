@@ -38,7 +38,7 @@ Stand: 22. August 2026
 - Auto-Breitseiten, aufladbare Lance und physische Homing-Torpedos
 - halbautonome Formation sowie gegnerische Approach-/Orbit-KI auf derselben Regelbasis
 - garantierte deterministische Treffer bei gültiger Lösung; keine Miss-/Intercept-Würfe
-- 18 Unit-Tests für Kinematik, Joystick-Sollkurs, Missionssieg, Capture, Verstärkung, Waffen, Cover und Hardpoints
+- 19 Unit-Tests für Kinematik, Joystick-Sollkurs, Startmodule, Missionssieg, Capture, Verstärkung, Waffen, Cover und Hardpoints
 
 ## M3 – Spielbarer Echtzeit-Kampfkern ✅
 
@@ -72,18 +72,21 @@ Stand: 22. August 2026
 - Nutzerfeedback bestätigt den Joystick klar als primäre Echtzeitsteuerung
 - 125-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
 - Kurszeichnung technisch erhalten, im HUD klar als inaktiv markiert und gegen Eingaben gesperrt
-- 18 Unit-Tests und 24 Mobile-/Desktop-E2E-Läufe grün
+- 19 Unit-Tests und 24 Mobile-/Desktop-E2E-Läufe grün
 - neue reproduzierbare README-Screenshots für Joystick, Zielwahl und Telegraph
 
-## M3.7 – Prolog und sichtbarer modularer Refit ⏳
+## M3.7 – Prolog und sichtbarer modularer Refit 🚧
 
-- zwei kleine Starterhüllen mit klarer Rolle statt sofortiger Cruiser-/Frigate-Flotte
-- genau zwei sichtbare Montageschritte vor dem ersten Kampf: Waffe plus Support
-- datengetriebene Hardpoint-, Engine- und Shield-Emitter-Sockets für Menü und Combat
-- 1-gegen-1-Kalibrierungsflug als Mission 1 mit schrittweise eingeblendeten Controls
-- Salvage, geborgenes Modul und erneuter Refit direkt nach dem ersten Sieg
-- Vorschau auf die nächsten zwei bis drei Hüllen; bestehende große Schiffe werden spätere Freischaltungen
-- Foozle „Void – Main Ship“ (CC0) als Struktur-/Animationsreferenz geprüft; Produktionskunst bleibt original und hochauflösend
+- ✅ verpflichtende Preflight-Montage; Mission 1 startet ohne Modul nicht
+- ✅ Aegis-Emitter (+12 Schild) und Vector-Drive (+10 Tempo, +12 % Drehen) als echte Trade-offs
+- ✅ beide Module als transparente Layer im Menü und auf dem Flaggschiff im Gefecht sichtbar
+- ✅ 1-gegen-1-Kalibrierungsflug als Mission 1: gewähltes Schiff gegen einen schwächeren Cinder Scout
+- ✅ Eskorte samt HUD-Aktion in Mission 1 entfernt und erst in späteren Missionen aktiviert
+- ⏳ zwei kleine Starterhüllen mit klarer Rolle statt der aktuellen Übergangs-Cruiser/-Frigate
+- ⏳ zweiter sichtbarer Montageschritt vor dem Kampf: eine echte Waffenwahl
+- ⏳ Salvage, geborgenes Modul und erneuter sichtbarer Refit direkt nach dem ersten Sieg
+- ⏳ Vorschau auf die nächsten zwei bis drei Hüllen; bestehende große Schiffe werden spätere Freischaltungen
+- ✅ Foozle „Void – Main Ship“ (CC0) als Struktur-/Animationsreferenz geprüft; Produktionskunst bleibt original und hochauflösend
 - verbindliches Detailkonzept: [Prolog und modulare Schiffe](docs/design/PROLOGUE_AND_MODULAR_SHIPS.md)
 
 ## M4 – Combat Feel und visuelle Produktionsreife 🚧
@@ -121,7 +124,7 @@ Stand: 22. August 2026
 - ✅ vier persistente Flaggschiff-/Eskorte-Upgrades in versioniertem LocalStorage
 - 🚧 vollständige Leistungsmetriken und expliziter Save-Reset
 - ⏳ sichtbare Hardpoint-/Emitter-Änderungen sowie echte Waffenvarianten statt überwiegend numerischer Upgrades
-- ⏳ bestehende Missionen in die Prolog-Kurve 1v1 → 1v2 → erste Eskorte/Objective einordnen
+- 🚧 Missionskurve begonnen: Mission 1 ist 1v1; Mission 2/3 müssen noch zu 1v2 → erste Eskorte/Objective neu geordnet werden
 
 ## M6 – Vertical-Slice-Release ⏳
 
@@ -140,6 +143,6 @@ Stand: 22. August 2026
 
 ## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Battlefield-first Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, kompakter HUD, tolerante Zielerfassung, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die Kurszeichnung bleibt als mögliche spätere Pausenfunktion dormant. Der gewünschte persönliche Einstieg mit kleiner Hülle, sichtbarer Montage und 1-gegen-1 ist konzipiert, aber noch nicht implementiert.
+Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Battlefield-first Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, kompakter HUD, tolerante Zielerfassung, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die erste M3.7-Stufe ist jetzt ebenfalls spielbar: sichtbares Startmodul vor dem Kampf und ein echtes 1v1. Kleine eigene Starterhüllen, Waffenmontage und erneuter sichtbarer Refit fehlen noch.
 
-Der nächste überprüfbare Meilenstein ist **M3.7 „Prologue Loadout Slice“**: zwei kleine Hüllen, zwei visuell montierte Module, ein 1-gegen-1-Kampf sowie Reward und erneuter Refit als vollständig testbarer Mobile-Loop. Danach folgt der echte Drei-Missionen-Phone-Playtest. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).
+Der nächste überprüfbare Teilmeilenstein von **M3.7 „Prologue Loadout Slice“** ist die sichtbare Waffenmontage plus Reward→Refit nach dem gewonnenen 1v1. Danach werden die aktuellen großen Übergangsschiffe durch zwei kleine Starterhüllen ersetzt und Mission 2 neu geordnet. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

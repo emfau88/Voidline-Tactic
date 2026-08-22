@@ -21,6 +21,8 @@ const page = await context.newPage();
 try {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await page.locator('#main-menu').waitFor({ state: 'visible' });
+  await page.locator('button[data-starter-module="aegis-emitter"]').click();
+  await page.waitForTimeout(180);
   await page.waitForTimeout(500);
   await page.screenshot({
     path: path.join(outputDirectory, 'mobile-fleet-selection.png'),
@@ -51,8 +53,8 @@ try {
   await page.mouse.up();
   await page.getByRole('button', { name: /ZIEL/ }).click();
   const screens = JSON.parse(await page.locator('#game-shell').getAttribute('data-ship-screens') ?? '{}');
-  const target = screens['e-cruiser'];
-  if (!target) throw new Error('Enemy cruiser has no exposed screen position.');
+  const target = screens['e-destroyer'];
+  if (!target) throw new Error('Calibration enemy has no exposed screen position.');
   await canvas.click({ position: { x: box.width * target.x, y: box.height * target.y } });
   await page.locator('#target-card').waitFor({ state: 'visible', timeout: 5_000 });
   await page.getByRole('button', { name: /LANZE/ }).click();

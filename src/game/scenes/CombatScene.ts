@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { completeMission, getCampaignState, installUpgrade, selectNextMission } from '../../app/campaign';
 import { RENDER_DENSITY } from '../../app/display';
-import { getStarterShipId } from '../../app/starterSelection';
+import { getStarterModuleId, getStarterShipId } from '../../app/starterSelection';
 import {
   activateAbility,
   createCombatState,
@@ -88,7 +88,7 @@ export class CombatScene extends Phaser.Scene {
     this.overlay = this.add.graphics().setDepth(12);
     const campaign = getCampaignState();
     this.currentMissionId = campaign.selectedMissionId;
-    this.combatState = createCombatState(getStarterShipId(), this.currentMissionId, campaign.upgrades);
+    this.combatState = createCombatState(getStarterShipId(), this.currentMissionId, campaign.upgrades, getStarterModuleId());
     this.createShipViews();
     const flagship = this.combatState.ships[this.combatState.flagshipId];
     this.cameraAnchor = this.add.zone(flagship.position.x, flagship.position.y, 1, 1).setVisible(false);
@@ -848,6 +848,8 @@ export class CombatScene extends Phaser.Scene {
       shell.dataset.coursePoints = String(flagship.course.length);
       shell.dataset.desiredHeading = flagship.desiredHeading.toFixed(4);
       shell.dataset.projectiles = String(Object.keys(this.combatState.projectiles).length);
+      shell.dataset.shipCount = String(Object.keys(this.combatState.ships).length);
+      shell.dataset.starterModule = this.combatState.starterModuleId ?? 'none';
       shell.dataset.timeScale = String(this.timeScale);
       shell.dataset.mission = this.combatState.missionId;
       shell.dataset.objectiveOwner = this.combatState.objective.owner ?? 'neutral';
@@ -874,7 +876,12 @@ export class CombatScene extends Phaser.Scene {
 
   private restartBattle(): void {
     this.hud.closeResult();
-    this.combatState = createCombatState(getStarterShipId(), this.currentMissionId, getCampaignState().upgrades);
+    this.combatState = createCombatState(
+      getStarterShipId(),
+      this.currentMissionId,
+      getCampaignState().upgrades,
+      getStarterModuleId(),
+    );
     this.timeScale = 1;
     this.accumulatorMs = 0;
     this.mode = undefined;

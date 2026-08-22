@@ -1,17 +1,20 @@
 import './styles.css';
 import { getCampaignState, selectMission } from './app/campaign';
 import { createGame } from './app/createGame';
-import { setStarterShipId, type StarterShipId } from './app/starterSelection';
+import { setStarterModuleId, setStarterShipId, type StarterShipId } from './app/starterSelection';
 import { MISSIONS } from './domain/combat/missions';
-import type { MissionId } from './domain/combat/types';
+import { STARTER_MODULES } from './domain/combat/starterModules';
+import type { MissionId, StarterModuleId } from './domain/combat/types';
 
 const shell = document.getElementById('game-shell');
 const menu = document.getElementById('main-menu');
 const startButton = document.getElementById('start-button') as HTMLButtonElement | null;
 const starterButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-starter]')];
+const starterModuleButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-starter-module]')];
 const fullscreenButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-fullscreen]')];
 const missionButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-mission]')];
 let selectedStarter: StarterShipId = 'p-cruiser';
+let selectedStarterModule: StarterModuleId | undefined;
 let gameStarted = false;
 let shellStatusTimer: number | undefined;
 
@@ -41,6 +44,22 @@ function selectStarter(starter: StarterShipId): void {
   if (label) label.textContent = starterName;
 }
 
+function selectStarterModule(moduleId: StarterModuleId): void {
+  selectedStarterModule = moduleId;
+  const definition = STARTER_MODULES[moduleId];
+  if (menu) menu.dataset.starterModule = moduleId;
+  for (const button of starterModuleButtons) {
+    const selected = button.dataset.starterModule === moduleId;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  }
+  const status = document.getElementById('starter-module-status');
+  const startStatus = document.getElementById('start-loadout-status');
+  if (status) status.textContent = `${definition.name.toUpperCase()} · MONTIERT`;
+  if (startStatus) startStatus.textContent = `1 Schiff · 1 Gegner · ${definition.name}`;
+  if (startButton) startButton.disabled = false;
+}
+
 function updateCampaignUi(): void {
   const campaign = getCampaignState();
   const mission = MISSIONS[campaign.selectedMissionId];
@@ -62,10 +81,21 @@ function updateCampaignUi(): void {
   if (briefingCopy) briefingCopy.textContent = mission.briefing;
   if (startNumber) startNumber.textContent = `MISSION 0${mission.number}`;
   if (startName) startName.textContent = `${mission.name.toUpperCase()} STARTEN`;
+  const startStatus = document.getElementById('start-loadout-status');
+  if (startStatus && selectedStarterModule) {
+    const module = STARTER_MODULES[selectedStarterModule];
+    startStatus.textContent = mission.number === 1
+      ? `1 Schiff · 1 Gegner · ${module.name}`
+      : `Flaggschiff + Eskorte · ${module.name}`;
+  }
 }
 
 for (const button of starterButtons) {
   button.addEventListener('click', () => selectStarter(button.dataset.starter as StarterShipId));
+}
+
+for (const button of starterModuleButtons) {
+  button.addEventListener('click', () => selectStarterModule(button.dataset.starterModule as StarterModuleId));
 }
 
 for (const button of missionButtons) {
@@ -76,9 +106,13 @@ for (const button of missionButtons) {
 }
 
 startButton?.addEventListener('click', () => {
-  if (gameStarted) return;
+  if (gameStarted || !selectedStarterModule) {
+    reportShellStatus('Vor dem ersten Kampf muss ein sichtbares Modul montiert werden.');
+    return;
+  }
   gameStarted = true;
   setStarterShipId(selectedStarter);
+  setStarterModuleId(selectedStarterModule);
   startButton.disabled = true;
   shell?.setAttribute('aria-busy', 'true');
   if (shell) shell.dataset.screen = 'battle';

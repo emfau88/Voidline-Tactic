@@ -92,7 +92,7 @@ sichtbares Trade-off-Upgrade wählen
 nächster Encounter oder Replay
 ```
 
-Der aktuelle Slice schließt Resultat, einmaliges Salvage, Upgrade-Wahl und Missionsfreischaltung bereits funktional. Der neue Prolog mit kleinen Hüllen, zwei sichtbaren Montageschritten und einem ersten 1-gegen-1 ist der nächste verbindliche Produktionsschritt. Details stehen in [Prolog und modulare Schiffe](PROLOGUE_AND_MODULAR_SHIPS.md).
+Der aktuelle Slice schließt Resultat, einmaliges Salvage, Upgrade-Wahl und Missionsfreischaltung bereits funktional. Die erste Prologstufe ist spielbar: ein verpflichtendes sichtbares Support-Modul und ein echtes 1-gegen-1. Kleine Hüllen, die zweite Waffenmontage und Reward→Refit sind die nächsten verbindlichen Produktionsschritte. Details stehen in [Prolog und modulare Schiffe](PROLOGUE_AND_MODULAR_SHIPS.md).
 
 ## 5. Combat-Verantwortung
 
@@ -187,7 +187,7 @@ Der aktuelle Drei-Missionen-Slice ist eine funktionale Content-Basis und wird in
 2. **Gebrochene Eskorte:** 1-gegen-2 und ein leichtes Positionsziel.
 3. **Erstes Kommando:** erste Eskorte sowie ein begrenzter Relais-/Werftmechanismus.
 
-Der bestehende 2-gegen-2-„Erste Kontakt“, Relaisknoten und die gebrochene Werft bleiben verwertbar, rücken aber nach hinten und werden neu balanciert.
+Der frühere 2-gegen-2-„Erste Kontakt“ ist bereits auf das echte 1-gegen-1 reduziert. Relaisknoten und gebrochene Werft bleiben verwertbar, müssen aber noch in die neue Kurve 1v1 → 1v2 → erstes Kommando eingeordnet werden.
 
 ## 9. Informationshierarchie
 

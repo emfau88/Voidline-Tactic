@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { ShipState } from '../../domain/combat/types';
+import { STARTER_MODULES } from '../../domain/combat/starterModules';
 import { SHIP_PRESENTATIONS } from './shipPresentation';
 
 export class ShipView extends Phaser.GameObjects.Container {
@@ -9,6 +10,7 @@ export class ShipView extends Phaser.GameObjects.Container {
   private readonly bars: Phaser.GameObjects.Graphics;
   private readonly mounts: Phaser.GameObjects.Graphics;
   private readonly art?: Phaser.GameObjects.Image;
+  private readonly moduleArt?: Phaser.GameObjects.Image;
 
   public constructor(scene: Phaser.Scene, ship: ShipState) {
     super(scene, ship.position.x, ship.position.y);
@@ -24,7 +26,27 @@ export class ShipView extends Phaser.GameObjects.Container {
         .setDisplaySize(ship.radius * presentation.spriteWidthInRadii, ship.radius * presentation.spriteLengthInRadii)
         .setRotation(Math.PI / 2);
     }
-    this.add([this.status, this.engineGlow, this.hullGraphics, ...(this.art ? [this.art] : []), this.mounts, this.bars]);
+    if (ship.role === 'flagship' && ship.starterModuleId) {
+      const module = STARTER_MODULES[ship.starterModuleId];
+      const vectorDrive = ship.starterModuleId === 'vector-drive';
+      this.moduleArt = scene.add
+        .image(vectorDrive ? -ship.radius * 0.92 : -ship.radius * 0.08, 0, module.texture)
+        .setDisplaySize(
+          ship.radius * (vectorDrive ? 1.72 : 1.92),
+          ship.radius * (vectorDrive ? 1.18 : 0.86),
+        )
+        .setRotation(Math.PI / 2)
+        .setBlendMode(Phaser.BlendModes.NORMAL);
+    }
+    this.add([
+      this.status,
+      this.engineGlow,
+      this.hullGraphics,
+      ...(this.art ? [this.art] : []),
+      ...(this.moduleArt ? [this.moduleArt] : []),
+      this.mounts,
+      this.bars,
+    ]);
     this.setDepth(20);
     scene.add.existing(this);
     scene.tweens.add({
@@ -87,7 +109,12 @@ export class ShipView extends Phaser.GameObjects.Container {
       this.status.strokeEllipse(0, 0, statusLength * (boosted ? 1.16 : 1.08), statusWidth * (boosted ? 1.22 : 1.13));
     }
 
-    const enginePoints = presentation?.hardpoints.engines ?? [{ x: -1.1, y: 0 }];
+    const enginePoints = [
+      ...(presentation?.hardpoints.engines ?? [{ x: -1.1, y: 0 }]),
+      ...(ship.starterModuleId === 'vector-drive'
+        ? [{ x: -1.35, y: -0.58 }, { x: -1.35, y: 0.58 }]
+        : []),
+    ];
     for (const engine of enginePoints) {
       const x = engine.x * ship.radius;
       const y = engine.y * ship.radius;
@@ -137,6 +164,14 @@ export class ShipView extends Phaser.GameObjects.Container {
         ...presentation.hardpoints.starboardBroadside,
       ];
       for (const point of broadsideMounts) drawMount(point.x, point.y, 0x79d2ff, mountRadius * 0.86);
+      if (ship.starterModuleId === 'aegis-emitter') {
+        for (const y of [-0.58, 0.58]) {
+          this.mounts.lineStyle(3, 0x6ee8ff, 0.9);
+          this.mounts.strokeCircle(-ship.radius * 0.08, y * ship.radius, ship.radius * 0.18);
+          this.mounts.fillStyle(0xd9fdff, 0.95);
+          this.mounts.fillCircle(-ship.radius * 0.08, y * ship.radius, Math.max(2.5, ship.radius * 0.055));
+        }
+      }
     }
 
     const barWidth = ship.radius * 2.35;

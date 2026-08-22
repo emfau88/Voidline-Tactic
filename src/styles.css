@@ -208,7 +208,19 @@ body {
   letter-spacing: 0.08em;
 }
 
-.starter-card img {
+.starter-visual {
+  position: relative;
+  display: grid;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  height: 100%;
+  max-height: 145px;
+  place-items: center;
+  transform: rotate(180deg);
+}
+
+.starter-card .starter-hull {
   align-self: center;
   justify-self: center;
   width: 86%;
@@ -216,7 +228,43 @@ body {
   max-height: 145px;
   object-fit: contain;
   filter: drop-shadow(0 12px 12px rgb(0 0 0 / 72%));
-  transform: rotate(180deg);
+}
+
+.starter-module-mount {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  width: auto;
+  opacity: 0;
+  filter: drop-shadow(0 0 7px rgb(73 202 255 / 74%));
+  transform: translate(-50%, -50%) scale(0.84);
+  transition: opacity 160ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+.starter-module-mount.aegis {
+  top: 51%;
+  height: 28%;
+}
+
+.starter-module-mount.vector {
+  top: auto;
+  bottom: 0;
+  height: 43%;
+  transform: translateX(-50%) scale(0.84);
+}
+
+#main-menu[data-starter-module='aegis-emitter'] .starter-card.selected [data-mounted-module='aegis-emitter'],
+#main-menu[data-starter-module='vector-drive'] .starter-card.selected [data-mounted-module='vector-drive'] {
+  opacity: 1;
+}
+
+#main-menu[data-starter-module='aegis-emitter'] .starter-card.selected [data-mounted-module='aegis-emitter'] {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#main-menu[data-starter-module='vector-drive'] .starter-card.selected [data-mounted-module='vector-drive'] {
+  transform: translateX(-50%) scale(1);
 }
 
 .starter-name {
@@ -302,6 +350,113 @@ body {
   color: #748698;
   font-size: 6px;
   letter-spacing: 0.1em;
+}
+
+#starter-refit {
+  margin-top: 8px;
+  padding: 7px;
+  border: 1px solid rgb(91 190 237 / 30%);
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgb(31 93 126 / 18%), rgb(7 14 23 / 78%));
+}
+
+.starter-refit-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.starter-refit-heading small,
+.starter-refit-heading strong {
+  display: block;
+}
+
+.starter-refit-heading small {
+  color: #6cbddd;
+  font-size: 5.5px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.starter-refit-heading strong {
+  margin-top: 2px;
+  color: #e3d3af;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+#starter-module-status {
+  max-width: 50%;
+  overflow: hidden;
+  color: #eab95f;
+  font-size: 5.5px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.starter-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.starter-module-grid button {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  min-height: 50px;
+  padding: 4px;
+  border: 1px solid rgb(100 137 160 / 36%);
+  border-radius: 6px;
+  background: rgb(8 16 26 / 82%);
+  text-align: left;
+}
+
+.starter-module-grid button img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgb(72 201 255 / 36%));
+}
+
+.starter-module-grid button span,
+.starter-module-grid button strong,
+.starter-module-grid button small {
+  display: block;
+  min-width: 0;
+}
+
+.starter-module-grid button strong {
+  color: #cfe9f7;
+  font-size: 6.5px;
+  letter-spacing: 0.04em;
+}
+
+.starter-module-grid button small {
+  margin-top: 2px;
+  overflow: hidden;
+  color: #7896aa;
+  font-size: 5.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.starter-module-grid button.selected {
+  border-color: #63cef9;
+  background: linear-gradient(135deg, rgb(27 103 144 / 72%), rgb(8 20 31 / 94%));
+  box-shadow: inset 0 0 15px rgb(85 209 255 / 12%), 0 0 12px rgb(61 190 242 / 18%);
+}
+
+.starter-module-grid button.selected strong,
+.starter-module-grid button.selected small {
+  color: #e7f8ff;
 }
 
 .mission-track {
@@ -464,6 +619,12 @@ body {
   background: linear-gradient(135deg, #174262, #0a1927 70%);
   box-shadow: inset 0 1px rgb(255 255 255 / 8%), 0 0 25px rgb(47 164 225 / 16%);
   text-align: left;
+}
+
+#start-button:disabled {
+  border-style: dashed;
+  opacity: 0.48;
+  filter: saturate(0.4);
 }
 
 #start-button span,
@@ -1098,6 +1259,10 @@ button:focus-visible {
   opacity: 0.2;
 }
 
+#action-grid.solo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .modal button {
   min-height: 42px;
   border: 1px solid rgb(182 150 88 / 50%);
@@ -1281,14 +1446,44 @@ button:focus-visible {
     min-height: 0;
   }
 
-  .starter-card img {
+  .starter-visual,
+  .starter-card .starter-hull {
     max-height: 94px;
   }
 
   .refit-preview {
     display: block;
     min-height: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    touch-action: pan-y;
+  }
+
+  .refit-preview::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  #starter-refit {
+    margin-top: 5px;
+    padding: 5px;
+  }
+
+  .starter-module-grid {
+    margin-top: 4px;
+  }
+
+  .starter-module-grid button {
+    grid-template-columns: 31px minmax(0, 1fr);
+    min-height: 40px;
+    padding: 3px;
+  }
+
+  .starter-module-grid button img {
+    width: 29px;
+    height: 29px;
   }
 
   .mission-track {
@@ -1296,7 +1491,7 @@ button:focus-visible {
   }
 
   .mission-track button {
-    min-height: 39px;
+    min-height: 34px;
     padding-top: 5px;
     padding-bottom: 5px;
   }
@@ -1415,6 +1610,10 @@ button:focus-visible {
     width: clamp(250px, 36vw, 330px);
     height: 112px;
     pointer-events: auto;
+  }
+
+  #action-grid.solo {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   #action-grid button {
@@ -1684,6 +1883,10 @@ button:focus-visible {
     gap: 3px;
   }
 
+  #action-grid.solo {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   #action-grid [data-action='course'] {
     display: none;
   }
@@ -1762,7 +1965,8 @@ button:focus-visible {
     min-height: 230px;
   }
 
-  .starter-card img {
+  .starter-visual,
+  .starter-card .starter-hull {
     max-height: 116px;
   }
 }

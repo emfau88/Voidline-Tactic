@@ -27,6 +27,7 @@ import type {
   ProjectileState,
   ShipDefinition,
   ShipState,
+  StarterModuleId,
   StepResult,
   Team,
   UpgradeId,
@@ -37,27 +38,39 @@ import type {
 
 const ZERO_COOLDOWNS = { broadside: 0, lance: 0, torpedo: 0, shield: 0 } as const;
 
-function createShipState(definition: ShipDefinition, flagshipId: string, upgrades: readonly UpgradeId[] = []): ShipState {
+function createShipState(
+  definition: ShipDefinition,
+  flagshipId: string,
+  upgrades: readonly UpgradeId[] = [],
+  starterModuleId?: StarterModuleId,
+): ShipState {
   const isFlagship = definition.id === flagshipId;
   const role = definition.team === 'enemy' ? 'hostile' : isFlagship ? 'flagship' : 'escort';
   const reinforcedFlagship = isFlagship && upgrades.includes('reinforced-hull');
   const vectorFlagship = isFlagship && upgrades.includes('vector-thrusters');
   const platedEscort = role === 'escort' && upgrades.includes('escort-plating');
   const fluxFlagship = isFlagship && upgrades.includes('flux-capacitor');
+  const aegisFlagship = isFlagship && starterModuleId === 'aegis-emitter';
+  const vectorDriveFlagship = isFlagship && starterModuleId === 'vector-drive';
   const maxHull = definition.maxHull + (reinforcedFlagship ? 18 : platedEscort ? 14 : 0);
   const maxShield = definition.maxShield
     + (isFlagship && definition.id === 'p-cruiser' ? 15 : 0)
+    + (aegisFlagship ? 12 : 0)
     + (reinforcedFlagship ? 10 : platedEscort ? 8 : 0);
   const maxEnergy = definition.maxEnergy + (isFlagship && definition.id === 'p-frigate' ? 12 : 0) + (fluxFlagship ? 20 : 0);
-  const maxSpeed = definition.maxSpeed + (isFlagship && definition.id === 'p-frigate' ? 8 : 0) + (vectorFlagship ? 12 : 0);
+  const maxSpeed = definition.maxSpeed
+    + (isFlagship && definition.id === 'p-frigate' ? 8 : 0)
+    + (vectorDriveFlagship ? 10 : 0)
+    + (vectorFlagship ? 12 : 0);
   return {
     ...definition,
+    starterModuleId: isFlagship ? starterModuleId : undefined,
     maxHull,
     maxShield,
     maxEnergy,
     maxSpeed,
     energyRegenPerSecond: definition.energyRegenPerSecond + (fluxFlagship ? 0.9 : 0),
-    turnRate: definition.turnRate * (vectorFlagship ? 1.15 : 1),
+    turnRate: definition.turnRate * (vectorDriveFlagship ? 1.12 : 1) * (vectorFlagship ? 1.15 : 1),
     hull: maxHull,
     shield: maxShield,
     energy: maxEnergy,
@@ -85,8 +98,9 @@ export function createCombatState(
   flagshipId = 'p-cruiser',
   missionId: MissionId = 'mission-1',
   upgrades: readonly UpgradeId[] = [],
+  starterModuleId?: StarterModuleId,
 ): CombatState {
-  const fleet = createMissionFleet(missionId);
+  const fleet = createMissionFleet(missionId, flagshipId);
   const resolvedFlagship = fleet.some((ship) => ship.id === flagshipId && ship.team === 'player')
     ? flagshipId
     : 'p-cruiser';
@@ -95,12 +109,16 @@ export function createCombatState(
   return {
     elapsedMs: 0,
     status: 'active',
-    ships: Object.fromEntries(fleet.map((definition) => [definition.id, createShipState(definition, resolvedFlagship, upgrades)])),
+    ships: Object.fromEntries(fleet.map((definition) => [
+      definition.id,
+      createShipState(definition, resolvedFlagship, upgrades, starterModuleId),
+    ])),
     projectiles: {},
     nextProjectileId: 1,
     flagshipId: resolvedFlagship,
     escortDirective: 'follow',
     missionId,
+    starterModuleId,
     upgrades: [...upgrades],
     objective: {
       kind: mission.objectiveKind,

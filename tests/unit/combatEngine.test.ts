@@ -52,8 +52,8 @@ function advance(state: CombatState, durationMs: number, stepMs = 100): { state:
 
 describe('real-time combat engine', () => {
   it('applies the selected flagship doctrine without changing its escort', () => {
-    const cruiserStart = createCombatState('p-cruiser');
-    const frigateStart = createCombatState('p-frigate');
+    const cruiserStart = createCombatState('p-cruiser', 'mission-2');
+    const frigateStart = createCombatState('p-frigate', 'mission-2');
 
     expect(cruiserStart.flagshipId).toBe('p-cruiser');
     expect(cruiserStart.ships['p-cruiser'].maxShield).toBe(83);
@@ -69,13 +69,27 @@ describe('real-time combat engine', () => {
     const second = createCombatState('p-cruiser', 'mission-2', ['reinforced-hull', 'escort-plating']);
     const third = createCombatState('p-cruiser', 'mission-3');
 
-    expect(Object.keys(first.ships)).toHaveLength(4);
+    expect(Object.keys(first.ships)).toHaveLength(2);
+    expect(Object.values(first.ships).filter((ship) => ship.team === 'player')).toHaveLength(1);
+    expect(Object.values(first.ships).filter((ship) => ship.team === 'enemy')).toHaveLength(1);
     expect(Object.keys(second.ships)).toHaveLength(5);
     expect(Object.keys(third.ships)).toHaveLength(6);
     expect(second.objective.kind).toBe('relay');
     expect(third.objective.kind).toBe('shipyard');
     expect(second.ships['p-cruiser'].maxHull).toBe(first.ships['p-cruiser'].maxHull + 18);
-    expect(second.ships['p-frigate'].maxHull).toBe(first.ships['p-frigate'].maxHull + 14);
+    expect(second.ships['p-frigate'].maxHull).toBe(third.ships['p-frigate'].maxHull + 14);
+  });
+
+  it('mounts the selected preflight module on the flagship and applies its trade-off', () => {
+    const base = createCombatState('p-frigate');
+    const aegis = createCombatState('p-frigate', 'mission-1', [], 'aegis-emitter');
+    const vector = createCombatState('p-frigate', 'mission-1', [], 'vector-drive');
+
+    expect(aegis.starterModuleId).toBe('aegis-emitter');
+    expect(aegis.ships['p-frigate'].starterModuleId).toBe('aegis-emitter');
+    expect(aegis.ships['p-frigate'].maxShield).toBe(base.ships['p-frigate'].maxShield + 12);
+    expect(vector.ships['p-frigate'].maxSpeed).toBe(base.ships['p-frigate'].maxSpeed + 10);
+    expect(vector.ships['p-frigate'].turnRate).toBeCloseTo(base.ships['p-frigate'].turnRate * 1.12);
   });
 
   it('captures the mission-three shipyard and spawns a capped reinforcement', () => {
@@ -161,7 +175,7 @@ describe('real-time combat engine', () => {
   });
 
   it('designates the same focus target for flagship and escort', () => {
-    const state = createCombatState();
+    const state = createCombatState('p-cruiser', 'mission-2');
     const result = designateTarget(state, state.flagshipId, 'e-destroyer');
 
     expect(result.error).toBeUndefined();
@@ -177,7 +191,7 @@ describe('real-time combat engine', () => {
   });
 
   it('charges a lance visibly and then applies its deterministic hit', () => {
-    let state = placeFrontSolution(createCombatState(), 'p-cruiser', 'e-cruiser');
+    let state = placeFrontSolution(createCombatState('p-cruiser', 'mission-2'), 'p-cruiser', 'e-cruiser');
     state = designateTarget(state, 'p-cruiser', 'e-cruiser').state;
     const armed = activateAbility(state, 'p-cruiser', 'lance');
     const shieldBefore = armed.state.ships['e-cruiser'].shield;
@@ -190,7 +204,7 @@ describe('real-time combat engine', () => {
   });
 
   it('lets maneuvering break a telegraphed lance solution', () => {
-    let state = placeFrontSolution(createCombatState(), 'p-cruiser', 'e-cruiser');
+    let state = placeFrontSolution(createCombatState('p-cruiser', 'mission-2'), 'p-cruiser', 'e-cruiser');
     state = designateTarget(state, 'p-cruiser', 'e-cruiser').state;
     state = activateAbility(state, 'p-cruiser', 'lance').state;
     const attacker = state.ships['p-cruiser'];
@@ -227,7 +241,7 @@ describe('real-time combat engine', () => {
   });
 
   it('shows the nebula reduction in the deterministic ability preview', () => {
-    let state = createCombatState();
+    let state = createCombatState('p-cruiser', 'mission-2');
     const attacker = freeze({ ...state.ships['p-cruiser'], position: { x: NEBULA_CENTER.x - 300, y: NEBULA_CENTER.y }, facing: 0 });
     const coveredTarget = freeze({ ...state.ships['e-cruiser'], position: { ...NEBULA_CENTER } });
     state = replaceShip(replaceShip(state, attacker), coveredTarget);
