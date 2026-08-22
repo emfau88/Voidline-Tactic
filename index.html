@@ -157,24 +157,35 @@
             </div>
           </section>
 
-          <nav id="action-grid" aria-label="Schiffsaktionen">
-            <button type="button" data-action="course" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>KURS</strong><small>zeichnen</small></button>
-            <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>ZIEL</strong><small>Breitseiten auto</small></button>
-            <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>bereit · 18 EN</small></button>
-            <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>bereit · 12 EN</small></button>
-            <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>BOOST</strong><small>bereit · 16 EN</small></button>
-            <button type="button" data-action="escort" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>ESKORTE</strong><small>folgen</small></button>
-          </nav>
+          <div id="control-deck">
+            <section id="flight-control" aria-label="Direkte Flugsteuerung">
+              <button id="flight-stick" type="button" aria-label="Steuerjoystick für den Sollkurs" disabled>
+                <span class="stick-cross" aria-hidden="true"></span>
+                <span id="flight-stick-knob" aria-hidden="true"><svg><use href="#icon-move"/></svg></span>
+              </button>
+              <strong>STEUERSTICK</strong>
+              <small id="flight-stick-readout">SOLLKURS N</small>
+            </section>
+
+            <nav id="action-grid" aria-label="Schiffsaktionen">
+              <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>ZIEL</strong><small>Breitseiten auto</small></button>
+              <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>bereit · 18 EN</small></button>
+              <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>bereit · 12 EN</small></button>
+              <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>BOOST</strong><small>bereit · 16 EN</small></button>
+              <button type="button" data-action="escort" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>ESKORTE</strong><small>folgen</small></button>
+              <button class="dormant" type="button" data-action="course" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>ROUTE</strong><small>INAKTIV</small></button>
+            </nav>
+          </div>
         </footer>
 
         <dialog id="help-dialog" class="modal panel">
           <h2>SO SPIELST DU</h2>
           <ol>
-            <li>Ziehe vom Flaggschiff einen Kurs oder tippe KURS und zeichne die gewünschte Route.</li>
+            <li>Drücke den Steuerstick in die gewünschte Richtung. Das Flaggschiff wendet träge und hält den Sollkurs nach dem Loslassen.</li>
             <li>Standardbatterien feuern automatisch aus den Breitseiten. Markiere mit ZIEL den wichtigsten Gegner.</li>
             <li>Lanze, Torpedo und Schild-Boost löst du selbst aus. Die Lanze kündigt ihren Schuss sichtbar an.</li>
             <li>PAUSE friert den Kampf ein; PLANEN läuft mit ¼ Tempo. Torpedos sind physische, verlässliche Projektile.</li>
-            <li>Im cyanfarbenen Nebel erleiden Schiffe 25 % weniger Schaden. Zwei Finger zoomen um den Gestenmittelpunkt.</li>
+            <li>Die frühere Routenzeichnung bleibt vorerst inaktiv. Im cyanfarbenen Nebel erleiden Schiffe 25 % weniger Schaden; zwei Finger zoomen.</li>
           </ol>
           <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>
         </dialog>

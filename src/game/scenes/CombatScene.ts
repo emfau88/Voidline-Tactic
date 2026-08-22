@@ -8,6 +8,7 @@ import {
   getAbilityPreview,
   setCourse,
   setEscortDirective,
+  steerShip,
   stepCombat,
 } from '../../domain/combat/combatEngine';
 import {
@@ -39,6 +40,8 @@ interface ProjectileView {
 }
 
 const ESCORT_DIRECTIVES: readonly EscortDirective[] = ['follow', 'flank-left', 'flank-right', 'protect'];
+const DEFAULT_CAMERA_ZOOM = 1.35;
+const COURSE_DRAWING_ENABLED = false;
 
 export class CombatScene extends Phaser.Scene {
   private combatState!: CombatState;
@@ -51,8 +54,9 @@ export class CombatScene extends Phaser.Scene {
   private routeSamples: Vector2[] = [];
   private hud!: CombatHud;
   private overlay!: Phaser.GameObjects.Graphics;
+  private cameraAnchor!: Phaser.GameObjects.Zone;
   private baseCameraZoom = 0.39;
-  private cameraZoomFactor = 1;
+  private cameraZoomFactor = DEFAULT_CAMERA_ZOOM;
   private readonly shipViews = new Map<string, ShipView>();
   private readonly projectileViews = new Map<string, ProjectileView>();
   private readonly telegraphLabels = new Map<string, Phaser.GameObjects.Text>();
@@ -74,14 +78,21 @@ export class CombatScene extends Phaser.Scene {
     this.overlay = this.add.graphics().setDepth(12);
     this.combatState = createCombatState(getStarterShipId());
     this.createShipViews();
+    const flagship = this.combatState.ships[this.combatState.flagshipId];
+    this.cameraAnchor = this.add.zone(flagship.position.x, flagship.position.y, 1, 1).setVisible(false);
+    this.cameras.main.setBounds(0, 0, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT);
+    this.updateCameraAnchor(true);
+    this.cameras.main.startFollow(this.cameraAnchor, true, 0.065, 0.065);
     this.createTelegraphLabels();
     this.hud = new CombatHud({
       onAction: (action) => this.handleAction(action),
+      onSteer: (heading) => this.steerFlagship(heading),
       onTimeScale: (scale) => this.setTimeScale(scale),
       onRestart: () => this.restartBattle(),
       onZoom: (direction) => this.adjustCameraZoom(direction),
       onZoomReset: () => this.resetCameraZoom(),
     });
+    this.hud.setZoom(this.cameraZoomFactor);
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => this.handlePointerDown(pointer));
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => this.handlePointerMove(pointer));
@@ -100,7 +111,7 @@ export class CombatScene extends Phaser.Scene {
 
     this.syncPresentation();
     this.refreshHud();
-    this.hud.toast('LIVE: KURS wählen und eine Route ziehen. ⏸ hält das Gefecht jederzeit an.');
+    this.hud.toast('LIVE: Mit dem Steuerstick den Sollkurs setzen. Loslassen hält den Kurs.');
     const shell = document.getElementById('game-shell');
     shell?.setAttribute('aria-busy', 'false');
     if (shell) shell.dataset.gameReady = 'true';
@@ -116,6 +127,7 @@ export class CombatScene extends Phaser.Scene {
       this.handleEvents(result.events);
       this.accumulatorMs -= FIXED_STEP_MS;
     }
+    this.updateCameraAnchor();
     this.syncPresentation();
     this.drawOverlays();
     this.hudRefreshMs += boundedDelta;
@@ -190,7 +202,8 @@ export class CombatScene extends Phaser.Scene {
     this.cameras.main.setViewport(0, topInset, width, viewportHeight);
     this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);
     this.cameras.main.setZoom(this.baseCameraZoom * this.cameraZoomFactor);
-    this.cameras.main.centerOn(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2);
+    if (this.combatState && this.cameraAnchor) this.updateCameraAnchor(true);
+    else this.cameras.main.centerOn(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2);
     this.hud?.setZoom(this.cameraZoomFactor);
   }
 
@@ -199,7 +212,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private resetCameraZoom(): void {
-    this.cameraZoomFactor = 1;
+    this.cameraZoomFactor = DEFAULT_CAMERA_ZOOM;
     this.layoutCamera();
   }
 
@@ -225,12 +238,16 @@ export class CombatScene extends Phaser.Scene {
 
   private handleAction(action: HudAction): void {
     if (this.combatState.status !== 'active') return;
-    if (action === 'course' || action === 'target') {
+    if (action === 'course') {
+      this.hud.toast('Routenzeichnung bleibt für den Joystick-Test vorübergehend inaktiv.');
+      return;
+    }
+    if (action === 'target') {
       this.mode = this.mode === action ? undefined : action;
       this.pendingAbility = undefined;
       this.routeSamples = [];
       this.routeDrawing = false;
-      this.hud.toast(action === 'course' ? 'Route auf dem Spielfeld ziehen. Das Schiff dreht träge ein.' : 'Gegner antippen, um ihn für Autofire und Spezialwaffen zu erfassen.');
+      this.hud.toast('Gegner antippen, um ihn für Autofire und Spezialwaffen zu erfassen.');
       this.refreshHud();
       return;
     }
@@ -254,6 +271,22 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     this.activateFlagshipAbility(action);
+  }
+
+  private steerFlagship(heading: number): void {
+    const result = steerShip(this.combatState, this.combatState.flagshipId, heading);
+    if (result.error) {
+      this.hud.toast(this.translateError(result.error));
+      return;
+    }
+    this.combatState = result.state;
+    this.mode = undefined;
+    this.routeDrawing = false;
+    this.routeSamples = [];
+    this.handleEvents(result.events);
+    this.updateCameraAnchor();
+    this.drawOverlays();
+    this.refreshHud();
   }
 
   private activateFlagshipAbility(ability: ManualAbility): void {
@@ -297,7 +330,7 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     const flagship = this.combatState.ships[this.combatState.flagshipId];
-    if (hit?.id === flagship.id && !this.mode) this.mode = 'course';
+    if (COURSE_DRAWING_ENABLED && hit?.id === flagship.id && !this.mode) this.mode = 'course';
     if (this.mode !== 'course') return;
     this.routeDrawing = true;
     this.routeSamples = [{ ...flagship.position }, point];
@@ -426,6 +459,25 @@ export class CombatScene extends Phaser.Scene {
     }
 
     if (flagship.alive) {
+      const guideStart = {
+        x: flagship.position.x + Math.cos(flagship.desiredHeading) * flagship.radius * 1.2,
+        y: flagship.position.y + Math.sin(flagship.desiredHeading) * flagship.radius * 1.2,
+      };
+      const guideEnd = {
+        x: flagship.position.x + Math.cos(flagship.desiredHeading) * (flagship.radius + 135),
+        y: flagship.position.y + Math.sin(flagship.desiredHeading) * (flagship.radius + 135),
+      };
+      this.overlay.lineStyle(6, 0x7ad9ff, 0.72);
+      this.overlay.lineBetween(guideStart.x, guideStart.y, guideEnd.x, guideEnd.y);
+      this.overlay.fillStyle(0xc6f2ff, 0.92);
+      this.overlay.fillTriangle(
+        guideEnd.x + Math.cos(flagship.desiredHeading) * 18,
+        guideEnd.y + Math.sin(flagship.desiredHeading) * 18,
+        guideEnd.x + Math.cos(flagship.desiredHeading + 2.45) * 15,
+        guideEnd.y + Math.sin(flagship.desiredHeading + 2.45) * 15,
+        guideEnd.x + Math.cos(flagship.desiredHeading - 2.45) * 15,
+        guideEnd.y + Math.sin(flagship.desiredHeading - 2.45) * 15,
+      );
       this.drawArc(flagship.position, flagship.facing - Math.PI / 2, WEAPONS.broadside.range, WEAPONS.broadside.halfAngle, 0x4fbfff, 0.025);
       this.drawArc(flagship.position, flagship.facing + Math.PI / 2, WEAPONS.broadside.range, WEAPONS.broadside.halfAngle, 0x4fbfff, 0.025);
       const target = flagship.targetId ? this.combatState.ships[flagship.targetId] : undefined;
@@ -501,6 +553,7 @@ export class CombatScene extends Phaser.Scene {
           this.refreshHud();
           break;
         case 'course-changed':
+        case 'heading-changed':
         case 'target-designated':
         case 'escort-directive-changed':
         case 'weapon-charging':
@@ -575,8 +628,15 @@ export class CombatScene extends Phaser.Scene {
     if (shell) {
       shell.dataset.simulationTime = String(Math.floor(this.combatState.elapsedMs));
       shell.dataset.coursePoints = String(flagship.course.length);
+      shell.dataset.desiredHeading = flagship.desiredHeading.toFixed(4);
       shell.dataset.projectiles = String(Object.keys(this.combatState.projectiles).length);
       shell.dataset.timeScale = String(this.timeScale);
+      shell.dataset.shipScreens = JSON.stringify(Object.fromEntries(
+        Object.values(this.combatState.ships).map((ship) => [ship.id, {
+          x: Number((((ship.position.x - this.cameras.main.worldView.x) * this.cameras.main.zoom + this.cameras.main.x) / this.scale.width).toFixed(4)),
+          y: Number((((ship.position.y - this.cameras.main.worldView.y) * this.cameras.main.zoom + this.cameras.main.y) / this.scale.height).toFixed(4)),
+        }]),
+      ));
     }
     this.hud.update({
       state: this.combatState,
@@ -603,10 +663,34 @@ export class CombatScene extends Phaser.Scene {
     for (const view of this.projectileViews.values()) view.container.destroy(true);
     this.projectileViews.clear();
     for (const view of this.shipViews.values()) view.setAlpha(1).setScale(1).setVisible(true);
+    this.updateCameraAnchor(true);
     this.syncPresentation();
     this.drawOverlays();
     this.refreshHud();
     this.hud.toast('LIVE · Flaggschiff und Eskorte sind wieder im Gefecht.');
+  }
+
+  private updateCameraAnchor(immediate = false): void {
+    if (!this.cameraAnchor || !this.combatState) return;
+    const flagship = this.combatState.ships[this.combatState.flagshipId];
+    if (!flagship) return;
+    let x = flagship.position.x + Math.cos(flagship.facing) * 450;
+    let y = flagship.position.y + Math.sin(flagship.facing) * 450;
+    const escort = Object.values(this.combatState.ships).find((ship) => ship.role === 'escort' && ship.alive);
+    if (escort) {
+      x = Phaser.Math.Linear(x, escort.position.x, 0.18);
+      y = Phaser.Math.Linear(y, escort.position.y, 0.18);
+    }
+    const target = flagship.targetId ? this.combatState.ships[flagship.targetId] : undefined;
+    if (target?.alive) {
+      x = Phaser.Math.Linear(x, target.position.x, 0.2);
+      y = Phaser.Math.Linear(y, target.position.y, 0.2);
+    }
+    this.cameraAnchor.setPosition(
+      clamp(x, 0, BATTLEFIELD_WIDTH),
+      clamp(y, 0, BATTLEFIELD_HEIGHT),
+    );
+    if (immediate) this.cameras.main.centerOn(this.cameraAnchor.x, this.cameraAnchor.y);
   }
 
   private directiveDescription(directive: EscortDirective): string {

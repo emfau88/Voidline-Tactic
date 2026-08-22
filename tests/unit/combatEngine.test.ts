@@ -6,6 +6,7 @@ import {
   getAbilityPreview,
   setCourse,
   setEscortDirective,
+  steerShip,
   stepCombat,
 } from '../../src/domain/combat/combatEngine';
 import { NEBULA_CENTER, SHIELD_BOOST_DURATION_MS, SHIELD_BOOST_RESTORE } from '../../src/domain/combat/constants';
@@ -80,6 +81,21 @@ describe('real-time combat engine', () => {
     expect(after.position.y).toBeLessThan(before.position.y);
     expect(after.position.x).toBeGreaterThan(before.position.x);
     expect(Math.abs(after.facing - before.facing)).toBeLessThanOrEqual(before.turnRate + 0.0001);
+  });
+
+  it('turns toward a joystick heading and keeps it after input release', () => {
+    const state = createCombatState();
+    const flagship = state.ships[state.flagshipId];
+    const steered = steerShip(state, flagship.id, 0);
+
+    expect(steered.error).toBeUndefined();
+    expect(steered.state.ships[flagship.id].desiredHeading).toBe(0);
+    expect(steered.state.ships[flagship.id].course).toEqual([]);
+    const firstStep = stepCombat(steered.state, 500).state;
+    const secondStep = stepCombat(firstStep, 500).state;
+    expect(firstStep.ships[flagship.id].facing).toBeGreaterThan(flagship.facing);
+    expect(secondStep.ships[flagship.id].facing).toBeGreaterThan(firstStep.ships[flagship.id].facing);
+    expect(secondStep.ships[flagship.id].desiredHeading).toBe(0);
   });
 
   it('is deterministic for identical fixed-step input', () => {

@@ -64,6 +64,7 @@ export interface ShipState extends ShipDefinition {
   readonly alive: boolean;
   readonly role: ShipRole;
   readonly course: readonly Vector2[];
+  readonly desiredHeading: number;
   readonly targetId?: string;
   readonly autoFire: boolean;
   readonly cooldowns: WeaponCooldowns;
@@ -115,6 +116,7 @@ export interface AbilityPreview {
 
 export type CombatEvent =
   | { readonly type: 'course-changed'; readonly shipId: string; readonly points: readonly Vector2[] }
+  | { readonly type: 'heading-changed'; readonly shipId: string; readonly heading: number }
   | { readonly type: 'target-designated'; readonly shipId: string; readonly targetId: string }
   | { readonly type: 'escort-directive-changed'; readonly directive: EscortDirective }
   | { readonly type: 'weapon-charging'; readonly shipId: string; readonly targetId: string; readonly weapon: 'lance'; readonly durationMs: number }

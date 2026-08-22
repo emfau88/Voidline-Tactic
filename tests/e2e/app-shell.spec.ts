@@ -17,6 +17,17 @@ async function pauseBattle(page: import('@playwright/test').Page): Promise<void>
   await expect(page.locator('#game-shell')).toHaveAttribute('data-time-scale', '0');
 }
 
+async function clickShip(page: import('@playwright/test').Page, shipId: string): Promise<void> {
+  const canvas = page.locator('#game-root canvas');
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas has no layout box.');
+  const serialized = await page.locator('#game-shell').getAttribute('data-ship-screens');
+  const screens = JSON.parse(serialized ?? '{}') as Record<string, { x: number; y: number }>;
+  const position = screens[shipId];
+  if (!position) throw new Error(`No screen position exposed for ${shipId}.`);
+  await canvas.click({ position: { x: box.width * position.x, y: box.height * position.y } });
+}
+
 test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', 'manifest.webmanifest');
   await startBattle(page, 'p-frigate');
@@ -24,11 +35,13 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.locator('#game-root canvas')).toBeVisible();
   await expect(page.locator('#ship-name')).toHaveText('Aster Vale');
   await expect(page.locator('#ship-energy-text')).toHaveText('80/80');
-  await expect(page.getByRole('button', { name: /KURS/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Steuerjoystick/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /ROUTE/ })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Taktische Pause' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Vollbild umschalten' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('135%');
   await page.getByRole('button', { name: 'Hineinzoomen' }).click();
-  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('110%');
+  await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('145%');
 
   const shellWidth = await page.locator('#game-shell').evaluate((element) => element.getBoundingClientRect().width);
   const innerWidth = await page.evaluate(() => window.innerWidth);
@@ -55,33 +68,29 @@ test('freezes simulation in tactical pause and resumes at live speed', async ({ 
   await expect.poll(async () => Number(await page.locator('#game-shell').getAttribute('data-simulation-time'))).toBeGreaterThan(Number(frozenTime));
 });
 
-test('draws a direct flagship course while paused', async ({ page }) => {
+test('sets and holds a joystick heading while route drawing stays dormant', async ({ page }) => {
   await startBattle(page);
   await pauseBattle(page);
-  const canvas = page.locator('#game-root canvas');
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('Canvas has no layout box.');
+  const stick = page.getByRole('button', { name: /Steuerjoystick/ });
+  const box = await stick.boundingBox();
+  if (!box) throw new Error('Flight stick has no layout box.');
 
-  await page.getByRole('button', { name: /KURS/ }).click();
-  await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.58);
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '-1.5708');
+  await page.mouse.move(box.x + box.width * 0.82, box.y + box.height * 0.5);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, { steps: 4 });
-  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.42, { steps: 5 });
   await page.mouse.up();
 
-  await expect.poll(async () => Number(await page.locator('#game-shell').getAttribute('data-course-points'))).toBeGreaterThan(0);
-  await expect(page.locator('#toast')).toContainText('KURS GESETZT');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '0.0000');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-course-points', '0');
+  await expect(page.locator('#flight-stick-readout')).toHaveText('SOLLKURS O');
+  await expect(page.getByRole('button', { name: /ROUTE/ })).toContainText('INAKTIV');
 });
 
 test('marks a focus target and arms the telegraphed lance', async ({ page }) => {
   await startBattle(page, 'p-cruiser');
   await pauseBattle(page);
-  const canvas = page.locator('#game-root canvas');
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('Canvas has no layout box.');
-
   await page.getByRole('button', { name: /ZIEL/ }).click();
-  await canvas.click({ position: { x: box.width * 0.4, y: box.height * 0.31 } });
+  await clickShip(page, 'e-cruiser');
   await expect(page.locator('#target-card')).toBeVisible();
   await expect(page.locator('#target-name')).toHaveText('Ashen Crown');
   await page.getByRole('button', { name: /LANZE/ }).click();
@@ -92,12 +101,8 @@ test('marks a focus target and arms the telegraphed lance', async ({ page }) => 
 test('launches a physical torpedo and changes escort doctrine', async ({ page }) => {
   await startBattle(page, 'p-frigate');
   await pauseBattle(page);
-  const canvas = page.locator('#game-root canvas');
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('Canvas has no layout box.');
-
   await page.getByRole('button', { name: /ZIEL/ }).click();
-  await canvas.click({ position: { x: box.width * (box.width > 500 ? 0.6 : 0.7), y: box.height * 0.34 } });
+  await clickShip(page, 'e-destroyer');
   await expect(page.locator('#target-name')).toHaveText('Red Wake');
   await page.getByRole('button', { name: /TORPEDO/ }).click();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-projectiles', '1');
@@ -112,6 +117,7 @@ test('opens the concise real-time help', async ({ page }) => {
   await startBattle(page);
   await page.getByRole('button', { name: 'Spielhilfe öffnen' }).click();
   await expect(page.getByRole('heading', { name: 'SO SPIELST DU' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Steuerstick');
   await expect(page.getByRole('dialog')).toContainText('Standardbatterien feuern automatisch');
   await page.getByRole('button', { name: 'ZURÜCK ZUM GEFECHT' }).click();
   await expect(page.getByRole('heading', { name: 'SO SPIELST DU' })).toBeHidden();

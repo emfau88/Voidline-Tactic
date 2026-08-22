@@ -8,6 +8,7 @@ export type HudAction = ActionMode | 'lance' | 'torpedo' | 'shield' | 'escort';
 
 export interface HudCallbacks {
   readonly onAction: (action: HudAction) => void;
+  readonly onSteer: (heading: number) => void;
   readonly onTimeScale: (scale: TimeScale) => void;
   readonly onRestart: () => void;
   readonly onZoom: (direction: number) => void;
@@ -71,6 +72,8 @@ export class CombatHud {
   private readonly toastElement = requiredElement<HTMLElement>('toast');
   private readonly helpDialog = requiredElement<HTMLDialogElement>('help-dialog');
   private readonly resultDialog = requiredElement<HTMLDialogElement>('result-dialog');
+  private readonly flightStick = requiredElement<HTMLButtonElement>('flight-stick');
+  private readonly flightStickKnob = requiredElement<HTMLElement>('flight-stick-knob');
   private toastTimer?: number;
 
   public constructor(callbacks: HudCallbacks) {
@@ -78,6 +81,7 @@ export class CombatHud {
     for (const button of this.actionButtons) {
       button.addEventListener('click', () => callbacks.onAction(button.dataset.action as HudAction));
     }
+    this.bindFlightStick(callbacks.onSteer);
     requiredElement<HTMLButtonElement>('pause-button').addEventListener('click', () => callbacks.onTimeScale(0));
     requiredElement<HTMLButtonElement>('slow-button').addEventListener('click', () => callbacks.onTimeScale(0.25));
     requiredElement<HTMLButtonElement>('live-button').addEventListener('click', () => callbacks.onTimeScale(1));
@@ -108,7 +112,11 @@ export class CombatHud {
     setText('ship-shield-text', `${flagship.shield}/${flagship.maxShield}`);
     setText('ship-energy-text', `${Math.floor(flagship.energy)}/${flagship.maxEnergy}`);
     setText('ship-ap', `${Math.round(flagship.speed)}/${flagship.maxSpeed}`);
-    setText('ship-facing', facingLabel(flagship.facing));
+    setText('ship-facing', `${facingLabel(flagship.facing)} → ${facingLabel(flagship.desiredHeading)}`);
+    setText('flight-stick-readout', `SOLLKURS ${facingLabel(flagship.desiredHeading)}`);
+    this.setStickHeading(flagship.desiredHeading);
+    this.flightStick.disabled = state.status !== 'active' || !flagship.alive;
+    this.flightStick.setAttribute('aria-label', `Steuerjoystick für Sollkurs ${facingLabel(flagship.desiredHeading)}`);
     setMeter('ship-hull-bar', flagship.hull, flagship.maxHull);
     setMeter('ship-shield-bar', flagship.shield, flagship.maxShield);
     setMeter('ship-energy-bar', flagship.energy, flagship.maxEnergy);
@@ -119,7 +127,7 @@ export class CombatHud {
         : flagship.shieldBoostMs > 0
           ? 'SCHILD BOOST'
           : mode === 'course'
-            ? 'KURS ZIEHEN'
+            ? 'ROUTE INAKTIV'
             : mode === 'target'
               ? 'ZIEL WÄHLEN'
               : timeScale === 0
@@ -142,7 +150,7 @@ export class CombatHud {
           ? `Lanze: ${lancePreview.shieldDamage} Schild · ${lancePreview.hullDamage} Hülle`
           : torpedoPreview.valid
             ? `Torpedo ETA ${(torpedoPreview.etaMs / 1_000).toFixed(1)}s · ${torpedoPreview.damage} Schaden`
-            : 'Kurs ändern, um einen Frontbogen herzustellen.',
+            : 'Mit dem Steuerstick einen Frontbogen herstellen.',
       );
     }
 
@@ -151,6 +159,7 @@ export class CombatHud {
       const lanceUnavailable = !flagship.weapons.includes('lance') || flagship.cooldowns.lance > 0 || flagship.energy < WEAPONS.lance.energyCost;
       const torpedoUnavailable = !flagship.weapons.includes('torpedo') || flagship.cooldowns.torpedo > 0 || flagship.energy < WEAPONS.torpedo.energyCost;
       const disabled = state.status !== 'active' || !flagship.alive ||
+        action === 'course' ||
         (action === 'lance' && lanceUnavailable) ||
         (action === 'torpedo' && torpedoUnavailable) ||
         (action === 'shield' && !shieldPreview.valid) ||
@@ -163,6 +172,7 @@ export class CombatHud {
       if (action === 'torpedo') small.textContent = `${formatCooldown(flagship.cooldowns.torpedo)} · 12 EN`;
       if (action === 'shield') small.textContent = `${formatCooldown(flagship.cooldowns.shield)} · ${SHIELD_BOOST_COST} EN`;
       if (action === 'escort') small.textContent = escort ? directiveLabel(state.escortDirective) : 'VERLOREN';
+      if (action === 'course') small.textContent = 'INAKTIV';
     }
 
     for (const [id, scale] of [['pause-button', 0], ['slow-button', 0.25], ['live-button', 1]] as const) {
@@ -190,5 +200,51 @@ export class CombatHud {
 
   public closeResult(): void {
     if (this.resultDialog.open) this.resultDialog.close();
+  }
+
+  private bindFlightStick(onSteer: (heading: number) => void): void {
+    this.flightStick.disabled = false;
+    const applyPointer = (event: PointerEvent): void => {
+      const bounds = this.flightStick.getBoundingClientRect();
+      const deltaX = event.clientX - (bounds.left + bounds.width / 2);
+      const deltaY = event.clientY - (bounds.top + bounds.height / 2);
+      if (Math.hypot(deltaX, deltaY) < Math.max(7, bounds.width * 0.1)) return;
+      onSteer(Math.atan2(deltaY, deltaX));
+    };
+    this.flightStick.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      this.flightStick.setPointerCapture(event.pointerId);
+      applyPointer(event);
+    });
+    this.flightStick.addEventListener('pointermove', (event) => {
+      if (!this.flightStick.hasPointerCapture(event.pointerId)) return;
+      event.preventDefault();
+      applyPointer(event);
+    });
+    this.flightStick.addEventListener('pointerup', (event) => {
+      if (this.flightStick.hasPointerCapture(event.pointerId)) this.flightStick.releasePointerCapture(event.pointerId);
+    });
+    this.flightStick.addEventListener('pointercancel', (event) => {
+      if (this.flightStick.hasPointerCapture(event.pointerId)) this.flightStick.releasePointerCapture(event.pointerId);
+    });
+    this.flightStick.addEventListener('keydown', (event) => {
+      const headings: Partial<Record<string, number>> = {
+        ArrowUp: -Math.PI / 2,
+        ArrowRight: 0,
+        ArrowDown: Math.PI / 2,
+        ArrowLeft: Math.PI,
+      };
+      const heading = headings[event.key];
+      if (heading === undefined) return;
+      event.preventDefault();
+      onSteer(heading);
+    });
+  }
+
+  private setStickHeading(heading: number): void {
+    const offset = Math.max(18, this.flightStick.clientWidth * 0.3);
+    const x = Math.cos(heading) * offset;
+    const y = Math.sin(heading) * offset;
+    this.flightStickKnob.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px))`;
   }
 }

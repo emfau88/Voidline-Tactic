@@ -54,6 +54,7 @@ function createShipState(definition: ShipDefinition, flagshipId: string): ShipSt
     alive: true,
     role,
     course: [],
+    desiredHeading: definition.startFacing,
     autoFire: true,
     cooldowns: {
       ...ZERO_COOLDOWNS,
@@ -201,6 +202,19 @@ export function setCourse(state: CombatState, shipId: string, points: readonly V
   return {
     state: { ...state, ships: { ...state.ships, [shipId]: nextShip } },
     events: [{ type: 'course-changed', shipId, points: course }],
+  };
+}
+
+export function steerShip(state: CombatState, shipId: string, heading: number): CommandResult {
+  const ship = state.ships[shipId];
+  if (!ship?.alive) return { state, events: [], error: 'Ship is unavailable.' };
+  if (ship.role !== 'flagship') return { state, events: [], error: 'Only the flagship accepts direct steering.' };
+  if (!Number.isFinite(heading)) return { state, events: [], error: 'Steering heading is invalid.' };
+  const desiredHeading = normalizeAngle(heading);
+  const nextShip = { ...ship, desiredHeading, course: [] };
+  return {
+    state: { ...state, ships: { ...state.ships, [shipId]: nextShip } },
+    events: [{ type: 'heading-changed', shipId, heading: desiredHeading }],
   };
 }
 
@@ -364,7 +378,7 @@ function moveShip(ship: ShipState, deltaSeconds: number): ShipState {
   let course = [...ship.course];
   while (course[0] && distance(ship.position, course[0]) <= COURSE_REACHED_DISTANCE) course = course.slice(1);
   const waypoint = course[0];
-  const desiredFacing = waypoint ? angleBetween(ship.position, waypoint) : ship.facing;
+  const desiredFacing = waypoint ? angleBetween(ship.position, waypoint) : ship.desiredHeading;
   const turnDelta = angleDifference(desiredFacing, ship.facing);
   const facing = rotateToward(ship.facing, desiredFacing, ship.turnRate * deltaSeconds);
   const desiredSpeed = ship.maxSpeed * (0.58 + 0.42 * (1 - Math.min(Math.PI, turnDelta) / Math.PI));
