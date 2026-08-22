@@ -39,12 +39,12 @@ Stärken:
 
 Aktuelle Produktionsrisiken:
 
-- die neue Joystick-Steuerung ist technisch abgesichert, aber noch nicht durch echte Mobile-Spieler validiert
+- Landscape-Joystick und Drei-Missionen-Flow sind technisch abgesichert, aber noch nicht als vollständige Kampagne extern playgetestet
 - `CombatScene` bündelt noch Eingabe, Kamera und VFX und sollte vor größerem Content modularisiert werden
 - VFX werden noch ad hoc erzeugt statt gepoolt
 - Audio-Layer fehlt vollständig
 - es gibt keine echte Telemetrie oder Balance-Simulation für Echtzeitkämpfe
-- Results, Upgrades und Save-Loop fehlen
+- Upgrade-Auswirkungen sind funktional, aber noch nicht als sichtbare Hardpoint-/Emitter-Varianten produziert
 
 ## 3. Phase A — Tactical Real-Time Vertical Slice ✅
 
@@ -57,18 +57,29 @@ Ergebnis:
 - physische Torpedos und Lance-Telegraph
 - Pause, ¼-Tempo und Live
 - neuer Mobile-HUD und reproduzierbare Screenshots
-- 15 Unit- und 14 E2E-Läufe grün
+- 18 Unit- und 16 E2E-Läufe grün
 
 Commit: `e0bc84a`
 
 ### A1. Mobile Joystick Experiment ✅
 
 - absoluter Richtungs-Joystick mit persistentem Sollkurs
-- Zwei-Daumen-HUD, Kursvektor und nähere 135-%-Kamera
+- Zwei-Daumen-HUD, Kursvektor und 125-%-Kamera
 - frühere Kurszeichnung dormant und reversibel erhalten
-- 15 Unit- und 14 E2E-Läufe grün
+- 18 Unit- und 16 E2E-Läufe grün
 
 Commit: `06f9b51`
+
+### A2. Landscape Campaign Slice ✅
+
+- 844×390 Landscape-Referenz, 2400×1400-Arena und 65–240-%-Zoom mit Zwei-Finger-Pan
+- drei freischaltbare Missionen mit eskalierenden Verbänden
+- Relay-/Shipyard-Capture und begrenzte automatische Drohnenverstärkung
+- strategische Missionsziele als verpflichtende Siegbedingung nach Ausschaltung des Feindverbands
+- Mission Results, Salvage, Upgrade-Wahl, Continue/Replay und LocalStorage-Persistenz
+- erste gestaffelte Broadside-Choreografie
+
+Commits: `fb12d6e`, `60029d1`, `a5bb610`
 
 ## 4. Phase B — Combat Feel und Onboarding 🚧
 
@@ -102,13 +113,15 @@ Abnahme:
 - kein Effekt verdeckt länger als 250 ms eine kritische Telegraphrichtung
 - drei Restarts erzeugen keine wachsende Objektzahl
 
+Status: Broadside besitzt einen ersten vollständigen Hardpoint→Travel→Impact-Pass; Pooling, Audio und klassenspezifische Varianten bleiben offen.
+
 ### B3. Kamera und Motion
 
-- sanftes Follow Framing statt dauerhaft starrem Weltzentrum
+- ✅ sanftes Follow Framing statt dauerhaft starrem Weltzentrum
 - Fokus auf Ziel optional, ohne Flaggschiff aus dem Blick zu verlieren
 - kurze begrenzte Impulsreaktion bei Lance/Explosion
 - Banking, Thruster-Stärke und Bremslicht an Kinematik koppeln
-- Pinch und manuelle Zoomwahl haben immer Vorrang vor Autoframing
+- ✅ Pinch, Zwei-Finger-Pan und manuelle Zoomwahl haben Vorrang; Follow setzt verzögert wieder ein
 
 ### B4. Original-Audio
 
@@ -141,31 +154,32 @@ Abnahme:
 - Szenarien mit Cruiser/Frigate und allen Eskorte-Direktiven
 - Grenzwerte als Regression-Gate dokumentieren
 
-## 6. Phase D — Results, Refit und Persistenz
+## 6. Phase D — Results, Refit und Persistenz 🚧
 
-### D1. Mission Results
+### D1. Mission Results 🚧
 
-- Ergebnis, Dauer, Rest-Hull, verhinderter Schaden und zerstörte Ziele
-- Credits/Salvage klar und kurz
-- Retry und Continue ohne Sackgasse
+- ✅ Ergebnis, Dauer und einmaliges Salvage
+- ✅ Retry und Continue ohne Sackgasse
+- ⏳ Rest-Hull, verhinderter Schaden und zerstörte Ziele
 
-### D2. Shipyard
+### D2. Shipyard 🚧
 
-- drei echte Trade-off-Upgrades
+- ✅ vier funktionale Flaggschiff-/Eskorte-Upgrades
 - sichtbare Änderung an Hardpoint/Silhouette
 - Vorher-/Nachher-Preview mit Kosten und taktischem Satz
 - genau ein Upgrade pro erstem Loop, damit die Entscheidung verständlich bleibt
 
-### D3. Save
+### D3. Save 🚧
 
-- versioniertes JSON-Schema
+- ✅ versioniertes JSON-Schema
+- ✅ LocalStorage-Persistenz für Missionen, Salvage und Upgrades
 - LocalStorage-Migration
 - expliziter Reset
 - Tests für beschädigte, alte und leere Saves
 
 ## 7. Phase E — Vertical-Slice-Release
 
-- 390×844, kleine Android-Breite, große Phones, Tablet und Desktop prüfen
+- 844×390, kleine Landscape-Höhe, große Phones, Tablet und Desktop prüfen
 - 200-%-Textzoom, Keyboard, Reduced Motion und Kontrast prüfen
 - Visual Regression für Menü, Live Combat, Pause/Telegraph und Resultat
 - Performance-Budget, Memory-Soak und drei vollständige Replay-Loops
@@ -199,8 +213,8 @@ Eine Änderung ist fertig, wenn:
 
 ## 10. Nächste drei Produktionspakete
 
-1. **Control Decision:** drei kurze Mobile-Runs, Joystick-Verständnis messen und zwischen Joystick, Schubergänzung oder Pause-Route entscheiden.
-2. **Onboarding + Combat Feel:** Kontextschritte, VFX-Pooling, Lance/Broadside/Torpedo-Choreografie, Trefferzustände und Kamera.
-3. **Audio Foundation:** Busse, Mobile-Unlock, erste originale Weapon-/Impact-Sets und Mix.
+1. **Three-Mission Playtest:** vollständigen Landscape-Flow auf echten Phones messen und Steuer-/Balanceprobleme priorisieren.
+2. **Onboarding + Combat Feel:** Kontextschritte, VFX-Pooling, Lance/Torpedo-Choreografie und Damage States.
+3. **Audio Foundation:** Busse, Mobile-Unlock, Broadside/Lance/Torpedo-/Impact-Sets und Mix.
 
-Erst nach diesen drei Paketen beginnt der vollständige Results-/Shipyard-Loop.
+Parallel werden Upgrade-Hardpoints und vollständige Results-Metriken ergänzt; der grundlegende Loop ist bereits spielbar.

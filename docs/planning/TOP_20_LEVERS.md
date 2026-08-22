@@ -2,78 +2,74 @@
 
 Stand: 22. August 2026
 
-Bewertungsbasis: aktueller 390×844-Build, drei reproduzierbare Screenshots, automatisierte Mobile-/Desktop-Flows und die Konzeptbilder unter `docs/reference/mockups/`
+Bewertungsbasis: aktueller 844×390-Landscape-Build, drei reproduzierbare Screenshots, 18 Unit-Tests, 16 automatisierte Mobile-/Desktop-Browser-Läufe und die Konzeptbilder unter `docs/reference/mockups/`. Ein vollständiger externer Drei-Missionen-Playtest auf realen Phones steht noch aus.
 
 ## Ehrliche Standortbestimmung
 
 | Bereich | Nähe zum Zielniveau | Einordnung |
 |---|---:|---|
-| Mobile Layout und Bedienbarkeit | 83 % | volle Breite, Safe Areas, Zwei-Daumen-HUD, Pause/Slow/Live und Pinch funktionieren; Joystick noch nicht extern validiert |
-| Informationshierarchie und HUD | 68 % | deutlich strukturierter und eigenständig; Materialtiefe, Micro-Motion und Onboarding fehlen |
-| Schiffssilhouetten und Hardpoints | 72 % | vier originale, lesbare Schiffe; Damage States und modulare Varianten fehlen |
-| Battlefield und Atmosphäre | 62 % | hochwertige Basis und gute Kontraste; räumliche Tiefe und taktische Vielfalt fehlen |
-| Combat-Regeln und Flow | 72 % | Echtzeit-Pivot und persistenter Sollkurs lösen Statik; Steuergefühl, Tempo und Verständlichkeit sind noch nicht extern validiert |
-| VFX und Treffergefühl | 38 % | klare Prototyp-Effekte vorhanden, aber noch keine Produktionschoreografie |
-| Audio | 0 % | größter vollständig fehlender Qualitätsmultiplikator |
-| Meta-Loop und Progression | 22 % | Auswahl/Preview vorhanden, Results, echte Upgrades, Save und Replay fehlen |
-| Gesamtprodukt | **ca. 58 %** | optisch schon klar über Greybox, aber Steuerung, Audio, Combat Feel und Produktloop sind noch nicht release-reif |
+| Mobile Layout und Bedienbarkeit | 90 % | Landscape nutzt die Breite, Zwei-Daumen-HUD, Joystick, Pause, Pinch, Pan und Fullscreen-Fallback funktionieren; reale Geräte- und Safe-Area-Abnahme fehlt. |
+| Informationshierarchie und HUD | 76 % | klarer als die frühere App-Shell und im Gefecht verständlich; Materialtiefe, Micro-Motion und kontextuelles Onboarding fehlen. |
+| Schiffssilhouetten und Hardpoints | 72 % | vier originale, lesbare Schiffe und definierte Feuerpunkte; Damage States und sichtbar montierte Upgrade-/Waffenvarianten fehlen. |
+| Battlefield und Atmosphäre | 71 % | große 2400×1400-Arena, unverzerrte Nebula-Komposition, Parallax und bessere Gegnerlesbarkeit; Terrainvielfalt und räumliche Tiefe sind noch dünn. |
+| Combat-Regeln und Flow | 81 % | Joystick-Echtzeit, längere Reichweiten, drei eskalierende Missionen, siegrelevante Capture-Ziele und Werft-Drohnen bilden einen echten Slice; Balance ist noch nicht extern validiert. |
+| VFX und Treffergefühl | 54 % | Broadside hat einen vollständigen ersten Produktionspass; Lance, Torpedo, Damage States, Explosionen und Pooling liegen sichtbar darunter. |
+| Audio | 0 % | größter vollständig fehlender Qualitätsmultiplikator. |
+| Meta-Loop und Progression | 64 % | Missionsfreischaltung, Salvage, vier Upgrades, Continue/Replay und persistenter Save funktionieren; sichtbarer Refit, Results-Metriken und Migration fehlen. |
+| Gesamtprodukt | **ca. 69 %** | der funktionale Drei-Missionen-Slice steht; zum Mockup-Eindruck fehlen vor allem Audio, Onboarding, sichtbare Ausrüstung, Trefferzustände und finaler UI-/VFX-Polish. |
 
-Die 58 % sind keine Zeitschätzung. Sie beschreiben die wahrnehmbare Produktreife gegenüber dem Zielbild. Audio, Reaktion, Onboarding und ein geschlossener Loop wiegen stärker als zusätzliche statische Assets.
+Die 69 % sind keine Zeitschätzung. Sie bewerten die wahrnehmbare Produktreife. Der Abstand ist nicht mehr primär „mehr Systeme“, sondern Qualität, Rückmeldung und Beweis durch echte Erstspieler.
 
 ## Die nächsten 20 Hebel in Prioritätsreihenfolge
 
 | # | Hebel | Warum jetzt | Messbare Abnahme |
 |---:|---|---|---|
-| 1 | Joystick-Test und Control Decision | Der neue Stick ist bewusst ein Experiment; weitere Systeme sollten nicht auf ungeprüfter Eingabe aufbauen. | Drei kurze Mobile-Runs klären Richtungswahl, Kurs-Halten, Kamera und Wunsch nach Schub; Entscheidung für Joystick, Joystick + Schub oder Pause-Route dokumentiert. |
-| 2 | 60-Sekunden-Kontext-Onboarding plus Session-Telemetrie | Verständlichkeit darf nicht von der Hilfeseite abhängen und braucht reale Daten. | 4/5 Erstspieler setzen Sollkurs, Ziel und Pause ohne Erklärung; Erstaktion ≤20 s; Fehl-Taps und Kurskorrekturen protokolliert. |
-| 3 | Lance-Telegraph als audiovisuelle Referenzqualität | Er ist die zentrale Reaktionsentscheidung und definiert die Qualität aller späteren Telegraphs. | Warm-up, Richtungsanzeige, Riser, Release und Impact sind ohne HUD verständlich; Reaktionsfenster messbar. |
-| 4 | Broadside-Salvenchoreografie | Auto-Feuer muss Gewicht geben, ohne Aufmerksamkeit zu stehlen. | Hardpoints feuern gestaffelt, Recoil/Travel/Impact sind klassenspezifisch und gepoolt. |
-| 5 | Torpedo-Readability und Zielwarnung | Physische Torpedos sind ein Kernversprechen und brauchen eine klare Reise statt nur einen Marker. | Trail, Turn, Warnung, ETA und Explosion sind bei 100–180 % Zoom durchgängig verfolgbar. |
-| 6 | Original-Audio-Foundation | Audio ist der größte noch fehlende Qualitätsmultiplikator. | Vier Busse, Mobile-Unlock, Suspend/Resume, Mute/Volume und erste originale UI-/Weapon-/Impact-Sets. |
-| 7 | Trefferreaktionen und Damage States | Treffer verändern aktuell Zahlen stärker als das sichtbare Schiff. | Shield deformation, Hull flash, Debris und intakt/beschädigt/kritisch pro Schiff lesbar. |
-| 8 | Kamera-Follow und Action Framing | Die starre Gesamtansicht begrenzt Dynamik, zu viel Autofokus würde Touch-Kontrolle stören. | Sanftes Flaggschiff-/Ziel-Framing, kurzer begrenzter Impact-Impuls, Pinch hat immer Vorrang. |
-| 9 | Joystick-Ergonomie und reversible Route | Dead Zone, Reichweite und Halteverhalten müssen auf kleinen Phones sitzen; die Route bleibt bis zur Entscheidung verfügbar. | Keine Fehlsteuerung neben dem Stick, Pinch bleibt konfliktfrei; optionaler Schub und Pause-Route werden gegen dieselben Testkriterien bewertet. |
-| 10 | Escort-Direktiven taktisch differenzieren | Vier Labels reichen nicht; jede Direktive muss eine echte Positionsentscheidung erzeugen. | Folgen, beide Flanken und Schutz haben messbar andere Abstände, Ziele, Risiko und VFX-Feedback. |
-| 11 | Gegnerrollen und Telegraph-Grammatik | Gegner unterscheiden sich optisch, aber noch nicht deutlich genug im Verhalten. | Cruiser und Destroyer werden nach 30 s korrekt beschrieben; Symbole/Formen ergänzen Farbe. |
-| 12 | Encounter-Geometrie und zweites Terrain | Ein Kreis mit Schadensreduktion trägt keine dauerhafte Positionierung. | Zweites Element erzwingt mindestens zwei alternative Routen und verändert Waffen-/Formationstiming. |
-| 13 | HUD-Materialtiefe und Micro-Motion | Das Layout ist gut, wirkt aber noch wie eine sehr saubere App statt ein fertiges Flotteninstrument. | aktive/armed/cooldown/danger States besitzen konsistente Motion, Licht, Textur und Reduced-Motion-Varianten. |
-| 14 | CombatScene modularisieren und VFX poolen | Weitere Inhalte würden die zentrale Scene zu riskant und mobile Effekte zu teuer machen. | Input, Camera, Presentation und VFX getrennt; Objektzahl bleibt über drei Kämpfe stabil. |
-| 15 | Headless Balance-Simulation | Echtzeitwerte dürfen nicht nur per Gefühl angepasst werden. | Cruiser/Frigate-Szenarien prüfen First Hit, TTK, Energie, Fähigkeitshäufigkeit und Siegquote als Regression. |
-| 16 | Mission Results mit verständlicher Leistung | Ein Sieg ohne Auswertung erzeugt keinen Abschluss. | Ergebnis zeigt Dauer, Rest-Hull, verhinderten Schaden und Salvage; Retry/Continue sind eindeutig. |
-| 17 | Drei sichtbare Trade-off-Upgrades | Der Hauptmenü-Teaser muss spielbar eingelöst werden. | drei ausrüstbare Upgrades ändern Verhalten und mindestens einen sichtbaren Hardpoint/Emitter. |
-| 18 | Versionierter Save und Replay-Loop | Ohne Persistenz bleibt der Shipyard nur Demo. | Menu → Combat → Results → Refit → Replay funktioniert nach Reload und migriert eine alte Save-Version. |
-| 19 | Zweiter Encounter und Elite-Gegner | Produktqualität braucht Varianz, nicht nur einen polierten Screenshot. | neuer Encounter stellt eine andere taktische Frage und nutzt keine reine HP-Skalierung. |
-| 20 | Release-QA und Accessibility-Matrix | Qualität muss auf realen Geräten und für verschiedene Nutzer stabil bleiben. | Visual Regression, 200-%-Textzoom, Keyboard, Reduced Motion, kleine Phones, Tablet, 60-FPS-/Memory-Soak grün. |
+| 1 | Vollständiger Drei-Missionen-Phone-Playtest | Der Kernloop existiert jetzt und muss auf echter Hardware seine Verständlichkeit, Kampfzeit und Ergonomie beweisen. | Mindestens fünf komplette Runs auf kleinem/großem Phone; Zeiten, Fehl-Taps, Abbrüche, Zoomnutzung und Todesursachen dokumentiert. |
+| 2 | 60-Sekunden-Kontext-Onboarding plus Telemetrie | Menü, Joystick, Fokus, Pause und Capture dürfen keine Vorab-Erklärung brauchen. | 4/5 Erstspieler setzen Kurs, Ziel und Pause korrekt; Erstaktion ≤20 s, erster lesbarer Treffer ≤35 s. |
+| 3 | Original-Audio-Foundation | Audio ist der größte verbleibende Qualitätssprung und zugleich wichtiges Gameplay-Feedback. | Vier Busse, Mobile-Unlock, Suspend/Resume, Mute/Volume und originale UI-, Broadside-, Impact- und Warn-Sets. |
+| 4 | Broadside zur Referenzqualität bringen | Sie ist das häufigste Feuerereignis und besitzt bereits eine belastbare visuelle Basis. | 3–5 Schuss-/Impact-Varianten, Klassencharakter, Audio, VFX-Pooling und stabile Objektzahl über drei Kämpfe. |
+| 5 | Lance-Telegraph als audiovisuelle Referenz | Die Lanze definiert Reaktion, Pause und starke Waffenwirkung. | Warm-up, Richtung, Riser, Release, Beam und Schild-/Hull-Impact sind ohne HUD verständlich. |
+| 6 | Torpedo-Travel und Zielwarnung | Physische Torpedos sind ein Kernversprechen und müssen über die größere Arena spannend lesbar bleiben. | Launch, Trail, Kurskorrektur, ETA/Warnung, Explosion und Debris sind bei 65–240 % Zoom verfolgbar. |
+| 7 | Trefferreaktionen und Damage States | Treffer verändern aktuell Werte stärker als die sichtbare Schiffslage. | Shield deformation, Hull flash, Scorch/Debris und intakt/beschädigt/kritisch pro Klasse klar erkennbar. |
+| 8 | Kamera- und Action-Framing verfeinern | Follow, Pinch und Pan stehen; starke Momente brauchen noch kontrollierte Inszenierung. | Ziel bleibt optional im Frame, Impact-Impulse sind kurz, manuelle Geste gewinnt immer und Reduced Motion wird respektiert. |
+| 9 | Sichtbare Waffen- und Upgrade-Hardpoints | Der funktionale Upgrade-Loop muss das vom Nutzer gewünschte sichtbare Aufrüsten einlösen. | Mindestens drei Trade-offs ändern Werte, Silhouette/Emitter und Ingame-Schussbild; Menü zeigt Vorher/Nachher. |
+| 10 | Mission Results mit Leistungswerten | Der Ergebnisdialog schließt den Loop, erklärt aber die eigene Leistung noch kaum. | Dauer, Rest-Hull, verhinderter Schaden, zerstörte Ziele und Salvage; Retry/Continue bleiben eindeutig. |
+| 11 | Drei Missionen balancieren und profilieren | Mehr Feinde allein erzeugen noch keine gute Steigerung. | Missionen dauern 2–5 Minuten, stellen jeweils eine andere taktische Frage und besitzen dokumentierte TTK-/Siegquoten-Ziele. |
+| 12 | Escort-Direktiven taktisch differenzieren | Vier Labels müssen spürbar andere Flottenentscheidungen erzeugen. | Folgen, Flanke links/rechts und Schutz unterscheiden Abstand, Zielwahl, Risiko und sichtbares Feedback messbar. |
+| 13 | Gegnerrollen und Telegraph-Grammatik | Raider, Destroyer, Cruiser und Elite brauchen Verhalten statt nur verschiedene Werte. | Rollen werden nach 30 s korrekt beschrieben; Form/Symbol ergänzt Farbe; Elite nutzt eine erkennbare neue Sequenz. |
+| 14 | Zweites Terrain-System | Capture-Ringe und Nebel helfen, aber Begegnungen brauchen mehr räumliche Variation. | Trümmer-Line-of-Sight oder Energiezone erzeugt mindestens zwei plausible Routen und verändert Waffentiming. |
+| 15 | HUD-Materialtiefe und Micro-Motion | Die Struktur funktioniert, erreicht aber noch nicht die physische Tiefe der Konzeptbilder. | aktive/armed/cooldown/danger States besitzen konsistente Bewegung, Licht, Textur und Reduced-Motion-Varianten. |
+| 16 | CombatScene modularisieren und VFX poolen | Weitere Waffen/VFX würden die zentrale Scene und Mobile-Performance riskant machen. | Input, Camera, Presentation und VFX getrennt; Objektzahl/Memory bleiben über drei Missionen und Restarts stabil. |
+| 17 | Headless Balance-Simulation | Echtzeitwerte dürfen nach dem Playtest nicht nur per Gefühl korrigiert werden. | Batch-Szenarien prüfen First Hit, TTK, Energie, Fähigkeitshäufigkeit, Capture-Zeit und Siegquote als Regression. |
+| 18 | Save-Migration und expliziter Kampagnenreset | Versionierte Persistenz steht, braucht aber belastbare Fehlerpfade. | leere, beschädigte und alte Saves migrieren/fallen sicher zurück; Reset ist verständlich und getestet. |
+| 19 | Release-QA und Accessibility-Matrix | Querformat und dichter HUD müssen auf realen Browsern stabil bleiben. | 200-%-Textzoom, Keyboard, Reduced Motion, Safe Areas, kleine Phones, Tablet, 60-FPS- und Memory-Soak grün. |
+| 20 | Nächste Waffen-/Schiffvariante nur als Qualitäts-Benchmark | Mehr Inhalt ist erwünscht, soll aber die bestehende Produktionsqualität übernehmen. | Eine neue sichtbare Waffenvariante oder Klasse besitzt Daten, Hardpoints, VFX, Audio, Upgrade-Preview, Balance-Test und klare taktische Rolle. |
 
 ## Empfohlene Umsetzungspakete
 
-### Paket 1 — Verständlichkeit und Messung
+### Paket 1 — Beweisen und verstehen
 
-Hebel 1, 2, 9, 15. Erst damit wissen wir, ob Joystick und Echtzeitkern tatsächlich die richtige Dynamik erzeugen.
+Hebel 1, 2, 10, 11 und 17. Der komplette Slice wird gemessen, bevor Balance oder Umfang blind wachsen.
 
 ### Paket 2 — Wahrnehmbares Combat Feel
 
-Hebel 3–8 und 14. Das bringt den größten Sprung von „funktioniert“ zu „fühlt sich hochwertig an“.
+Hebel 3–8 und 16. Das ist der größte Sprung von „funktioniert“ zu „fühlt sich hochwertig an“.
 
-### Paket 3 — Taktische Tiefe
+### Paket 3 — Sichtbarer Refit und taktische Tiefe
 
-Hebel 10–12. Positionierung und Gegnerverhalten erhalten mehr langfristige Relevanz.
+Hebel 9, 12–14 und 20. Upgrades, Gegner und Raum erzeugen nachvollziehbar andere Gefechte.
 
-### Paket 4 — Geschlossener Produktloop
+### Paket 4 — Release-Härtung
 
-Hebel 16–19. Erst hier werden Shipyard, sichtbare Waffenvarianten und Replay wirklich wertvoll.
-
-### Paket 5 — Release-Härtung
-
-Hebel 13 und 20 laufen parallel mit jedem Paket und werden am Ende vollständig abgenommen.
+Hebel 15, 18 und 19 laufen parallel zu jedem Paket und werden am Ende vollständig abgenommen.
 
 ## Was wir bewusst nicht als nächsten Hebel verfolgen
 
-- mehr gleichzeitig direkt steuerbare Schiffe
+- dauerhaft mehrere Schiffe direkt per zusätzlichem Joystick steuern
 - Höhenebenen oder 3D
-- ballistische Simulation
+- ballistische Vollsimulation
 - große Crew-/Officer-Systeme
-- weitere zehn Waffen vor dem ersten hochwertigen Audio-/VFX-Set
-- bloße HP-/Damage-Upgrades ohne sichtbare taktische Änderung
+- zehn neue Waffen vor einem hochwertigen Audio-/VFX-Referenzset
+- reine HP-/Damage-Upgrades ohne sichtbare taktische Änderung
 
 Diese Features würden Umfang erhöhen, aber die aktuelle Qualitätslücke nicht zielgerichtet schließen.

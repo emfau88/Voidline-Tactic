@@ -9,7 +9,7 @@ await mkdir(outputDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
-  viewport: { width: 390, height: 844 },
+  viewport: { width: 844, height: 390 },
   deviceScaleFactor: 2,
   isMobile: true,
   hasTouch: true,
@@ -27,7 +27,7 @@ try {
     fullPage: true,
   });
 
-  await page.getByRole('button', { name: /ERSTEN KONTAKT STARTEN/ }).click();
+  await page.locator('#start-button').click();
   await page.waitForFunction(
     () => document.querySelector('#game-shell')?.getAttribute('data-game-ready') === 'true',
   );

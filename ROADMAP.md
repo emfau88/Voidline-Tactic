@@ -22,13 +22,14 @@ Stand: 22. August 2026
 - Phaser 4, TypeScript, Vite und Vitest reproduzierbar gepinnt
 - Vollbreiten-Shell mit Safe Areas statt einer fest eingeschlossenen Gerätesäule
 - Browser-Fullscreen, installierbares Web-App-Manifest und Plattform-Fallback
-- 80–180-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
+- 65–240-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
+- Landscape-first Combat mit Portrait-Drehaufforderung und gleichzeitiger Zwei-Finger-Kartenverschiebung
 - bis zu 2× HiDPI-Canvas-Backbuffer und hochauflösende Environment-Runtime
 - automatisches GitHub-Pages-Deployment mit Typecheck, Unit-, Build- und Browser-Gate
 
 ## M2 – Deterministischer Echtzeit-Combat-Core ✅
 
-- feste 1000×1500 World Units und deterministischer 30-Hz-Fixed-Step
+- feste 2400×1400 World Units und deterministischer 30-Hz-Fixed-Step
 - kontinuierliche Position, Facing, Geschwindigkeit, Beschleunigung und begrenzte Drehrate
 - datengetriebene Definitionen für vier Schiffe und drei Waffenfamilien
 - Energie, Cooldowns, Hull, Shield, Armor, Shield-Boost und Nebelreduktion
@@ -36,9 +37,9 @@ Stand: 22. August 2026
 - Auto-Breitseiten, aufladbare Lance und physische Homing-Torpedos
 - halbautonome Formation sowie gegnerische Approach-/Orbit-KI auf derselben Regelbasis
 - garantierte deterministische Treffer bei gültiger Lösung; keine Miss-/Intercept-Würfe
-- 15 Unit-Tests für Kinematik, Joystick-Sollkurs, Waffen, Telegraph, Projectile, Cover und Hardpoints
+- 18 Unit-Tests für Kinematik, Joystick-Sollkurs, Missionssieg, Capture, Verstärkung, Waffen, Cover und Hardpoints
 
-## M3 – Spielbarer 2-gegen-2-Echtzeit-Slice ✅
+## M3 – Spielbarer Echtzeit-Kampfkern ✅
 
 - Cruiser-/Frigate-Auswahl mit spielwirksamer Flaggschiff-Doktrin
 - direkter persistenter Sollkurs per Touch-/Maus-Joystick; frühere Kurszeichnung bleibt dormant erhalten
@@ -49,7 +50,7 @@ Stand: 22. August 2026
 - sichtbare Lance-Ladephase, physische Torpedos, Shield-Ripple und Hardpoint-Feuer
 - taktischer Nebel mit 25 % Schadensreduktion
 - Hilfe, Toasts, Ergebnisdialog, Restart und Reduced-Motion-Fallback
-- sieben E2E-Flows auf Mobile und Desktop: Shell, Pause/Joystick, Lance, Torpedo/Eskorte, Hilfe und Pinch
+- acht E2E-Flows auf Mobile und Desktop: Shell, Kampagne, Pause/Joystick, Lance, Torpedo/Eskorte, Hilfe und Pinch
 
 ## M3.5 – Design-Pivot von Command Beats zu Tactical Real-Time ✅
 
@@ -60,15 +61,16 @@ Stand: 22. August 2026
 - Anfangsdistanzen für einen schnellen ersten Kontakt reduziert
 - Roadmap, Vision, Produktionsplan, README, Tests und Screenshots auf das neue Modell umgestellt
 
-## M3.6 – Experimentelle Joystick-Steuerung ✅
+## M3.6 – Joystick-Steuerung und Control Decision ✅
 
 - absoluter Richtungs-Joystick setzt einen persistenten Sollkurs statt einer kurzen Bewegungsaktion
 - Loslassen hält den Sollkurs; Masse, Beschleunigung und Drehrate bleiben spielwirksam
 - Zwei-Daumen-HUD mit Steuerung links und Kampfsystemen rechts
 - aktuelle und gewünschte Ausrichtung sowie ein heller Richtungsvektor im Spielfeld
-- nähere 135-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
+- Nutzerfeedback bestätigt den Joystick klar als primäre Echtzeitsteuerung
+- 125-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
 - Kurszeichnung technisch erhalten, im HUD klar als inaktiv markiert und gegen Eingaben gesperrt
-- 15 Unit-Tests und 14 Mobile-/Desktop-E2E-Läufe grün
+- 18 Unit-Tests und 16 Mobile-/Desktop-E2E-Läufe grün
 - neue reproduzierbare README-Screenshots für Joystick, Zielwahl und Telegraph
 
 ## M4 – Combat Feel und visuelle Produktionsreife 🚧
@@ -76,9 +78,11 @@ Stand: 22. August 2026
 - ✅ vier originale, gut unterscheidbare Schiffssilhouetten mit vollständigen Hardpoints
 - ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
 - ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
-- ✅ klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
+- ✅ Landscape-HUD, klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
+- ✅ größere Arena, längere Waffenreichweiten, Zwei-Finger-Pan und sanftes Follow-Framing
+- ✅ erste gestaffelte Broadside-Produktionschoreografie von Hardpoint bis Impact
 - ✅ drei reproduzierbare Mobile-Screenshots für README und Standabnahme
-- 🚧 gestaffelte Waffen-Choreografien, VFX-Pooling und klassenspezifische Trefferreaktionen
+- 🚧 Lance-/Torpedo-Choreografie, VFX-Pooling und klassenspezifische Trefferreaktionen
 - 🚧 Kamera-Fokus, kurzer Impact-Zoom und lesbares Action Framing
 - ⏳ originale Audio-Busse, Varianten, Ducking und Mobile-Audio-Unlock
 - ⏳ beschädigte Schiffszustände, Debris, Engine-Ausfall und bessere Zerstörungssequenz
@@ -91,16 +95,17 @@ Stand: 22. August 2026
 - erste bewusste Aktion in höchstens 20 Sekunden, erster Waffeneffekt in höchstens 35 Sekunden
 - ein Kampf dauert im Median 3–5 Minuten und erzeugt mindestens drei relevante Kursentscheidungen
 - stabile 60 FPS im Pixel-7-Profil, keine wachsenden VFX-Objektzahlen nach drei Restarts
-- alle zentralen Zustände bleiben bei 390×844 und 200 % Browser-Textzoom bedienbar
+- alle zentralen Zustände bleiben bei 844×390 Landscape und 200 % Browser-Textzoom bedienbar
 
-## M5 – Reward, Shipyard und Persistenz ⏳
+## M5 – Drei-Missionen-Loop, Reward und Persistenz 🚧
 
-- Mission Results mit Credits, Salvage und klarer Leistungszusammenfassung
-- drei kauf- und ausrüstbare Trade-off-Upgrades mit sichtbaren Hardpoint-Änderungen
-- Waffenvarianten statt rein numerischer Upgrades
-- versioniertes LocalStorage-Save mit Migration und Reset
-- zweiter Encounter mit anderer taktischer Frage und ein Elite-Gegner
-- vollständiger Menu → Combat → Results → Refit → Replay-Loop
+- ✅ drei freischaltbare Missionen mit eskalierender Feindzahl und Elite-Cruiser
+- ✅ Relaispunkt in Mission 2 und eroberbare Drohnenwerft in Mission 3
+- ✅ strategische Ziele sind siegrelevant; eine verwaiste Feindwerft produziert keine neuen Drohnen
+- ✅ Mission Result, einmaliges Salvage, Upgrade-Wahl, Continue und Replay
+- ✅ vier persistente Flaggschiff-/Eskorte-Upgrades in versioniertem LocalStorage
+- 🚧 vollständige Leistungsmetriken und expliziter Save-Reset
+- ⏳ sichtbare Hardpoint-/Emitter-Änderungen sowie echte Waffenvarianten statt überwiegend numerischer Upgrades
 
 ## M6 – Vertical-Slice-Release ⏳
 
@@ -119,6 +124,6 @@ Stand: 22. August 2026
 
 ## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Wir stehen nach **M3.6** am Beginn von **M4**. Der Joystick-Build ist funktional, deterministisch und browsergetestet; die endgültige Eingabeentscheidung ist bewusst noch offen. Die Kurszeichnung bleibt erhalten, bis ein echter Mobile-Test geklärt hat, ob der Joystick primär bleibt, um eine Geschwindigkeitsregelung ergänzt wird oder die Route als Pause-Werkzeug zurückkehrt.
+Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die Kurszeichnung bleibt als mögliche spätere Pausenfunktion dormant.
 
-Der nächste überprüfbare Meilenstein ist **M4.0 „Control Decision“**: drei kurze Mobile-Runs mit dem Joystick durchführen und erfassen, ob Richtungswahl, dauerhaftes Weiterfliegen, Kamera und Gegnerlesbarkeit ohne Erklärung verstanden werden. Danach wird zwischen Joystick als Primärsteuerung, Joystick plus Schubregelung oder Route nur in der Pause entschieden. Anschließend folgt **M4.1 „Combat Feel + 60-Sekunden-Onboarding“**. Die genaue Reihenfolge und Abnahmekriterien stehen in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).
+Der nächste überprüfbare Meilenstein ist **M4.3 „First Three Missions Playtest“**: den gesamten neuen Flow auf echten Phones durchspielen, Zeiten und Fehlbedienungen messen und danach Onboarding, Broadside-Audio, Lance-/Torpedo-VFX sowie sichtbare Upgrade-Hardpoints priorisiert polieren. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

@@ -4,6 +4,36 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Landscape Campaign Slice — 2026-08-22
+
+Meilenstein-Commits:
+
+- `fb12d6e` – Landscape-Combat, größere Arena und erweiterte Touch-Kamera
+- `60029d1` – gestaffelte filmische Broadside-Choreografie
+- `a5bb610` – spielbarer Drei-Missionen-/Upgrade-Loop
+- `06079b2` – strategische Capture-Ziele als verpflichtende Siegbedingung
+
+#### Added
+
+- 2400×1400-Schlachtfeld mit zwei unverzerrt komponierten Nebula-Hälften
+- Landscape-first Mobile-Combat samt Portrait-Drehaufforderung
+- Zwei-Finger-Zoom von 65–240 % mit gleichzeitiger Kartenverschiebung und verzögerter Rückkehr zum Formation-Follow
+- einzelne Broadside-Bolts aus sichtbaren Hardpoints, Mündungsblitze, Rückstoß, Mikrotreffer, Schildringe und Hull-Splitter
+- drei freischaltbare Missionen mit eskalierenden Verbänden und Elite-Cruiser
+- einnehmbarer Relaispunkt und Werftpunkt mit begrenzter automatischer Drohnenproduktion für beide Teams
+- Mission Results, einmaliges Salvage, Continue/Replay und vier persistente Upgrade-Entscheidungen
+- versionierter Kampagnenstand in LocalStorage
+- drei neue Unit-Tests für Mission/Upgrade-Skalierung, Capture/Reinforcement und siegrelevante strategische Ziele
+- neuer Mobile-/Desktop-E2E-Flow für freigeschaltete Missionswahl und persistentes Loadout
+
+#### Changed
+
+- Mobile-Referenzviewport von 390×844 Portrait auf 844×390 Landscape umgestellt
+- Waffenreichweiten, Torpedogeschwindigkeit, Feindabstände und Orbit-Radien auf die größere Arena abgestimmt
+- Relay-/Shipyard-Missionen enden erst nach gegnerischer Ausschaltung und Sicherung des Missionsziels; verwaiste Feindwerften produzieren keine Verstärkung
+- README-Galerie vollständig als Landscape-Abnahme neu aufgenommen
+- Qualitätsgate auf 18 Unit-Tests und 16 Mobile-/Desktop-E2E-Läufe erweitert
+
 ### Mobile Joystick Experiment — 2026-08-22
 
 Meilenstein-Commit:

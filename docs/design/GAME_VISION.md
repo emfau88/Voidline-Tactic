@@ -2,7 +2,7 @@
 
 Status: verbindliche Produktvision ab 22. August 2026
 
-Primärplattform: Mobile Browser, Portrait
+Primärplattform: Mobile Browser, Landscape-Combat
 
 Sekundärplattform: Desktop Browser
 
@@ -90,7 +90,7 @@ sichtbares Trade-off-Upgrade wählen
 nächster Encounter oder Replay
 ```
 
-Der aktuelle Vertical Slice endet noch nach dem Kampf. Der vollständige Slice muss den Results-/Refit-/Replay-Teil ergänzen.
+Der aktuelle Slice schließt diesen Loop für drei Missionen erstmals funktional: Resultat, einmaliges Salvage, eine Upgrade-Wahl und die nächste freigeschaltete Mission. Sichtbare Hardpoint-Varianten und eine vollständige Leistungsanalyse sind noch Produktionsarbeit.
 
 ## 5. Combat-Verantwortung
 
@@ -124,7 +124,7 @@ Die gleichen Regeln gelten für Maus. Mausrad und Zoom-Buttons ergänzen Pinch. 
 
 ### Offene Control-Entscheidung
 
-Der Joystick ist der aktive Primärprototyp. Die frühere geglättete Kurszeichnung bleibt technisch erhalten, ist im aktuellen Build jedoch inaktiv. Sie wird erst entfernt, wenn Mobile-Tests bestätigt haben, dass Richtungswahl, persistenter Kurs und Kameraführung ohne Erklärung funktionieren. Mögliche Ergebnisse sind: Joystick allein, Joystick plus Schubregelung oder Route ausschließlich während der taktischen Pause.
+Der Joystick ist nach direktem Nutzerfeedback die aktive Primärsteuerung. Die frühere geglättete Kurszeichnung bleibt technisch erhalten, ist im aktuellen Build jedoch inaktiv. Sie kann später ausschließlich als Pausenwerkzeug zurückkehren, falls Mission-Playtests einen Bedarf für längere vorausgeplante Manöver zeigen.
 
 ## 7. Combat-Systeme
 
@@ -178,6 +178,12 @@ Der erste Encounter ist ein 2-gegen-2-Lehrkampf. Er soll:
 - ohne externe Erklärung lösbar sein
 
 Der zweite Encounter darf nicht nur mehr Lebenspunkte besitzen. Er braucht eine neue taktische Frage, beispielsweise Terrain-Zwang, schnelle Torpedoboote oder eine Eskorte, die geschützt werden muss.
+
+Der aktuelle Drei-Missionen-Slice setzt diese Steigerung konkret um:
+
+1. **Erster Kontakt:** lesbarer 2-gegen-2-Lehrkampf und erste Upgrade-Wahl.
+2. **Relaisknoten:** zusätzlicher Raider und zentraler Capture-Ring als Positionsziel.
+3. **Gebrochene Werft:** Elite-Cruiser, zwei Raider und eine eroberbare Werft, die für den Besitzer begrenzt Drohnen produziert.
 
 ## 9. Informationshierarchie
 
@@ -237,7 +243,8 @@ Reine `+5 % Schaden`-Knoten sind nur als Nebenwert erlaubt. Der Spieler soll im 
 - zwei normale Gegner und ein Elite-/zweiter Encounter
 - Broadside, Lance, Torpedo und Shield Boost
 - ein regelrelevantes Terrain-System
-- Results, drei Trade-off-Upgrades und Replay
+- Results, Salvage, vier Trade-off-Upgrades und Replay
+- drei Missionen mit Relay-/Shipyard-Objective und begrenzten Verstärkungen
 - vollständiger Mobile-Flow mit Audio, VFX und Onboarding
 
 ### Nicht enthalten

@@ -109,6 +109,13 @@ Jeder Angriff folgt derselben lesbaren Dramaturgie:
 
 Screen Shake bleibt kamerarelativ, sehr kurz und in den Einstellungen reduzierbar. Bloom, Blur und Additive Blend werden budgetiert und nie flächig dauerhaft eingesetzt.
 
+### Aktueller Produktionsstand
+
+- Die Broadside besitzt einen ersten vollständigen Ingame-Pass: gestaffelte sichtbare Hardpoints, Muzzle Flash, Bolt-Travel, Mikrotreffer, Schild-/Hull-Impact, Splitter, Rückstoß und begrenzter Kameraimpuls.
+- Lance und Torpedo sind mechanisch eindeutig und sichtbar, erreichen aber bei Charge, Travel, Impact und Aftermath noch nicht dieselbe Produktionsdichte.
+- Damage States, klassenspezifische Impact-Sets, Objekt-Pooling und reduzierte Mobile-Varianten sind noch offen.
+- Audio fehlt noch vollständig und ist deshalb der nächste große Qualitätsmultiplikator nach Onboarding und Waffenlesbarkeit.
+
 ## Audio-Richtung
 
 Der Mix soll Gewicht vermitteln, ohne den Weltraum realistisch still simulieren zu wollen. UI bleibt trocken und präzise; Waffen besitzen klar getrennte Frequenzprofile.

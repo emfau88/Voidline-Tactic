@@ -6,15 +6,15 @@ Mobile-first 2D-Flottentaktik in langsamer Echtzeit mit taktischer Pause: Du ste
 
 ## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
 
-Der aktuelle Stand ist ein bedienbarer 2-gegen-2-Vertical-Slice mit Startschiffwahl, zwei Flaggschiff-Doktrinen, direkter Joystick-Steuerung, Fokusziel, vier Eskorte-Befehlen, Auto-Breitseiten, aufladbarer Rift Lance, physischen Void Torpedoes und aktivem Schild-Boost. **Pause**, **¼-Tempo** und **Live** können jederzeit gewechselt werden. Die frühere Kurszeichnung bleibt im Code erhalten, ist für diesen Steuerungstest aber bewusst inaktiv.
+Der aktuelle Stand ist ein spielbarer Drei-Missionen-Slice mit Startschiffwahl, direkter Joystick-Steuerung, eskalierenden Feindverbänden, einnehmbaren Kontrollpunkten, Werft-Drohnen, Salvage, vier persistenten Upgrades und Replay. Auto-Breitseiten, aufladbare Rift Lance, physische Void Torpedoes und Shield Boost treffen deterministisch. **Pause**, **¼-Tempo** und **Live** können jederzeit gewechselt werden. Die frühere Kurszeichnung bleibt im Code erhalten, ist aber bewusst inaktiv.
 
-Die App nutzt auf Phones die volle verfügbare Breite, startet mit einer nahen 135-%-Kamera, rendert bis zu 2× HiDPI und bietet 80–180 % taktischen Zoom per Zwei-Finger-Geste, Buttons und Mausrad. Browser-Vollbild wird verwendet, wenn die Plattform ihn für Webseiten erlaubt; auf iOS ergänzt das installierbare Web-App-Manifest den „Zum Home-Bildschirm“-Fallback.
+Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
 
 ## Aktueller Mobile-Build
 
-| Startschiff und Refit-Vorschau | Laufendes 2-gegen-2-Gefecht | Pause, Joystick und Lance-Telegraph |
+| Flotten- und Missionsauswahl | Landscape-Flottengefecht | Pause, Ziel und Lance-Telegraph |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Mobile Startschiffwahl mit Refit-Vorschau" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Mobile Echtzeit-Gefechtsübersicht mit Joystick, Sollkurs und gut markierten Gegnern" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Taktische Pause mit Joystick-Sollkurs, Zielkarte und Lance-Telegraph" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl von Startschiff und drei Kampagnenmissionen" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Landscape-Flottengefecht mit Joystick, großer Karte und Zwei-Daumen-HUD" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Taktische Pause mit Zielkarte, Sollkurs und Lance-Telegraph" width="260">](docs/screenshots/mobile-target-preview.png) |
 
 Die Galerie wird reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisiert.
 
@@ -25,24 +25,28 @@ Die Galerie wird reproduzierbar mit `npm run capture:readme` gegen den lokalen S
 3. **Spezialsysteme:** Lanze, Torpedo und Schild-Boost selbst auslösen. Die Lanze braucht eine stabile Feuerlösung; Torpedos existieren sichtbar im Raum und besitzen keinen Miss-Wurf.
 4. **Zeit:** Mit PAUSE vollständig anhalten, in PLANEN auf ¼-Tempo beobachten oder mit LIVE normal weiterlaufen lassen. Alle Befehle bleiben in der Pause verfügbar.
 5. **Formation:** Die Eskorte zwischen Folgen, linker/rechter Flanke und Schutz wechseln lassen. Der cyanfarbene Nebel reduziert eingehenden Schaden um 25 %.
+6. **Kampagne:** Mission 2 führt einen Relaispunkt ein. Mission 3 ergänzt eine Werft, die nach Eroberung höchstens drei schwache Drohnen produziert. Siege bringen einmalig Salvage und eine Upgrade-Wahl.
 
 Die Kernidee ist bewusste Verantwortungsteilung: Der Spieler trifft wenige hochwertige Entscheidungen, während Navigation, Standardfeuer und Eskorte kontinuierlich weiterarbeiten. So bleibt der Kampf auf Touch-Geräten verständlich, ohne statisch oder zäh zu werden.
 
 ## Projektstatus
 
-- ✅ mobile-first App-Shell, Safe Areas, Fullscreen-Fallback, HiDPI und 80–180-%-Pinch-Zoom
-- ✅ Startmenü mit Cruiser-/Frigate-Wahl, sichtbaren Loadouts und Refit-Vorschau
+- ✅ Landscape-first Combat-Shell, Safe Areas, Fullscreen-Fallback, HiDPI und 65–240-%-Pinch-Zoom samt Zwei-Finger-Pan
+- ✅ Startmenü mit Cruiser-/Frigate-Wahl, Loadouts und drei freischaltbaren Missionen
+- ✅ 2400×1400-Schlachtfeld mit längeren Waffenreichweiten und sanftem Formation-Follow
 - ✅ deterministische 30-Hz-Fixed-Step-Simulation ohne versteckte Treffer- oder Abfangwürfe
 - ✅ direkte träge Flaggschiff-Kinematik mit persistentem Joystick-Sollkurs und sichtbarer Kursanzeige
 - 🧪 Kurszeichnung als reversible Alternative erhalten, aber im aktuellen Build bewusst inaktiv
 - ✅ halbautonome Eskorte mit vier Direktiven und gegnerische Echtzeit-KI
-- ✅ Auto-Breitseiten, manuelle Lanze/Torpedo/Schild-Systeme, Cooldowns und Energie
+- ✅ gestaffelte Hardpoint-Breitseiten mit sichtbaren Bolts, Mündungsblitzen, Rückstoß, Schildwellen und Hull-Splittern
+- ✅ manuelle Lanze/Torpedo/Schild-Systeme, Cooldowns und Energie
 - ✅ physische Homing-Torpedos, Lance-Telegraph, Hardpoint-VFX, Nebel-Cover und Sieg/Niederlage
 - ✅ Pause, ¼-Tempo und Live während jeder Kampfaktion
-- ✅ 15 Unit-Tests und 14 Mobile-/Desktop-Browser-Läufe einschließlich Joystick, Multi-Touch, Pause und HiDPI
+- ✅ drei eskalierende Missionen, Relay-/Shipyard-Capture, begrenzte Drohnenproduktion, Salvage und vier persistente Upgrades
+- ✅ 18 Unit-Tests und 16 Mobile-/Desktop-Browser-Läufe einschließlich Missionszielen, Kampagnenpersistenz, Joystick, Multi-Touch und Pause
 - ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
 - 🚧 Combat-Feel-Pass: tiefere VFX, Trefferreaktionen, Kamera-Choreografie, Audio und Onboarding
-- ⏳ Mission Results, Rewards, Shipyard-Upgrades und Persistenz
+- 🚧 Upgrade-Darstellung an sichtbaren Hardpoints, vollständige Results-Metriken und zusätzliche Waffenvarianten
 
 Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md). Die [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) bewerten die Lücke zu den Konzeptbildern und geben messbare nächste Schritte vor.
 
@@ -67,7 +71,7 @@ npm run test:e2e
 | `npm run dev` | lokaler Entwicklungsserver |
 | `npm run typecheck` | TypeScript-Prüfung |
 | `npm test` | deterministische Domänen- und Präsentationstests |
-| `npm run test:e2e` | sieben Flows auf Mobile- und Desktop-Chromium |
+| `npm run test:e2e` | acht Flows auf Mobile- und Desktop-Chromium |
 | `npm run capture:readme` | drei reproduzierbare Mobile-Screenshots |
 | `npm run build` | statischer Production Build in `dist/` |
 | `npm run check` | Typecheck, Unit Tests und Production Build |
