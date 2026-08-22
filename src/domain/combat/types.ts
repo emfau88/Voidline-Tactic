@@ -1,9 +1,12 @@
 export type Team = 'player' | 'enemy';
-export type CombatPhase = Team;
 export type CombatStatus = 'active' | 'player-won' | 'enemy-won';
 export type ShipClass = 'frigate' | 'destroyer' | 'cruiser';
 export type WeaponKind = 'broadside' | 'lance' | 'torpedo';
 export type WeaponArc = 'front' | 'broadside';
+export type ShipRole = 'flagship' | 'escort' | 'hostile';
+export type EscortDirective = 'follow' | 'flank-left' | 'flank-right' | 'protect';
+export type TimeScale = 0 | 0.25 | 1;
+export type ManualAbility = 'lance' | 'torpedo' | 'shield';
 
 export interface Vector2 {
   readonly x: number;
@@ -16,12 +19,13 @@ export interface WeaponDefinition {
   readonly arc: WeaponArc;
   readonly range: number;
   readonly halfAngle: number;
-  readonly apCost: number;
   readonly energyCost: number;
-  readonly accuracy: number;
-  readonly minDamage: number;
-  readonly maxDamage: number;
+  readonly damage: number;
   readonly shieldMultiplier: number;
+  readonly cooldownMs: number;
+  readonly chargeMs?: number;
+  readonly projectileSpeed?: number;
+  readonly projectileTurnRate?: number;
 }
 
 export interface ShipDefinition {
@@ -31,96 +35,95 @@ export interface ShipDefinition {
   readonly class: ShipClass;
   readonly maxHull: number;
   readonly maxShield: number;
-  readonly shieldRegen: number;
   readonly armor: number;
   readonly maxEnergy: number;
-  readonly energyRegen: number;
-  readonly maxAp: number;
-  readonly moveRange: number;
+  readonly energyRegenPerSecond: number;
+  readonly maxSpeed: number;
+  readonly acceleration: number;
+  readonly turnRate: number;
   readonly radius: number;
   readonly weapons: readonly WeaponKind[];
   readonly startPosition: Vector2;
   readonly startFacing: number;
 }
 
+export interface WeaponCooldowns {
+  readonly broadside: number;
+  readonly lance: number;
+  readonly torpedo: number;
+  readonly shield: number;
+}
+
 export interface ShipState extends ShipDefinition {
   readonly hull: number;
   readonly shield: number;
   readonly energy: number;
-  readonly ap: number;
   readonly position: Vector2;
   readonly facing: number;
+  readonly speed: number;
   readonly alive: boolean;
+  readonly role: ShipRole;
+  readonly course: readonly Vector2[];
+  readonly targetId?: string;
+  readonly autoFire: boolean;
+  readonly cooldowns: WeaponCooldowns;
+  readonly lanceChargeMs: number;
+  readonly lanceTargetId?: string;
+  readonly shieldBoostMs: number;
+  readonly aiThinkMs: number;
+}
+
+export interface ProjectileState {
+  readonly id: string;
+  readonly kind: 'torpedo';
+  readonly team: Team;
+  readonly ownerId: string;
+  readonly targetId: string;
+  readonly position: Vector2;
+  readonly facing: number;
+  readonly speed: number;
+  readonly turnRate: number;
+  readonly damage: number;
+  readonly shieldMultiplier: number;
+  readonly ttlMs: number;
+  readonly radius: number;
 }
 
 export interface CombatState {
-  readonly turn: number;
-  readonly phase: CombatPhase;
+  readonly elapsedMs: number;
   readonly status: CombatStatus;
-  readonly rngState: number;
   readonly ships: Readonly<Record<string, ShipState>>;
+  readonly projectiles: Readonly<Record<string, ProjectileState>>;
+  readonly nextProjectileId: number;
+  readonly flagshipId: string;
+  readonly escortDirective: EscortDirective;
 }
 
-export interface AttackPreview {
+export interface AbilityPreview {
   readonly valid: boolean;
   readonly reason?: string;
-  readonly weapon: WeaponDefinition;
+  readonly ability: ManualAbility;
   readonly distance: number;
-  readonly hitChance: number;
+  readonly damage: number;
+  readonly shieldDamage: number;
+  readonly hullDamage: number;
   readonly coverReduction: number;
-  readonly minShieldDamage: number;
-  readonly maxShieldDamage: number;
-  readonly minHullDamage: number;
-  readonly maxHullDamage: number;
+  readonly cooldownMs: number;
+  readonly chargeMs: number;
+  readonly etaMs: number;
 }
 
-export type ShipOrder = Exclude<CombatCommand, { readonly type: 'end-turn' }>;
-
-export type CombatCommand =
-  | {
-      readonly type: 'move';
-      readonly shipId: string;
-      readonly destination: Vector2;
-      readonly facing: number;
-    }
-  | { readonly type: 'rotate'; readonly shipId: string; readonly facing: number }
-  | {
-      readonly type: 'attack';
-      readonly shipId: string;
-      readonly targetId: string;
-      readonly weapon: WeaponKind;
-    }
-  | { readonly type: 'reinforce-shield'; readonly shipId: string }
-  | { readonly type: 'end-turn' };
-
 export type CombatEvent =
-  | {
-      readonly type: 'ship-moved';
-      readonly shipId: string;
-      readonly from: Vector2;
-      readonly to: Vector2;
-      readonly facing: number;
-      readonly movementKind?: 'order' | 'drift';
-    }
-  | { readonly type: 'ship-rotated'; readonly shipId: string; readonly facing: number }
-  | {
-      readonly type: 'attack-resolved';
-      readonly shipId: string;
-      readonly targetId: string;
-      readonly weapon: WeaponKind;
-      readonly hit: boolean;
-      readonly intercepted: boolean;
-      readonly shieldDamage: number;
-      readonly hullDamage: number;
-    }
-  | { readonly type: 'shield-reinforced'; readonly shipId: string; readonly amount: number }
-  | {
-      readonly type: 'order-failed';
-      readonly shipId: string;
-      readonly order: ShipOrder['type'];
-      readonly reason: string;
-    }
-  | { readonly type: 'phase-changed'; readonly phase: CombatPhase; readonly turn: number }
+  | { readonly type: 'course-changed'; readonly shipId: string; readonly points: readonly Vector2[] }
+  | { readonly type: 'target-designated'; readonly shipId: string; readonly targetId: string }
+  | { readonly type: 'escort-directive-changed'; readonly directive: EscortDirective }
+  | { readonly type: 'weapon-charging'; readonly shipId: string; readonly targetId: string; readonly weapon: 'lance'; readonly durationMs: number }
+  | { readonly type: 'weapon-fired'; readonly shipId: string; readonly targetId: string; readonly weapon: WeaponKind }
+  | { readonly type: 'attack-resolved'; readonly shipId: string; readonly targetId: string; readonly weapon: WeaponKind; readonly shieldDamage: number; readonly hullDamage: number }
+  | { readonly type: 'projectile-launched'; readonly projectileId: string }
+  | { readonly type: 'projectile-expired'; readonly projectileId: string }
+  | { readonly type: 'shield-boosted'; readonly shipId: string; readonly restored: number; readonly durationMs: number }
+  | { readonly type: 'ability-failed'; readonly shipId: string; readonly ability: ManualAbility; readonly reason: string }
   | { readonly type: 'ship-destroyed'; readonly shipId: string }
   | { readonly type: 'combat-ended'; readonly status: Exclude<CombatStatus, 'active'> };
 
@@ -130,6 +133,7 @@ export interface CommandResult {
   readonly error?: string;
 }
 
-export interface CommandBeatResult extends CommandResult {
-  readonly resolvedOrders: readonly ShipOrder[];
+export interface StepResult {
+  readonly state: CombatState;
+  readonly events: readonly CombatEvent[];
 }

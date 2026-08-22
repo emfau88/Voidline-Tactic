@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
-      content="Voidline Tactics – rundenbasierte mobile-first Flottentaktik im Browser."
+      content="Voidline Tactics – mobile-first Echtzeit-Flottentaktik mit taktischer Pause im Browser."
     />
     <meta name="theme-color" content="#05070c" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,7 +32,7 @@
             <div>
               <small>VOIDLINE FLEET COMMAND · DEVELOPMENT BUILD</small>
               <h1 id="menu-title">WÄHLE DEIN<br><span>STARTSCHIFF</span></h1>
-              <p>Stelle dein Flaggschiff zusammen und führe die Formation durch den ersten Kontakt.</p>
+              <p>Steuere dein Flaggschiff direkt, führe die Eskorte und entscheide den Kampf in Echtzeit.</p>
             </div>
             <button class="menu-fullscreen-button" type="button" data-fullscreen aria-pressed="false" title="Vollbild öffnen">
               <span aria-hidden="true">⛶</span><span>VOLLBILD</span>
@@ -45,7 +45,7 @@
               <img src="assets/ships/player-cruiser-v2.png" alt="Sovereign's Fury von oben">
               <span class="starter-name">Sovereign's Fury</span>
               <span class="starter-class">CRUISER</span>
-              <span class="starter-stats"><b>112</b> Hülle · <b>83</b> Schild · <b>1</b> Befehl/Beat</span>
+              <span class="starter-stats"><b>112</b> Hülle · <b>83</b> Schild · <b>58</b> Tempo</span>
               <span class="starter-bonus">FLAGGSCHIFF-MODUL · +15 SCHILD</span>
               <span class="mount-list"><i>MASS DRIVER</i><i>RIFT LANCE</i><i>VOID TORPEDO</i></span>
             </button>
@@ -54,7 +54,7 @@
               <img src="assets/ships/player-frigate-v1.png" alt="Aster Vale von oben">
               <span class="starter-name">Aster Vale</span>
               <span class="starter-class">FRIGATE</span>
-              <span class="starter-stats"><b>72</b> Hülle · <b>350</b> Bewegung · <b>80</b> Energie</span>
+              <span class="starter-stats"><b>72</b> Hülle · <b>38</b> Schild · <b>90</b> Tempo</span>
               <span class="starter-bonus">FLAGGSCHIFF-MODUL · VECTOR DRIVE</span>
               <span class="mount-list"><i>RIFT LANCE</i><i>2× VOID TORPEDO</i></span>
             </button>
@@ -67,14 +67,14 @@
             </div>
             <div class="upgrade-track">
               <article><span>01</span><b>WAFFENBUCHT</b><small>neue sichtbare Hardpoints und Waffenvarianten</small></article>
-              <article><span>02</span><b>SCHILDMATRIX</b><small>mehr Kapazität oder schnellere Regeneration</small></article>
+              <article><span>02</span><b>SCHILDMATRIX</b><small>mehr Kapazität oder stärkerer aktiver Boost</small></article>
               <article><span>03</span><b>VECTORDRIVE</b><small>Reichweite gegen Energieverbrauch tauschen</small></article>
             </div>
           </section>
 
           <footer class="menu-footer">
             <p id="menu-status" role="status">Ausgewählt: <strong id="selected-starter-label">Sovereign's Fury</strong></p>
-            <button id="start-button" type="button"><span>MISSION 01</span><strong>ERSTEN KONTAKT STARTEN</strong><small>2-Schiff-Formation · taktischer Einsatz</small></button>
+            <button id="start-button" type="button"><span>MISSION 01</span><strong>ERSTEN KONTAKT STARTEN</strong><small>Flaggschiff + AI-Eskorte · Echtzeit</small></button>
           </footer>
         </section>
 
@@ -86,14 +86,20 @@
             <small>ERSTER KONTAKT</small>
           </div>
           <div class="turn-block">
-            <strong>BEAT <span id="turn-number">1</span></strong>
-            <small id="phase-label">BEFEHLE PLANEN</small>
+            <strong>GEFECHT <span id="turn-number">00:00</span></strong>
+            <small id="phase-label">1× LIVE</small>
           </div>
           <div class="objective-block">
             <small>ZIEL</small>
             <strong>Feinde ausschalten</strong>
           </div>
         </header>
+
+        <nav id="time-controls" class="battle-ui" aria-label="Simulationsgeschwindigkeit">
+          <button id="pause-button" type="button" aria-label="Taktische Pause"><span>Ⅱ</span><small>PAUSE</small></button>
+          <button id="slow-button" type="button" aria-label="Zeitlupe"><span>¼</span><small>PLANEN</small></button>
+          <button id="live-button" class="active" type="button" aria-label="Normale Geschwindigkeit"><span>▶</span><small>LIVE</small></button>
+        </nav>
 
         <nav id="view-controls" class="battle-ui" aria-label="Ansicht steuern">
           <button id="zoom-out-button" type="button" aria-label="Herauszoomen" disabled>−</button>
@@ -146,34 +152,28 @@
               </div>
             </div>
             <div class="resource-row">
-              <span>AP <strong id="ship-ap">–</strong></span>
-              <span>AUSRICHTUNG <strong id="ship-facing">–</strong></span>
+              <span>TEMPO <strong id="ship-ap">–</strong></span>
+              <span>KURS <strong id="ship-facing">–</strong></span>
             </div>
           </section>
 
           <nav id="action-grid" aria-label="Schiffsaktionen">
-            <button type="button" data-action="move" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>BEWEGEN</strong><small>1 AP · 4 EN</small></button>
-            <button type="button" data-action="rotate" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>DREHEN</strong><small>1 AP</small></button>
-            <button type="button" data-action="broadside" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>BREITSEITE</strong><small>1 AP · 8 EN</small></button>
-            <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>1 AP · 18 EN</small></button>
-            <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>1 AP · 10 EN</small></button>
-            <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>SCHILD</strong><small>1 AP · 10 EN</small></button>
-            <button id="end-turn-button" type="button" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-turn"/></svg></span><strong>BEAT</strong><small>0/2 Befehle</small></button>
+            <button type="button" data-action="course" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-move"/></svg></span><strong>KURS</strong><small>zeichnen</small></button>
+            <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>ZIEL</strong><small>Breitseiten auto</small></button>
+            <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>bereit · 18 EN</small></button>
+            <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>bereit · 12 EN</small></button>
+            <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>BOOST</strong><small>bereit · 16 EN</small></button>
+            <button type="button" data-action="escort" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-rotate"/></svg></span><strong>ESKORTE</strong><small>folgen</small></button>
           </nav>
-
-          <div id="confirm-bar" hidden>
-            <button id="cancel-button" type="button">ABBRECHEN</button>
-            <button id="confirm-button" type="button">BESTÄTIGEN</button>
-          </div>
         </footer>
 
         <dialog id="help-dialog" class="modal panel">
           <h2>SO SPIELST DU</h2>
           <ol>
-            <li>Rote Linien und Labels zeigen vorab, was der Gegner im nächsten Command Beat plant.</li>
-            <li>Plane je Schiff genau einen Befehl: Manöver, Drehung, Waffe oder Schild.</li>
-            <li>Bewegen kann angekündigte Feuerlösungen brechen. Danach driftet jedes Schiff 52 World Units vorwärts.</li>
-            <li>Alle Treffer sind deterministisch; Torpedos verfehlen nicht und werden nicht unsichtbar abgefangen.</li>
+            <li>Ziehe vom Flaggschiff einen Kurs oder tippe KURS und zeichne die gewünschte Route.</li>
+            <li>Standardbatterien feuern automatisch aus den Breitseiten. Markiere mit ZIEL den wichtigsten Gegner.</li>
+            <li>Lanze, Torpedo und Schild-Boost löst du selbst aus. Die Lanze kündigt ihren Schuss sichtbar an.</li>
+            <li>PAUSE friert den Kampf ein; PLANEN läuft mit ¼ Tempo. Torpedos sind physische, verlässliche Projektile.</li>
             <li>Im cyanfarbenen Nebel erleiden Schiffe 25 % weniger Schaden. Zwei Finger zoomen um den Gestenmittelpunkt.</li>
           </ol>
           <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>

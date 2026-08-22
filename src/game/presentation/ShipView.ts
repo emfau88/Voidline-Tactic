@@ -35,10 +35,10 @@ export class ShipView extends Phaser.GameObjects.Container {
       repeat: -1,
       ease: 'Sine.InOut',
     });
-    this.sync(ship, false, false, true);
+    this.sync(ship, false, false, true, false);
   }
 
-  public sync(ship: ShipState, selected: boolean, targeted: boolean, transform: boolean): void {
+  public sync(ship: ShipState, selected: boolean, targeted: boolean, transform: boolean, boosted = false): void {
     if (transform) {
       this.setPosition(ship.position.x, ship.position.y);
       this.setRotation(ship.facing);
@@ -47,10 +47,10 @@ export class ShipView extends Phaser.GameObjects.Container {
     this.bars.setPosition(Math.sin(ship.facing) * barOffset, Math.cos(ship.facing) * barOffset);
     this.bars.setRotation(-ship.facing);
     this.setVisible(ship.alive);
-    this.redraw(ship, selected, targeted);
+    this.redraw(ship, selected, targeted, boosted);
   }
 
-  private redraw(ship: ShipState, selected: boolean, targeted: boolean): void {
+  private redraw(ship: ShipState, selected: boolean, targeted: boolean, boosted: boolean): void {
     const friendly = ship.team === 'player';
     const length = ship.radius * 2.15;
     const width = ship.radius * (ship.class === 'frigate' ? 0.74 : 0.96);
@@ -78,9 +78,13 @@ export class ShipView extends Phaser.GameObjects.Container {
       this.status.fillStyle(0xff5968, 0.96);
       this.status.fillTriangle(markerX, 0, markerX + ship.radius * 0.34, -ship.radius * 0.17, markerX + ship.radius * 0.34, ship.radius * 0.17);
     }
-    if (ship.shield > 0) {
-      this.status.lineStyle(2, friendly ? 0x57aef0 : 0xb95770, 0.24 + 0.35 * (ship.shield / ship.maxShield));
-      this.status.strokeEllipse(0, 0, statusLength * 1.08, statusWidth * 1.13);
+    if (ship.shield > 0 || boosted) {
+      this.status.lineStyle(
+        boosted ? 6 : 2,
+        friendly ? (boosted ? 0x9ceaff : 0x57aef0) : 0xb95770,
+        boosted ? 0.9 : 0.24 + 0.35 * (ship.shield / ship.maxShield),
+      );
+      this.status.strokeEllipse(0, 0, statusLength * (boosted ? 1.16 : 1.08), statusWidth * (boosted ? 1.22 : 1.13));
     }
 
     const enginePoints = presentation?.hardpoints.engines ?? [{ x: -1.1, y: 0 }];

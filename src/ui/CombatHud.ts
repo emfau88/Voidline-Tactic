@@ -1,21 +1,14 @@
+import { SHIELD_BOOST_COST } from '../domain/combat/constants';
 import { WEAPONS } from '../domain/combat/content';
-import {
-  MOVE_AP_COST,
-  MOVE_ENERGY_COST,
-  ROTATE_AP_COST,
-  SHIELD_AP_COST,
-  SHIELD_ENERGY_COST,
-} from '../domain/combat/constants';
-import { normalizeAngle } from '../domain/combat/math';
-import type { AttackPreview, CombatState, ShipState, WeaponKind } from '../domain/combat/types';
+import { distance, normalizeAngle } from '../domain/combat/math';
+import type { AbilityPreview, CombatState, EscortDirective, ShipState, TimeScale } from '../domain/combat/types';
 
-export type ActionMode = 'move' | 'rotate' | WeaponKind;
+export type ActionMode = 'course' | 'target';
+export type HudAction = ActionMode | 'lance' | 'torpedo' | 'shield' | 'escort';
 
 export interface HudCallbacks {
-  readonly onAction: (action: ActionMode | 'shield') => void;
-  readonly onEndTurn: () => void;
-  readonly onConfirm: () => void;
-  readonly onCancel: () => void;
+  readonly onAction: (action: HudAction) => void;
+  readonly onTimeScale: (scale: TimeScale) => void;
   readonly onRestart: () => void;
   readonly onZoom: (direction: number) => void;
   readonly onZoomReset: () => void;
@@ -23,15 +16,14 @@ export interface HudCallbacks {
 
 export interface HudViewModel {
   readonly state: CombatState;
-  readonly selected: ShipState;
+  readonly flagship: ShipState;
+  readonly escort?: ShipState;
   readonly target?: ShipState;
-  readonly preview?: AttackPreview;
   readonly mode?: ActionMode;
-  readonly hasPendingAction: boolean;
-  readonly selectedHasOrder: boolean;
-  readonly plannedOrderCount: number;
-  readonly livingPlayerCount: number;
-  readonly busy: boolean;
+  readonly timeScale: TimeScale;
+  readonly lancePreview: AbilityPreview;
+  readonly torpedoPreview: AbilityPreview;
+  readonly shieldPreview: AbilityPreview;
 }
 
 function requiredElement<T extends HTMLElement>(id: string): T {
@@ -54,31 +46,27 @@ function facingLabel(angle: number): string {
   return labels[Math.round(degrees / 45) % 8];
 }
 
-function actionLabel(mode?: ActionMode): string {
-  const labels: Record<ActionMode, string> = {
-    move: 'BEWEGEN',
-    rotate: 'DREHEN',
-    broadside: 'BREITSEITE',
-    lance: 'LANZE',
-    torpedo: 'TORPEDO',
-  };
-  return mode ? labels[mode] : 'BEREIT';
+function formatTime(elapsedMs: number): string {
+  const totalSeconds = Math.floor(elapsedMs / 1_000);
+  return `${String(Math.floor(totalSeconds / 60)).padStart(2, '0')}:${String(totalSeconds % 60).padStart(2, '0')}`;
 }
 
-function translateReason(reason?: string): string {
-  const translations: Record<string, string> = {
-    'Target is outside weapon range.': 'Ziel außerhalb der Waffenreichweite.',
-    'Target is outside the weapon arc.': 'Ziel außerhalb des Feuerbogens.',
-    'Not enough AP.': 'Nicht genügend AP.',
-    'Not enough Energy.': 'Nicht genügend Energie.',
+function formatCooldown(milliseconds: number): string {
+  return milliseconds <= 0 ? 'BEREIT' : `${(milliseconds / 1_000).toFixed(1)}s`;
+}
+
+function directiveLabel(directive: EscortDirective): string {
+  const labels: Record<EscortDirective, string> = {
+    follow: 'FOLGEN',
+    'flank-left': 'FLANKE L',
+    'flank-right': 'FLANKE R',
+    protect: 'SCHÜTZEN',
   };
-  return reason ? (translations[reason] ?? reason) : 'Waffe wählen, um eine Prognose zu sehen.';
+  return labels[directive];
 }
 
 export class CombatHud {
   private readonly actionButtons: readonly HTMLButtonElement[];
-  private readonly confirmBar = requiredElement<HTMLElement>('confirm-bar');
-  private readonly confirmButton = requiredElement<HTMLButtonElement>('confirm-button');
   private readonly targetCard = requiredElement<HTMLElement>('target-card');
   private readonly toastElement = requiredElement<HTMLElement>('toast');
   private readonly helpDialog = requiredElement<HTMLDialogElement>('help-dialog');
@@ -88,11 +76,11 @@ export class CombatHud {
   public constructor(callbacks: HudCallbacks) {
     this.actionButtons = [...document.querySelectorAll<HTMLButtonElement>('#action-grid [data-action]')];
     for (const button of this.actionButtons) {
-      button.addEventListener('click', () => callbacks.onAction(button.dataset.action as ActionMode | 'shield'));
+      button.addEventListener('click', () => callbacks.onAction(button.dataset.action as HudAction));
     }
-    requiredElement<HTMLButtonElement>('end-turn-button').addEventListener('click', callbacks.onEndTurn);
-    requiredElement<HTMLButtonElement>('confirm-button').addEventListener('click', callbacks.onConfirm);
-    requiredElement<HTMLButtonElement>('cancel-button').addEventListener('click', callbacks.onCancel);
+    requiredElement<HTMLButtonElement>('pause-button').addEventListener('click', () => callbacks.onTimeScale(0));
+    requiredElement<HTMLButtonElement>('slow-button').addEventListener('click', () => callbacks.onTimeScale(0.25));
+    requiredElement<HTMLButtonElement>('live-button').addEventListener('click', () => callbacks.onTimeScale(1));
     requiredElement<HTMLButtonElement>('restart-button').addEventListener('click', callbacks.onRestart);
     requiredElement<HTMLButtonElement>('zoom-out-button').addEventListener('click', () => callbacks.onZoom(-1));
     requiredElement<HTMLButtonElement>('zoom-in-button').addEventListener('click', () => callbacks.onZoom(1));
@@ -111,84 +99,83 @@ export class CombatHud {
   }
 
   public update(model: HudViewModel): void {
-    const {
-      state,
-      selected,
-      target,
-      preview,
-      mode,
-      hasPendingAction,
-      selectedHasOrder,
-      plannedOrderCount,
-      livingPlayerCount,
-      busy,
-    } = model;
-    setText('turn-number', String(state.turn));
-    setText('phase-label', busy ? 'AUSFÜHRUNG' : 'BEFEHLE PLANEN');
-    setText('ship-name', selected.name);
-    setText('ship-class', selected.class.toUpperCase());
-    setText('ship-hull-text', `${selected.hull}/${selected.maxHull}`);
-    setText('ship-shield-text', `${selected.shield}/${selected.maxShield}`);
-    setText('ship-energy-text', `${selected.energy}/${selected.maxEnergy}`);
-    setText('ship-ap', `${selected.ap}/${selected.maxAp}`);
-    setText('ship-facing', facingLabel(selected.facing));
-    setMeter('ship-hull-bar', selected.hull, selected.maxHull);
-    setMeter('ship-shield-bar', selected.shield, selected.maxShield);
-    setMeter('ship-energy-bar', selected.energy, selected.maxEnergy);
-    setText('ship-status', busy ? 'IMPULS' : hasPendingAction ? 'PLANUNG' : selectedHasOrder ? 'GEPLANT' : actionLabel(mode));
+    const { state, flagship, escort, target, mode, timeScale, lancePreview, torpedoPreview, shieldPreview } = model;
+    setText('turn-number', formatTime(state.elapsedMs));
+    setText('phase-label', timeScale === 0 ? 'TAKTISCHE PAUSE' : timeScale === 0.25 ? '0,25× SLOW' : '1× LIVE');
+    setText('ship-name', flagship.name);
+    setText('ship-class', `${flagship.class.toUpperCase()} · FLAGGSCHIFF`);
+    setText('ship-hull-text', `${flagship.hull}/${flagship.maxHull}`);
+    setText('ship-shield-text', `${flagship.shield}/${flagship.maxShield}`);
+    setText('ship-energy-text', `${Math.floor(flagship.energy)}/${flagship.maxEnergy}`);
+    setText('ship-ap', `${Math.round(flagship.speed)}/${flagship.maxSpeed}`);
+    setText('ship-facing', facingLabel(flagship.facing));
+    setMeter('ship-hull-bar', flagship.hull, flagship.maxHull);
+    setMeter('ship-shield-bar', flagship.shield, flagship.maxShield);
+    setMeter('ship-energy-bar', flagship.energy, flagship.maxEnergy);
+    setText(
+      'ship-status',
+      flagship.lanceChargeMs > 0
+        ? `LANZE ${(flagship.lanceChargeMs / 1_000).toFixed(1)}s`
+        : flagship.shieldBoostMs > 0
+          ? 'SCHILD BOOST'
+          : mode === 'course'
+            ? 'KURS ZIEHEN'
+            : mode === 'target'
+              ? 'ZIEL WÄHLEN'
+              : timeScale === 0
+                ? 'PAUSE'
+                : 'AUTOFIRE',
+    );
 
     this.targetCard.hidden = !target;
     if (target) {
       setText('target-name', target.name);
-      setText('target-class', target.class.toUpperCase());
+      setText('target-class', `${target.class.toUpperCase()} · ${Math.round(distance(flagship.position, target.position))} m`);
       setText('target-hull-text', `${target.hull}/${target.maxHull}`);
       setText('target-shield-text', `${target.shield}/${target.maxShield}`);
       setMeter('target-hull-bar', target.hull, target.maxHull);
       setMeter('target-shield-bar', target.shield, target.maxShield);
-      setText('hit-chance', preview?.valid ? 'SICHER' : 'ZIEL');
+      setText('hit-chance', target.lanceChargeMs > 0 ? `LANZE ${(target.lanceChargeMs / 1_000).toFixed(1)}s` : 'ERFASST');
       setText(
         'preview-damage',
-        preview?.valid
-          ? `Schild ${preview.minShieldDamage} · Hülle ${preview.minHullDamage}${preview.coverReduction > 0 ? ` · NEBEL −${preview.coverReduction}%` : ''}`
-          : translateReason(preview?.reason),
+        lancePreview.valid
+          ? `Lanze: ${lancePreview.shieldDamage} Schild · ${lancePreview.hullDamage} Hülle`
+          : torpedoPreview.valid
+            ? `Torpedo ETA ${(torpedoPreview.etaMs / 1_000).toFixed(1)}s · ${torpedoPreview.damage} Schaden`
+            : 'Kurs ändern, um einen Frontbogen herzustellen.',
       );
     }
 
-    const canAct = state.phase === 'player' && state.status === 'active' && !busy;
     for (const button of this.actionButtons) {
-      const action = button.dataset.action as ActionMode | 'shield';
-      const weapon = action === 'broadside' || action === 'lance' || action === 'torpedo' ? WEAPONS[action] : undefined;
-      const lacksBasicResources =
-        action === 'move'
-          ? selected.ap < MOVE_AP_COST || selected.energy < MOVE_ENERGY_COST
-          : action === 'rotate'
-            ? selected.ap < ROTATE_AP_COST
-            : action === 'shield'
-              ? selected.ap < SHIELD_AP_COST ||
-                selected.energy < SHIELD_ENERGY_COST ||
-                selected.shield >= selected.maxShield
-              : false;
-      button.disabled =
-        !canAct ||
-        selected.team !== 'player' ||
-        lacksBasicResources ||
-        (weapon ? selected.ap < weapon.apCost || selected.energy < weapon.energyCost : false);
+      const action = button.dataset.action as HudAction;
+      const lanceUnavailable = !flagship.weapons.includes('lance') || flagship.cooldowns.lance > 0 || flagship.energy < WEAPONS.lance.energyCost;
+      const torpedoUnavailable = !flagship.weapons.includes('torpedo') || flagship.cooldowns.torpedo > 0 || flagship.energy < WEAPONS.torpedo.energyCost;
+      const disabled = state.status !== 'active' || !flagship.alive ||
+        (action === 'lance' && lanceUnavailable) ||
+        (action === 'torpedo' && torpedoUnavailable) ||
+        (action === 'shield' && !shieldPreview.valid) ||
+        (action === 'escort' && !escort?.alive);
+      button.disabled = Boolean(disabled);
       button.classList.toggle('active', action === mode);
+      const small = button.querySelector('small');
+      if (!small) continue;
+      if (action === 'lance') small.textContent = `${formatCooldown(flagship.cooldowns.lance)} · 18 EN`;
+      if (action === 'torpedo') small.textContent = `${formatCooldown(flagship.cooldowns.torpedo)} · 12 EN`;
+      if (action === 'shield') small.textContent = `${formatCooldown(flagship.cooldowns.shield)} · ${SHIELD_BOOST_COST} EN`;
+      if (action === 'escort') small.textContent = escort ? directiveLabel(state.escortDirective) : 'VERLOREN';
     }
-    const executeButton = requiredElement<HTMLButtonElement>('end-turn-button');
-    executeButton.disabled = !canAct;
-    executeButton.querySelector('strong')!.textContent = plannedOrderCount >= livingPlayerCount ? 'BEAT STARTEN' : 'BEAT';
-    executeButton.querySelector('small')!.textContent = `${plannedOrderCount}/${livingPlayerCount} Befehle`;
-    this.confirmBar.hidden = !hasPendingAction;
-    this.confirmButton.textContent = preview ? 'FEUERN' : mode === 'rotate' ? 'DREHEN' : 'BEWEGEN';
+
+    for (const [id, scale] of [['pause-button', 0], ['slow-button', 0.25], ['live-button', 1]] as const) {
+      requiredElement<HTMLButtonElement>(id).classList.toggle('active', timeScale === scale);
+    }
 
     if (state.status !== 'active' && !this.resultDialog.open) {
-      setText('result-title', state.status === 'player-won' ? 'MISSION ERFÜLLT' : 'FLOTTE VERLOREN');
+      setText('result-title', state.status === 'player-won' ? 'MISSION ERFÜLLT' : 'FLAGGSCHIFF VERLOREN');
       setText(
         'result-copy',
         state.status === 'player-won'
-          ? 'Die feindliche Formation ist gebrochen. Der nächste Meilenstein ergänzt Belohnung und Shipyard.'
-          : 'Ausrichtung und Feuerwinkel waren nicht ausreichend. Formiere die Flotte neu und versuche es erneut.',
+          ? `Feindverband nach ${formatTime(state.elapsedMs)} gebrochen. Der Real-Time-Combat-Pivot ist abgeschlossen.`
+          : 'Die Formation wurde aufgerieben. Nutze Pause, Kurswechsel und Spezialwaffen gezielter.',
       );
       this.resultDialog.showModal();
     }
@@ -198,7 +185,7 @@ export class CombatHud {
     window.clearTimeout(this.toastTimer);
     this.toastElement.textContent = message;
     this.toastElement.classList.add('visible');
-    this.toastTimer = window.setTimeout(() => this.toastElement.classList.remove('visible'), 2_500);
+    this.toastTimer = window.setTimeout(() => this.toastElement.classList.remove('visible'), 2_400);
   }
 
   public closeResult(): void {

@@ -1,64 +1,84 @@
 import {
+  AI_THINK_INTERVAL_MS,
   BATTLEFIELD_HEIGHT,
   BATTLEFIELD_MARGIN,
   BATTLEFIELD_WIDTH,
-  COMMAND_DRIFT_DISTANCE,
-  MOVE_AP_COST,
-  MOVE_ENERGY_COST,
+  COURSE_REACHED_DISTANCE,
   NEBULA_CENTER,
   NEBULA_DAMAGE_REDUCTION,
   NEBULA_RADIUS,
-  ROTATE_AP_COST,
-  SHIELD_AP_COST,
-  SHIELD_ENERGY_COST,
-  SHIELD_RESTORE,
+  SHIELD_BOOST_COOLDOWN_MS,
+  SHIELD_BOOST_COST,
+  SHIELD_BOOST_DAMAGE_REDUCTION,
+  SHIELD_BOOST_DURATION_MS,
+  SHIELD_BOOST_RESTORE,
 } from './constants';
 import { SHIPS, WEAPONS } from './content';
 import { angleBetween, angleDifference, clamp, distance, normalizeAngle } from './math';
-import { normalizeSeed } from './rng';
 import type {
-  AttackPreview,
-  CommandBeatResult,
-  CombatCommand,
+  AbilityPreview,
   CombatEvent,
   CombatState,
   CommandResult,
+  EscortDirective,
+  ManualAbility,
+  ProjectileState,
+  ShipDefinition,
   ShipState,
-  ShipOrder,
+  StepResult,
   Team,
   Vector2,
   WeaponDefinition,
   WeaponKind,
 } from './types';
 
-function createShipState(definition: (typeof SHIPS)[number], flagshipId?: string): ShipState {
+const ZERO_COOLDOWNS = { broadside: 0, lance: 0, torpedo: 0, shield: 0 } as const;
+
+function createShipState(definition: ShipDefinition, flagshipId: string): ShipState {
   const isFlagship = definition.id === flagshipId;
   const maxShield = definition.maxShield + (isFlagship && definition.id === 'p-cruiser' ? 15 : 0);
   const maxEnergy = definition.maxEnergy + (isFlagship && definition.id === 'p-frigate' ? 12 : 0);
-  const moveRange = definition.moveRange + (isFlagship && definition.id === 'p-frigate' ? 35 : 0);
+  const maxSpeed = definition.maxSpeed + (isFlagship && definition.id === 'p-frigate' ? 8 : 0);
+  const role = definition.team === 'enemy' ? 'hostile' : isFlagship ? 'flagship' : 'escort';
   return {
     ...definition,
     maxShield,
     maxEnergy,
-    moveRange,
+    maxSpeed,
     hull: definition.maxHull,
     shield: maxShield,
     energy: maxEnergy,
-    ap: definition.maxAp,
     position: { ...definition.startPosition },
     facing: definition.startFacing,
+    speed: maxSpeed * 0.7,
     alive: true,
+    role,
+    course: [],
+    autoFire: true,
+    cooldowns: {
+      ...ZERO_COOLDOWNS,
+      broadside: role === 'flagship' ? 1_200 : 2_000,
+      lance: role === 'flagship' ? 0 : 2_600,
+      torpedo: role === 'flagship' ? 0 : 4_500,
+    },
+    lanceChargeMs: 0,
+    shieldBoostMs: 0,
+    aiThinkMs: role === 'flagship' ? Number.POSITIVE_INFINITY : 50,
   };
 }
 
-export function createCombatState(seed = Date.now(), flagshipId?: string): CombatState {
-  const ships = Object.fromEntries(SHIPS.map((definition) => [definition.id, createShipState(definition, flagshipId)]));
+export function createCombatState(flagshipId = 'p-cruiser'): CombatState {
+  const resolvedFlagship = SHIPS.some((ship) => ship.id === flagshipId && ship.team === 'player')
+    ? flagshipId
+    : 'p-cruiser';
   return {
-    turn: 1,
-    phase: 'player',
+    elapsedMs: 0,
     status: 'active',
-    rngState: normalizeSeed(seed),
-    ships,
+    ships: Object.fromEntries(SHIPS.map((definition) => [definition.id, createShipState(definition, resolvedFlagship)])),
+    projectiles: {},
+    nextProjectileId: 1,
+    flagshipId: resolvedFlagship,
+    escortDirective: 'follow',
   };
 }
 
@@ -66,50 +86,25 @@ export function getLivingShips(state: CombatState, team?: Team): readonly ShipSt
   return Object.values(state.ships).filter((ship) => ship.alive && (!team || ship.team === team));
 }
 
-function invalidResult(state: CombatState, error: string): CommandResult {
-  return { state, events: [], error };
-}
-
-function updateShip(state: CombatState, ship: ShipState): CombatState {
-  return { ...state, ships: { ...state.ships, [ship.id]: ship } };
-}
-
-function isInsideBattlefield(position: Vector2, radius: number): boolean {
-  return (
-    position.x - radius >= BATTLEFIELD_MARGIN &&
-    position.x + radius <= BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN &&
-    position.y - radius >= BATTLEFIELD_MARGIN &&
-    position.y + radius <= BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN
-  );
-}
-
 export function isInsideNebula(position: Vector2): boolean {
   return distance(position, NEBULA_CENTER) <= NEBULA_RADIUS;
 }
 
-function getActionShip(state: CombatState, shipId: string): ShipState | string {
-  const ship = state.ships[shipId];
-  if (!ship) return 'Unknown ship.';
-  if (!ship.alive) return 'Destroyed ships cannot act.';
-  if (ship.team !== state.phase) return 'That ship cannot act in the current phase.';
-  return ship;
-}
-
-function getWeapon(ship: ShipState, kind: WeaponKind): WeaponDefinition | string {
-  if (!ship.weapons.includes(kind)) return `${ship.name} does not carry that weapon.`;
-  return WEAPONS[kind];
-}
-
-function isTargetInsideArc(attacker: ShipState, target: ShipState, weapon: WeaponDefinition): boolean {
-  const targetAngle = angleBetween(attacker.position, target.position);
-  if (weapon.arc === 'front') {
-    return angleDifference(targetAngle, attacker.facing) <= weapon.halfAngle;
-  }
-  const port = attacker.facing - Math.PI / 2;
-  const starboard = attacker.facing + Math.PI / 2;
+function isInsideBattlefield(position: Vector2, radius: number): boolean {
   return (
-    angleDifference(targetAngle, port) <= weapon.halfAngle ||
-    angleDifference(targetAngle, starboard) <= weapon.halfAngle
+    position.x >= BATTLEFIELD_MARGIN + radius &&
+    position.x <= BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - radius &&
+    position.y >= BATTLEFIELD_MARGIN + radius &&
+    position.y <= BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - radius
+  );
+}
+
+function isInsideArc(attacker: ShipState, target: ShipState, weapon: WeaponDefinition): boolean {
+  const targetAngle = angleBetween(attacker.position, target.position);
+  if (weapon.arc === 'front') return angleDifference(targetAngle, attacker.facing) <= weapon.halfAngle;
+  return (
+    angleDifference(targetAngle, attacker.facing - Math.PI / 2) <= weapon.halfAngle ||
+    angleDifference(targetAngle, attacker.facing + Math.PI / 2) <= weapon.halfAngle
   );
 }
 
@@ -118,67 +113,338 @@ interface DamageSplit {
   readonly hullDamage: number;
 }
 
-function splitDamage(target: ShipState, rawDamage: number, weapon: WeaponDefinition): DamageSplit {
-  const coverMultiplier = isInsideNebula(target.position) ? 1 - NEBULA_DAMAGE_REDUCTION : 1;
-  const coveredDamage = rawDamage * coverMultiplier;
-  const shieldDamage = Math.min(target.shield, Math.round(coveredDamage * weapon.shieldMultiplier));
-  const consumedRawDamage = shieldDamage / weapon.shieldMultiplier;
-  const remainingRawDamage = Math.max(0, coveredDamage - consumedRawDamage);
-  const hullDamage = Math.max(0, Math.round(remainingRawDamage * (1 - target.armor)));
+function splitDamage(target: ShipState, rawDamage: number, shieldMultiplier: number): DamageSplit {
+  const nebulaMultiplier = isInsideNebula(target.position) ? 1 - NEBULA_DAMAGE_REDUCTION : 1;
+  const boostMultiplier = target.shieldBoostMs > 0 ? 1 - SHIELD_BOOST_DAMAGE_REDUCTION : 1;
+  const modifiedDamage = rawDamage * nebulaMultiplier * boostMultiplier;
+  const shieldDamage = Math.min(target.shield, Math.round(modifiedDamage * shieldMultiplier));
+  const consumedRawDamage = shieldDamage / shieldMultiplier;
+  const hullDamage = Math.max(0, Math.round((modifiedDamage - consumedRawDamage) * (1 - target.armor)));
   return { shieldDamage, hullDamage };
 }
 
-function invalidPreview(weapon: WeaponDefinition, reason: string, measuredDistance = 0): AttackPreview {
+function invalidPreview(ability: ManualAbility, reason: string, cooldownMs = 0): AbilityPreview {
   return {
     valid: false,
     reason,
-    weapon,
-    distance: measuredDistance,
-    hitChance: 0,
+    ability,
+    distance: 0,
+    damage: ability === 'shield' ? SHIELD_BOOST_RESTORE : WEAPONS[ability].damage,
+    shieldDamage: 0,
+    hullDamage: 0,
     coverReduction: 0,
-    minShieldDamage: 0,
-    maxShieldDamage: 0,
-    minHullDamage: 0,
-    maxHullDamage: 0,
+    cooldownMs,
+    chargeMs: ability === 'lance' ? (WEAPONS.lance.chargeMs ?? 0) : 0,
+    etaMs: 0,
   };
 }
 
-export function getAttackPreview(
+export function getAbilityPreview(
   state: CombatState,
-  attackerId: string,
-  targetId: string,
-  kind: WeaponKind,
-): AttackPreview {
-  const weapon = WEAPONS[kind];
-  const attacker = state.ships[attackerId];
-  const target = state.ships[targetId];
-  if (!attacker) return invalidPreview(weapon, 'Unknown attacker.');
-  if (!target) return invalidPreview(weapon, 'Unknown target.');
-  if (!attacker.alive || !target.alive) return invalidPreview(weapon, 'Destroyed ships cannot attack or be targeted.');
-  if (attacker.team === target.team) return invalidPreview(weapon, 'Friendly ships cannot be targeted.');
-  if (!attacker.weapons.includes(kind)) return invalidPreview(weapon, `${attacker.name} does not carry that weapon.`);
+  shipId: string,
+  ability: ManualAbility,
+  targetId?: string,
+): AbilityPreview {
+  const ship = state.ships[shipId];
+  if (!ship?.alive) return invalidPreview(ability, 'Ship is unavailable.');
+  const cooldownMs = ship.cooldowns[ability];
+  if (cooldownMs > 0) return invalidPreview(ability, 'Ability is cooling down.', cooldownMs);
 
-  const measuredDistance = distance(attacker.position, target.position);
-  if (measuredDistance > weapon.range) return invalidPreview(weapon, 'Target is outside weapon range.', measuredDistance);
-  if (!isTargetInsideArc(attacker, target, weapon)) {
-    return invalidPreview(weapon, 'Target is outside the weapon arc.', measuredDistance);
+  if (ability === 'shield') {
+    if (ship.energy < SHIELD_BOOST_COST) return invalidPreview(ability, 'Not enough Energy.');
+    if (ship.shield >= ship.maxShield && ship.shieldBoostMs > 0) return invalidPreview(ability, 'Shield boost is already active.');
+    return {
+      ...invalidPreview(ability, ''),
+      valid: true,
+      reason: undefined,
+      damage: SHIELD_BOOST_RESTORE,
+    };
   }
-  if (attacker.ap < weapon.apCost) return invalidPreview(weapon, 'Not enough AP.', measuredDistance);
-  if (attacker.energy < weapon.energyCost) return invalidPreview(weapon, 'Not enough Energy.', measuredDistance);
 
-  const rangeFactor = clamp(measuredDistance / weapon.range, 0, 1);
-  const resolvedDamage = Math.round(weapon.maxDamage - (weapon.maxDamage - weapon.minDamage) * rangeFactor);
-  const resolved = splitDamage(target, resolvedDamage, weapon);
+  const weapon = WEAPONS[ability];
+  if (!ship.weapons.includes(ability)) return invalidPreview(ability, `${ship.name} does not carry that weapon.`);
+  if (ship.energy < weapon.energyCost) return invalidPreview(ability, 'Not enough Energy.');
+  const target = targetId ? state.ships[targetId] : undefined;
+  if (!target?.alive || target.team === ship.team) return invalidPreview(ability, 'Designate an enemy target.');
+  const measuredDistance = distance(ship.position, target.position);
+  if (measuredDistance > weapon.range) return invalidPreview(ability, 'Target is outside weapon range.');
+  if (!isInsideArc(ship, target, weapon)) return invalidPreview(ability, 'Target is outside the weapon arc.');
+  const damage = splitDamage(target, weapon.damage, weapon.shieldMultiplier);
   return {
     valid: true,
-    weapon,
+    ability,
     distance: measuredDistance,
-    hitChance: 100,
+    damage: weapon.damage,
+    shieldDamage: damage.shieldDamage,
+    hullDamage: damage.hullDamage,
     coverReduction: isInsideNebula(target.position) ? Math.round(NEBULA_DAMAGE_REDUCTION * 100) : 0,
-    minShieldDamage: resolved.shieldDamage,
-    maxShieldDamage: resolved.shieldDamage,
-    minHullDamage: resolved.hullDamage,
-    maxHullDamage: resolved.hullDamage,
+    cooldownMs: 0,
+    chargeMs: weapon.chargeMs ?? 0,
+    etaMs: ability === 'torpedo' ? Math.round((measuredDistance / (weapon.projectileSpeed ?? 1)) * 1_000) : weapon.chargeMs ?? 0,
+  };
+}
+
+export function setCourse(state: CombatState, shipId: string, points: readonly Vector2[]): CommandResult {
+  const ship = state.ships[shipId];
+  if (!ship?.alive) return { state, events: [], error: 'Ship is unavailable.' };
+  if (ship.role !== 'flagship') return { state, events: [], error: 'Only the flagship accepts a direct course.' };
+  const course = points
+    .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+    .map((point) => ({
+      x: clamp(point.x, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius),
+      y: clamp(point.y, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius),
+    }))
+    .filter((point) => distance(point, ship.position) > ship.radius * 0.5)
+    .slice(0, 18);
+  if (course.length === 0) return { state, events: [], error: 'Draw a longer course.' };
+  const nextShip = { ...ship, course };
+  return {
+    state: { ...state, ships: { ...state.ships, [shipId]: nextShip } },
+    events: [{ type: 'course-changed', shipId, points: course }],
+  };
+}
+
+export function designateTarget(state: CombatState, shipId: string, targetId: string): CommandResult {
+  const ship = state.ships[shipId];
+  const target = state.ships[targetId];
+  if (!ship?.alive || !target?.alive || ship.team === target.team) {
+    return { state, events: [], error: 'Designate a living enemy target.' };
+  }
+  const ships = { ...state.ships, [shipId]: { ...ship, targetId } };
+  const escort = Object.values(ships).find((candidate) => candidate.role === 'escort' && candidate.alive);
+  if (escort) ships[escort.id] = { ...escort, targetId };
+  return { state: { ...state, ships }, events: [{ type: 'target-designated', shipId, targetId }] };
+}
+
+export function setEscortDirective(state: CombatState, directive: EscortDirective): CommandResult {
+  return {
+    state: { ...state, escortDirective: directive },
+    events: [{ type: 'escort-directive-changed', directive }],
+  };
+}
+
+function launchTorpedo(
+  state: CombatState,
+  ship: ShipState,
+  target: ShipState,
+  events: CombatEvent[],
+): CombatState {
+  const weapon = WEAPONS.torpedo;
+  const projectileId = `torpedo-${state.nextProjectileId}`;
+  const projectile: ProjectileState = {
+    id: projectileId,
+    kind: 'torpedo',
+    team: ship.team,
+    ownerId: ship.id,
+    targetId: target.id,
+    position: {
+      x: ship.position.x + Math.cos(ship.facing) * ship.radius * 1.35,
+      y: ship.position.y + Math.sin(ship.facing) * ship.radius * 1.35,
+    },
+    facing: ship.facing,
+    speed: weapon.projectileSpeed ?? 190,
+    turnRate: weapon.projectileTurnRate ?? 1,
+    damage: weapon.damage,
+    shieldMultiplier: weapon.shieldMultiplier,
+    ttlMs: 8_000,
+    radius: 9,
+  };
+  events.push({ type: 'weapon-fired', shipId: ship.id, targetId: target.id, weapon: 'torpedo' });
+  events.push({ type: 'projectile-launched', projectileId });
+  return {
+    ...state,
+    nextProjectileId: state.nextProjectileId + 1,
+    projectiles: { ...state.projectiles, [projectileId]: projectile },
+  };
+}
+
+export function activateAbility(state: CombatState, shipId: string, ability: ManualAbility): CommandResult {
+  const ship = state.ships[shipId];
+  const target = ship?.targetId ? state.ships[ship.targetId] : undefined;
+  const preview = getAbilityPreview(state, shipId, ability, target?.id);
+  if (!preview.valid || !ship) return { state, events: [], error: preview.reason ?? 'Ability unavailable.' };
+  const events: CombatEvent[] = [];
+
+  if (ability === 'shield') {
+    const restored = Math.min(SHIELD_BOOST_RESTORE, ship.maxShield - ship.shield);
+    const boosted = {
+      ...ship,
+      energy: ship.energy - SHIELD_BOOST_COST,
+      shield: ship.shield + restored,
+      shieldBoostMs: SHIELD_BOOST_DURATION_MS,
+      cooldowns: { ...ship.cooldowns, shield: SHIELD_BOOST_COOLDOWN_MS },
+    };
+    events.push({ type: 'shield-boosted', shipId, restored, durationMs: SHIELD_BOOST_DURATION_MS });
+    return { state: { ...state, ships: { ...state.ships, [shipId]: boosted } }, events };
+  }
+
+  if (!target) return { state, events: [], error: 'Designate an enemy target.' };
+  const weapon = WEAPONS[ability];
+  const armed = {
+    ...ship,
+    energy: ship.energy - weapon.energyCost,
+    cooldowns: { ...ship.cooldowns, [ability]: weapon.cooldownMs },
+  };
+  let nextState: CombatState = { ...state, ships: { ...state.ships, [shipId]: armed } };
+  if (ability === 'lance') {
+    const charging = { ...armed, lanceChargeMs: weapon.chargeMs ?? 0, lanceTargetId: target.id };
+    events.push({ type: 'weapon-charging', shipId, targetId: target.id, weapon: 'lance', durationMs: weapon.chargeMs ?? 0 });
+    nextState = { ...nextState, ships: { ...nextState.ships, [shipId]: charging } };
+  } else {
+    nextState = launchTorpedo(nextState, armed, target, events);
+  }
+  return { state: nextState, events };
+}
+
+function rotateToward(current: number, desired: number, maximumDelta: number): number {
+  const delta = normalizeAngle(desired - current);
+  return normalizeAngle(current + clamp(delta, -maximumDelta, maximumDelta));
+}
+
+function closestEnemy(ship: ShipState, ships: Readonly<Record<string, ShipState>>): ShipState | undefined {
+  return Object.values(ships)
+    .filter((candidate) => candidate.alive && candidate.team !== ship.team)
+    .sort((a, b) => distance(ship.position, a.position) - distance(ship.position, b.position))[0];
+}
+
+function escortDestination(state: CombatState, escort: ShipState, flagship: ShipState, target?: ShipState): Vector2 {
+  if ((state.escortDirective === 'flank-left' || state.escortDirective === 'flank-right') && target) {
+    const approach = angleBetween(target.position, flagship.position);
+    const side = state.escortDirective === 'flank-left' ? -1 : 1;
+    const angle = approach + side * Math.PI / 2;
+    return { x: target.position.x + Math.cos(angle) * 235, y: target.position.y + Math.sin(angle) * 235 };
+  }
+  const backDistance = state.escortDirective === 'protect' ? 92 : 145;
+  const lateral = state.escortDirective === 'protect' ? 0 : escort.id.endsWith('frigate') ? 110 : -110;
+  return {
+    x: flagship.position.x - Math.cos(flagship.facing) * backDistance + Math.cos(flagship.facing + Math.PI / 2) * lateral,
+    y: flagship.position.y - Math.sin(flagship.facing) * backDistance + Math.sin(flagship.facing + Math.PI / 2) * lateral,
+  };
+}
+
+function hostileDestination(ship: ShipState, target: ShipState): Vector2 {
+  const targetAngle = angleBetween(ship.position, target.position);
+  const separation = distance(ship.position, target.position);
+  if (separation > 430) return { ...target.position };
+  if (separation < 175) {
+    return {
+      x: ship.position.x - Math.cos(targetAngle) * 260,
+      y: ship.position.y - Math.sin(targetAngle) * 260,
+    };
+  }
+  const broadsideShip = ship.weapons.includes('broadside');
+  const orbitDirection = ship.id === 'e-cruiser' ? 1 : -1;
+  const desiredAngle = targetAngle + (broadsideShip ? orbitDirection * Math.PI / 2 : orbitDirection * Math.PI / 3);
+  return {
+    x: ship.position.x + Math.cos(desiredAngle) * 330,
+    y: ship.position.y + Math.sin(desiredAngle) * 330,
+  };
+}
+
+function planAutonomousShip(state: CombatState, ship: ShipState): ShipState {
+  const flagship = state.ships[state.flagshipId];
+  const inheritedTarget = ship.role === 'escort' && flagship?.targetId ? state.ships[flagship.targetId] : undefined;
+  const target = inheritedTarget?.alive ? inheritedTarget : closestEnemy(ship, state.ships);
+  if (!target) return { ...ship, aiThinkMs: AI_THINK_INTERVAL_MS };
+  const destination = ship.role === 'escort' && flagship?.alive
+    ? escortDestination(state, ship, flagship, target)
+    : hostileDestination(ship, target);
+  return {
+    ...ship,
+    targetId: target.id,
+    course: [{
+      x: clamp(destination.x, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius),
+      y: clamp(destination.y, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius),
+    }],
+    aiThinkMs: AI_THINK_INTERVAL_MS,
+  };
+}
+
+function moveShip(ship: ShipState, deltaSeconds: number): ShipState {
+  let course = [...ship.course];
+  while (course[0] && distance(ship.position, course[0]) <= COURSE_REACHED_DISTANCE) course = course.slice(1);
+  const waypoint = course[0];
+  const desiredFacing = waypoint ? angleBetween(ship.position, waypoint) : ship.facing;
+  const turnDelta = angleDifference(desiredFacing, ship.facing);
+  const facing = rotateToward(ship.facing, desiredFacing, ship.turnRate * deltaSeconds);
+  const desiredSpeed = ship.maxSpeed * (0.58 + 0.42 * (1 - Math.min(Math.PI, turnDelta) / Math.PI));
+  const speed = ship.speed < desiredSpeed
+    ? Math.min(desiredSpeed, ship.speed + ship.acceleration * deltaSeconds)
+    : Math.max(desiredSpeed, ship.speed - ship.acceleration * 1.4 * deltaSeconds);
+  const position = {
+    x: clamp(ship.position.x + Math.cos(facing) * speed * deltaSeconds, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius),
+    y: clamp(ship.position.y + Math.sin(facing) * speed * deltaSeconds, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius),
+  };
+  const blocked = position.x === ship.position.x && position.y === ship.position.y;
+  return {
+    ...ship,
+    position,
+    facing: blocked ? rotateToward(facing, angleBetween(position, { x: BATTLEFIELD_WIDTH / 2, y: BATTLEFIELD_HEIGHT / 2 }), ship.turnRate * deltaSeconds) : facing,
+    speed,
+    course,
+  };
+}
+
+function applySeparation(ships: Record<string, ShipState>): void {
+  const living = Object.values(ships).filter((ship) => ship.alive);
+  for (let firstIndex = 0; firstIndex < living.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < living.length; secondIndex += 1) {
+      const first = ships[living[firstIndex].id];
+      const second = ships[living[secondIndex].id];
+      const separation = distance(first.position, second.position);
+      const minimum = first.radius + second.radius + 16;
+      if (separation >= minimum || separation < 0.01) continue;
+      const angle = angleBetween(second.position, first.position);
+      const push = (minimum - separation) / 2;
+      const firstPosition = {
+        x: clamp(first.position.x + Math.cos(angle) * push, BATTLEFIELD_MARGIN + first.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - first.radius),
+        y: clamp(first.position.y + Math.sin(angle) * push, BATTLEFIELD_MARGIN + first.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - first.radius),
+      };
+      const secondPosition = {
+        x: clamp(second.position.x - Math.cos(angle) * push, BATTLEFIELD_MARGIN + second.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - second.radius),
+        y: clamp(second.position.y - Math.sin(angle) * push, BATTLEFIELD_MARGIN + second.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - second.radius),
+      };
+      ships[first.id] = { ...first, position: firstPosition };
+      ships[second.id] = { ...second, position: secondPosition };
+    }
+  }
+}
+
+function damageTarget(
+  ships: Record<string, ShipState>,
+  attackerId: string,
+  targetId: string,
+  weapon: WeaponKind,
+  rawDamage: number,
+  shieldMultiplier: number,
+  events: CombatEvent[],
+): void {
+  const target = ships[targetId];
+  if (!target?.alive) return;
+  const damage = splitDamage(target, rawDamage, shieldMultiplier);
+  const hull = Math.max(0, target.hull - damage.hullDamage);
+  ships[targetId] = {
+    ...target,
+    shield: Math.max(0, target.shield - damage.shieldDamage),
+    hull,
+    alive: hull > 0,
+  };
+  events.push({ type: 'attack-resolved', shipId: attackerId, targetId, weapon, ...damage });
+  if (hull === 0) events.push({ type: 'ship-destroyed', shipId: targetId });
+}
+
+function tickCooldowns(ship: ShipState, deltaMs: number): ShipState {
+  return {
+    ...ship,
+    energy: Math.min(ship.maxEnergy, ship.energy + ship.energyRegenPerSecond * (deltaMs / 1_000)),
+    cooldowns: {
+      broadside: Math.max(0, ship.cooldowns.broadside - deltaMs),
+      lance: Math.max(0, ship.cooldowns.lance - deltaMs),
+      torpedo: Math.max(0, ship.cooldowns.torpedo - deltaMs),
+      shield: Math.max(0, ship.cooldowns.shield - deltaMs),
+    },
+    shieldBoostMs: Math.max(0, ship.shieldBoostMs - deltaMs),
+    aiThinkMs: Math.max(0, ship.aiThinkMs - deltaMs),
   };
 }
 
@@ -191,329 +457,126 @@ function resolveCombatStatus(state: CombatState, events: CombatEvent[]): CombatS
   return { ...state, status };
 }
 
-function executeMove(state: CombatState, command: Extract<CombatCommand, { type: 'move' }>): CommandResult {
-  const actionShip = getActionShip(state, command.shipId);
-  if (typeof actionShip === 'string') return invalidResult(state, actionShip);
-  if (actionShip.ap < MOVE_AP_COST) return invalidResult(state, 'Not enough AP.');
-  if (actionShip.energy < MOVE_ENERGY_COST) return invalidResult(state, 'Not enough Energy.');
-  if (!isInsideBattlefield(command.destination, actionShip.radius)) return invalidResult(state, 'Destination is outside the battlefield.');
-  if (distance(actionShip.position, command.destination) > actionShip.moveRange) {
-    return invalidResult(state, 'Destination is outside movement range.');
-  }
-
-  const moved: ShipState = {
-    ...actionShip,
-    position: { ...command.destination },
-    facing: normalizeAngle(command.facing),
-    ap: actionShip.ap - MOVE_AP_COST,
-    energy: actionShip.energy - MOVE_ENERGY_COST,
-  };
-  return {
-    state: updateShip(state, moved),
-    events: [
-      {
-        type: 'ship-moved',
-        shipId: moved.id,
-        from: actionShip.position,
-        to: moved.position,
-        facing: moved.facing,
-      },
-    ],
-  };
-}
-
-function executeRotate(state: CombatState, command: Extract<CombatCommand, { type: 'rotate' }>): CommandResult {
-  const actionShip = getActionShip(state, command.shipId);
-  if (typeof actionShip === 'string') return invalidResult(state, actionShip);
-  if (actionShip.ap < ROTATE_AP_COST) return invalidResult(state, 'Not enough AP.');
-  const rotated: ShipState = {
-    ...actionShip,
-    facing: normalizeAngle(command.facing),
-    ap: actionShip.ap - ROTATE_AP_COST,
-  };
-  return {
-    state: updateShip(state, rotated),
-    events: [{ type: 'ship-rotated', shipId: rotated.id, facing: rotated.facing }],
-  };
-}
-
-function executeAttack(state: CombatState, command: Extract<CombatCommand, { type: 'attack' }>): CommandResult {
-  const actionShip = getActionShip(state, command.shipId);
-  if (typeof actionShip === 'string') return invalidResult(state, actionShip);
-  const weaponResult = getWeapon(actionShip, command.weapon);
-  if (typeof weaponResult === 'string') return invalidResult(state, weaponResult);
-  const target = state.ships[command.targetId];
-  if (!target) return invalidResult(state, 'Unknown target.');
-  const preview = getAttackPreview(state, actionShip.id, target.id, command.weapon);
-  if (!preview.valid) return invalidResult(state, preview.reason ?? 'Invalid attack.');
-
-  const attacker: ShipState = {
-    ...actionShip,
-    ap: actionShip.ap - weaponResult.apCost,
-    energy: actionShip.energy - weaponResult.energyCost,
-  };
-  let nextState = updateShip(state, attacker);
+export function stepCombat(initialState: CombatState, deltaMs: number): StepResult {
+  if (initialState.status !== 'active' || deltaMs <= 0) return { state: initialState, events: [] };
   const events: CombatEvent[] = [];
-  const split = {
-    shieldDamage: preview.minShieldDamage,
-    hullDamage: preview.minHullDamage,
-  };
-  const remainingHull = Math.max(0, target.hull - split.hullDamage);
-  const damagedTarget: ShipState = {
-    ...target,
-    shield: Math.max(0, target.shield - split.shieldDamage),
-    hull: remainingHull,
-    alive: remainingHull > 0,
-  };
-  nextState = updateShip(nextState, damagedTarget);
-  if (!damagedTarget.alive) events.push({ type: 'ship-destroyed', shipId: damagedTarget.id });
-
-  events.unshift({
-    type: 'attack-resolved',
-    shipId: attacker.id,
-    targetId: target.id,
-    weapon: command.weapon,
-    hit: true,
-    intercepted: false,
-    shieldDamage: split.shieldDamage,
-    hullDamage: split.hullDamage,
-  });
-  nextState = resolveCombatStatus(nextState, events);
-  return { state: nextState, events };
-}
-
-function executeShield(state: CombatState, command: Extract<CombatCommand, { type: 'reinforce-shield' }>): CommandResult {
-  const actionShip = getActionShip(state, command.shipId);
-  if (typeof actionShip === 'string') return invalidResult(state, actionShip);
-  if (actionShip.ap < SHIELD_AP_COST) return invalidResult(state, 'Not enough AP.');
-  if (actionShip.energy < SHIELD_ENERGY_COST) return invalidResult(state, 'Not enough Energy.');
-  if (actionShip.shield >= actionShip.maxShield) return invalidResult(state, 'Shield is already at maximum strength.');
-
-  const amount = Math.min(SHIELD_RESTORE, actionShip.maxShield - actionShip.shield);
-  const reinforced: ShipState = {
-    ...actionShip,
-    shield: actionShip.shield + amount,
-    ap: actionShip.ap - SHIELD_AP_COST,
-    energy: actionShip.energy - SHIELD_ENERGY_COST,
-  };
-  return {
-    state: updateShip(state, reinforced),
-    events: [{ type: 'shield-reinforced', shipId: reinforced.id, amount }],
-  };
-}
-
-function beginPhase(state: CombatState, team: Team): CombatState {
-  const ships = Object.fromEntries(
-    Object.entries(state.ships).map(([id, ship]) => {
-      if (!ship.alive || ship.team !== team) return [id, ship];
-      return [
-        id,
-        {
-          ...ship,
-          ap: ship.maxAp,
-          energy: Math.min(ship.maxEnergy, ship.energy + ship.energyRegen),
-          shield: Math.min(ship.maxShield, ship.shield + ship.shieldRegen),
-        },
-      ];
-    }),
+  const ships: Record<string, ShipState> = Object.fromEntries(
+    Object.entries(initialState.ships).map(([id, ship]) => [id, ship.alive ? tickCooldowns(ship, deltaMs) : ship]),
   );
-  return { ...state, ships };
-}
+  let state: CombatState = { ...initialState, elapsedMs: initialState.elapsedMs + deltaMs, ships };
 
-function executeEndTurn(state: CombatState): CommandResult {
-  if (state.status !== 'active') return invalidResult(state, 'Combat has already ended.');
-  const nextPhase: Team = state.phase === 'player' ? 'enemy' : 'player';
-  const nextTurn = nextPhase === 'player' ? state.turn + 1 : state.turn;
-  const nextState = beginPhase({ ...state, phase: nextPhase, turn: nextTurn }, nextPhase);
-  return {
-    state: nextState,
-    events: [{ type: 'phase-changed', phase: nextPhase, turn: nextTurn }],
-  };
-}
-
-export function executeCommand(state: CombatState, command: CombatCommand): CommandResult {
-  if (state.status !== 'active') return invalidResult(state, 'Combat has already ended.');
-  switch (command.type) {
-    case 'move':
-      return executeMove(state, command);
-    case 'rotate':
-      return executeRotate(state, command);
-    case 'attack':
-      return executeAttack(state, command);
-    case 'reinforce-shield':
-      return executeShield(state, command);
-    case 'end-turn':
-      return executeEndTurn(state);
+  for (const ship of Object.values(ships)) {
+    if (!ship.alive || ship.role === 'flagship') continue;
+    if (ship.aiThinkMs <= 0) ships[ship.id] = planAutonomousShip({ ...state, ships }, ship);
   }
-}
-
-function resetForNextBeat(state: CombatState): CombatState {
-  const ships = Object.fromEntries(
-    Object.entries(state.ships).map(([id, ship]) => [
-      id,
-      ship.alive
-        ? {
-            ...ship,
-            ap: ship.maxAp,
-            energy: Math.min(ship.maxEnergy, ship.energy + ship.energyRegen),
-          }
-        : ship,
-    ]),
-  );
-  return { ...state, phase: 'player', turn: state.turn + 1, ships };
-}
-
-function driftLivingShips(state: CombatState, events: CombatEvent[]): CombatState {
-  let nextState = state;
-  for (const ship of getLivingShips(state)) {
-    const destination = {
-      x: clamp(
-        ship.position.x + Math.cos(ship.facing) * COMMAND_DRIFT_DISTANCE,
-        BATTLEFIELD_MARGIN + ship.radius,
-        BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius,
-      ),
-      y: clamp(
-        ship.position.y + Math.sin(ship.facing) * COMMAND_DRIFT_DISTANCE,
-        BATTLEFIELD_MARGIN + ship.radius,
-        BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius,
-      ),
-    };
-    if (distance(ship.position, destination) < 0.5) continue;
-    nextState = updateShip(nextState, { ...ship, position: destination });
-    events.push({
-      type: 'ship-moved',
-      shipId: ship.id,
-      from: ship.position,
-      to: destination,
-      facing: ship.facing,
-      movementKind: 'drift',
-    });
+  for (const ship of Object.values(ships)) {
+    if (ship.alive) ships[ship.id] = moveShip(ship, deltaMs / 1_000);
   }
-  return nextState;
-}
+  applySeparation(ships);
+  state = { ...state, ships };
 
-/**
- * Resolves one short command beat. Every living ship may contribute at most one
- * order. Maneuvers happen first, attacks use that projected board, damage is
- * applied for every valid firing solution, and the whole formation then drifts.
- */
-export function resolveCommandBeat(
-  initialState: CombatState,
-  playerOrders: readonly ShipOrder[],
-  enemyOrders: readonly ShipOrder[],
-): CommandBeatResult {
-  if (initialState.status !== 'active') {
-    return { state: initialState, events: [], resolvedOrders: [], error: 'Combat has already ended.' };
-  }
-
-  const events: CombatEvent[] = [];
-  const resolvedOrders: ShipOrder[] = [];
-  const seenShips = new Set<string>();
-  const orders = [...playerOrders, ...enemyOrders];
-  const validOrders: ShipOrder[] = [];
-
-  for (const order of orders) {
-    const ship = initialState.ships[order.shipId];
-    const expectedTeam: Team = playerOrders.includes(order) ? 'player' : 'enemy';
-    const reason = !ship
-      ? 'Unknown ship.'
-      : !ship.alive
-        ? 'Destroyed ships cannot act.'
-        : ship.team !== expectedTeam
-          ? 'Order assigned to the wrong team.'
-          : seenShips.has(ship.id)
-            ? 'Only one order per ship is allowed in a command beat.'
-            : undefined;
-    if (reason) {
-      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason });
+  for (const ship of Object.values(ships)) {
+    if (!ship.alive || ship.lanceChargeMs <= 0 || !ship.lanceTargetId) continue;
+    const remaining = ship.lanceChargeMs - deltaMs;
+    if (remaining > 0) {
+      ships[ship.id] = { ...ship, lanceChargeMs: remaining };
       continue;
     }
-    seenShips.add(ship.id);
-    validOrders.push(order);
+    const target = ships[ship.lanceTargetId];
+    const weapon = WEAPONS.lance;
+    ships[ship.id] = { ...ship, lanceChargeMs: 0, lanceTargetId: undefined };
+    if (target?.alive && distance(ship.position, target.position) <= weapon.range && isInsideArc(ship, target, weapon)) {
+      events.push({ type: 'weapon-fired', shipId: ship.id, targetId: target.id, weapon: 'lance' });
+      damageTarget(ships, ship.id, target.id, 'lance', weapon.damage, weapon.shieldMultiplier, events);
+    } else {
+      events.push({ type: 'ability-failed', shipId: ship.id, ability: 'lance', reason: 'Firing solution lost during charge.' });
+    }
   }
 
-  let state = initialState;
-  const maneuverOrders = validOrders.filter((order) => order.type !== 'attack');
-  const attackOrders = validOrders.filter(
-    (order): order is Extract<ShipOrder, { type: 'attack' }> => order.type === 'attack',
-  );
+  for (const original of Object.values(ships)) {
+    const ship = ships[original.id];
+    if (!ship.alive) continue;
+    const target = ship.targetId ? ships[ship.targetId] : undefined;
+    if (!target?.alive) continue;
 
-  for (const order of maneuverOrders) {
-    const team = state.ships[order.shipId]?.team;
-    if (!team) continue;
-    const phasedState = { ...state, phase: team };
-    const result =
-      order.type === 'move'
-        ? executeMove(phasedState, order)
-        : order.type === 'rotate'
-          ? executeRotate(phasedState, order)
-          : executeShield(phasedState, order);
-    if (result.error) {
-      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason: result.error });
+    const broadside = WEAPONS.broadside;
+    if (
+      ship.autoFire &&
+      ship.weapons.includes('broadside') &&
+      ship.cooldowns.broadside <= 0 &&
+      ship.energy >= broadside.energyCost &&
+      distance(ship.position, target.position) <= broadside.range &&
+      isInsideArc(ship, target, broadside)
+    ) {
+      ships[ship.id] = {
+        ...ship,
+        energy: ship.energy - broadside.energyCost,
+        cooldowns: { ...ship.cooldowns, broadside: broadside.cooldownMs },
+      };
+      events.push({ type: 'weapon-fired', shipId: ship.id, targetId: target.id, weapon: 'broadside' });
+      damageTarget(ships, ship.id, target.id, 'broadside', broadside.damage, broadside.shieldMultiplier, events);
+    }
+  }
+
+  state = { ...state, ships };
+  for (const ship of Object.values(ships)) {
+    if (!ship.alive || ship.role === 'flagship' || ship.lanceChargeMs > 0 || ship.aiThinkMs > 80) continue;
+    const target = ship.targetId ? ships[ship.targetId] : undefined;
+    if (!target?.alive) continue;
+    if (ship.shield < ship.maxShield * 0.2 && ship.cooldowns.shield <= 0 && ship.energy >= SHIELD_BOOST_COST) {
+      const restored = Math.min(SHIELD_BOOST_RESTORE, ship.maxShield - ship.shield);
+      ships[ship.id] = {
+        ...ship,
+        shield: ship.shield + restored,
+        energy: ship.energy - SHIELD_BOOST_COST,
+        shieldBoostMs: SHIELD_BOOST_DURATION_MS,
+        cooldowns: { ...ship.cooldowns, shield: SHIELD_BOOST_COOLDOWN_MS },
+        aiThinkMs: AI_THINK_INTERVAL_MS,
+      };
+      events.push({ type: 'shield-boosted', shipId: ship.id, restored, durationMs: SHIELD_BOOST_DURATION_MS });
       continue;
     }
+    const special: ManualAbility | undefined = ship.weapons.includes('lance') && ship.cooldowns.lance <= 0 ? 'lance'
+      : ship.weapons.includes('torpedo') && ship.cooldowns.torpedo <= 0 ? 'torpedo'
+        : undefined;
+    if (!special) continue;
+    const preview = getAbilityPreview({ ...state, ships }, ship.id, special, target.id);
+    if (!preview.valid) continue;
+    const result = activateAbility({ ...state, ships }, ship.id, special);
     state = result.state;
-    for (const event of result.events) {
-      events.push(event.type === 'ship-moved' ? { ...event, movementKind: 'order' } : event);
-    }
-    resolvedOrders.push(order);
+    Object.assign(ships, state.ships);
+    ships[ship.id] = { ...ships[ship.id], aiThinkMs: AI_THINK_INTERVAL_MS };
+    events.push(...result.events);
   }
 
-  const attackSnapshot: CombatState = { ...state, phase: 'player' };
-  for (const order of attackOrders) {
-    const attackerSnapshot = attackSnapshot.ships[order.shipId];
-    const targetSnapshot = attackSnapshot.ships[order.targetId];
-    if (!attackerSnapshot || !targetSnapshot) {
-      events.push({ type: 'order-failed', shipId: order.shipId, order: order.type, reason: 'Unknown ship.' });
+  const projectiles: Record<string, ProjectileState> = { ...state.projectiles };
+  for (const projectile of Object.values(projectiles)) {
+    const target = ships[projectile.targetId];
+    if (!target?.alive || projectile.ttlMs <= deltaMs) {
+      delete projectiles[projectile.id];
+      events.push({ type: 'projectile-expired', projectileId: projectile.id });
       continue;
     }
-    const preview = getAttackPreview(attackSnapshot, order.shipId, order.targetId, order.weapon);
-    if (!preview.valid) {
-      events.push({
-        type: 'order-failed',
-        shipId: order.shipId,
-        order: order.type,
-        reason: preview.reason ?? 'Firing solution was broken.',
-      });
+    const desiredFacing = angleBetween(projectile.position, target.position);
+    const facing = rotateToward(projectile.facing, desiredFacing, projectile.turnRate * (deltaMs / 1_000));
+    const position = {
+      x: projectile.position.x + Math.cos(facing) * projectile.speed * (deltaMs / 1_000),
+      y: projectile.position.y + Math.sin(facing) * projectile.speed * (deltaMs / 1_000),
+    };
+    if (distance(position, target.position) <= target.radius + projectile.radius + 8) {
+      damageTarget(ships, projectile.ownerId, target.id, 'torpedo', projectile.damage, projectile.shieldMultiplier, events);
+      delete projectiles[projectile.id];
       continue;
     }
-
-    const weapon = WEAPONS[order.weapon];
-    const currentAttacker = state.ships[order.shipId];
-    const currentTarget = state.ships[order.targetId];
-    state = updateShip(state, {
-      ...currentAttacker,
-      ap: Math.max(0, attackerSnapshot.ap - weapon.apCost),
-      energy: Math.max(0, attackerSnapshot.energy - weapon.energyCost),
-    });
-    const damage = splitDamage(currentTarget, weapon.maxDamage - (weapon.maxDamage - weapon.minDamage) * clamp(preview.distance / weapon.range, 0, 1), weapon);
-    const remainingHull = Math.max(0, currentTarget.hull - damage.hullDamage);
-    const wasAlive = currentTarget.alive;
-    state = updateShip(state, {
-      ...currentTarget,
-      shield: Math.max(0, currentTarget.shield - damage.shieldDamage),
-      hull: remainingHull,
-      alive: remainingHull > 0,
-    });
-    events.push({
-      type: 'attack-resolved',
-      shipId: order.shipId,
-      targetId: order.targetId,
-      weapon: order.weapon,
-      hit: true,
-      intercepted: false,
-      shieldDamage: damage.shieldDamage,
-      hullDamage: damage.hullDamage,
-    });
-    if (wasAlive && remainingHull === 0) events.push({ type: 'ship-destroyed', shipId: order.targetId });
-    resolvedOrders.push(order);
+    if (!isInsideBattlefield(position, 0)) {
+      delete projectiles[projectile.id];
+      events.push({ type: 'projectile-expired', projectileId: projectile.id });
+      continue;
+    }
+    projectiles[projectile.id] = { ...projectile, position, facing, ttlMs: projectile.ttlMs - deltaMs };
   }
 
-  state = resolveCombatStatus({ ...state, phase: 'player' }, events);
-  if (state.status === 'active') {
-    state = driftLivingShips(state, events);
-    state = resetForNextBeat(state);
-    events.push({ type: 'phase-changed', phase: 'player', turn: state.turn });
-  }
-  return { state, events, resolvedOrders };
+  state = { ...state, ships, projectiles };
+  state = resolveCombatStatus(state, events);
+  return { state, events };
 }

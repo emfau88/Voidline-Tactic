@@ -4,7 +4,7 @@ import { SHIP_PRESENTATIONS, weaponOrigins } from '../../src/game/presentation/s
 
 describe('ship presentation hardpoints', () => {
   it('rotates the player cruiser lance origin with its facing', () => {
-    const cruiser = createCombatState(1).ships['p-cruiser'];
+    const cruiser = createCombatState().ships['p-cruiser'];
     const [origin] = weaponOrigins(cruiser, { x: cruiser.position.x, y: 0 }, 'lance');
 
     expect(origin.x).toBeCloseTo(cruiser.position.x, 5);
@@ -12,7 +12,7 @@ describe('ship presentation hardpoints', () => {
   });
 
   it('chooses the broadside hardpoints on the side facing the target', () => {
-    const cruiser = createCombatState(2).ships['p-cruiser'];
+    const cruiser = createCombatState().ships['p-cruiser'];
     const easternOrigins = weaponOrigins(cruiser, { x: cruiser.position.x + 300, y: cruiser.position.y }, 'broadside');
     const westernOrigins = weaponOrigins(cruiser, { x: cruiser.position.x - 300, y: cruiser.position.y }, 'broadside');
 
@@ -23,7 +23,7 @@ describe('ship presentation hardpoints', () => {
   });
 
   it('defines distinct runtime art and weapon origins for all four ships', () => {
-    const state = createCombatState(3);
+    const state = createCombatState();
 
     expect(Object.keys(SHIP_PRESENTATIONS)).toEqual(['p-cruiser', 'p-frigate', 'e-cruiser', 'e-destroyer']);
     for (const ship of Object.values(state.ships)) {
