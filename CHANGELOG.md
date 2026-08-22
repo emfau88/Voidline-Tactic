@@ -11,6 +11,7 @@ Meilenstein-Commits:
 - `f79f605` – Fleet-Corridor-Audit und Pivot-Architektur
 - `3656354` – Korridore, Haltungen, Navigation, Versorgung, Deployment und Strategie-KI
 - `025cbc7` – aktive Mobile-Fleet-Szene, freie Kamera und Routengruppen-HUD
+- `adbd6b2` – Validierung, Roadmap, aktuelle Screenshots und kanonische Produktdokumente
 
 #### Added
 
