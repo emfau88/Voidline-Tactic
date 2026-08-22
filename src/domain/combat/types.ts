@@ -7,6 +7,9 @@ export type ShipRole = 'flagship' | 'escort' | 'hostile';
 export type EscortDirective = 'follow' | 'flank-left' | 'flank-right' | 'protect';
 export type TimeScale = 0 | 0.25 | 1;
 export type ManualAbility = 'lance' | 'torpedo' | 'shield';
+export type MissionId = 'mission-1' | 'mission-2' | 'mission-3';
+export type UpgradeId = 'reinforced-hull' | 'vector-thrusters' | 'escort-plating' | 'flux-capacitor';
+export type ObjectiveKind = 'eliminate' | 'relay' | 'shipyard';
 
 export interface Vector2 {
   readonly x: number;
@@ -45,6 +48,7 @@ export interface ShipDefinition {
   readonly weapons: readonly WeaponKind[];
   readonly startPosition: Vector2;
   readonly startFacing: number;
+  readonly presentationId?: string;
 }
 
 export interface WeaponCooldowns {
@@ -98,6 +102,20 @@ export interface CombatState {
   readonly nextProjectileId: number;
   readonly flagshipId: string;
   readonly escortDirective: EscortDirective;
+  readonly missionId: MissionId;
+  readonly upgrades: readonly UpgradeId[];
+  readonly objective: ObjectiveState;
+  readonly nextReinforcementId: number;
+}
+
+export interface ObjectiveState {
+  readonly kind: ObjectiveKind;
+  readonly label: string;
+  readonly position?: Vector2;
+  readonly radius: number;
+  readonly captureProgress: number;
+  readonly owner?: Team;
+  readonly spawnCooldownMs: number;
 }
 
 export interface AbilityPreview {
@@ -124,6 +142,8 @@ export type CombatEvent =
   | { readonly type: 'attack-resolved'; readonly shipId: string; readonly targetId: string; readonly weapon: WeaponKind; readonly shieldDamage: number; readonly hullDamage: number }
   | { readonly type: 'projectile-launched'; readonly projectileId: string }
   | { readonly type: 'projectile-expired'; readonly projectileId: string }
+  | { readonly type: 'objective-captured'; readonly objective: ObjectiveKind; readonly team: Team }
+  | { readonly type: 'reinforcement-spawned'; readonly shipId: string; readonly team: Team }
   | { readonly type: 'shield-boosted'; readonly shipId: string; readonly restored: number; readonly durationMs: number }
   | { readonly type: 'ability-failed'; readonly shipId: string; readonly ability: ManualAbility; readonly reason: string }
   | { readonly type: 'ship-destroyed'; readonly shipId: string }

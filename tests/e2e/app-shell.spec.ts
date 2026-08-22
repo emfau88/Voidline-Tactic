@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 async function startBattle(page: import('@playwright/test').Page, starter?: 'p-cruiser' | 'p-frigate'): Promise<void> {
   if (starter) await page.locator(`[data-starter="${starter}"]`).click();
-  await page.getByRole('button', { name: /ERSTEN KONTAKT STARTEN/ }).click();
+  await page.locator('#start-button').click();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-game-ready', 'true', { timeout: 10_000 });
   await expect(page.locator('#game-shell')).toHaveAttribute('aria-busy', 'false');
 }
@@ -30,6 +30,9 @@ async function clickShip(page: import('@playwright/test').Page, shipId: string):
 
 test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', 'manifest.webmanifest');
+  await expect(page.locator('[data-mission="mission-1"]')).toBeEnabled();
+  await expect(page.locator('[data-mission="mission-2"]')).toBeDisabled();
+  await expect(page.locator('[data-mission="mission-3"]')).toBeDisabled();
   await startBattle(page, 'p-frigate');
   await expect(page).toHaveTitle('Voidline Tactics');
   await expect(page.locator('#game-root canvas')).toBeVisible();
@@ -54,6 +57,23 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   });
   const expectedDensity = await page.evaluate(() => Math.min(window.devicePixelRatio, 2));
   expect(Math.abs(density - expectedDensity)).toBeLessThan(0.08);
+});
+
+test('loads an unlocked relay mission with its persistent campaign setup', async ({ page }) => {
+  await page.evaluate(() => window.localStorage.setItem('voidline-campaign-v1', JSON.stringify({
+    version: 1,
+    selectedMissionId: 'mission-1',
+    unlockedMission: 2,
+    completedMissions: ['mission-1'],
+    salvage: 120,
+    upgrades: ['vector-thrusters'],
+  })));
+  await page.reload();
+  await page.locator('[data-mission="mission-2"]').click();
+  await startBattle(page);
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-mission', 'mission-2');
+  await expect(page.locator('#objective-label')).toContainText('Relais sichern');
+  await expect(page.locator('#ship-ap')).toContainText('/70');
 });
 
 test('freezes simulation in tactical pause and resumes at live speed', async ({ page }) => {

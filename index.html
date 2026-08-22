@@ -65,21 +65,31 @@
             </button>
           </div>
 
-          <section class="refit-preview" aria-labelledby="refit-title">
+          <section class="refit-preview" id="campaign-panel" aria-labelledby="campaign-title">
             <div class="refit-heading">
-              <div><small>NACH DER MISSION</small><strong id="refit-title">REFIT-VORSCHAU</strong></div>
-              <span>SHIPYARD · M5</span>
+              <div><small>VOIDLINE-KAMPAGNE</small><strong id="campaign-title">DREI MISSIONEN</strong></div>
+              <span id="campaign-salvage">0 SALVAGE</span>
             </div>
-            <div class="upgrade-track">
-              <article><span>01</span><b>WAFFENBUCHT</b><small>neue sichtbare Hardpoints und Waffenvarianten</small></article>
-              <article><span>02</span><b>SCHILDMATRIX</b><small>mehr Kapazität oder stärkerer aktiver Boost</small></article>
-              <article><span>03</span><b>VECTORDRIVE</b><small>Reichweite gegen Energieverbrauch tauschen</small></article>
+            <div class="mission-track" aria-label="Missionsauswahl">
+              <button class="selected" type="button" data-mission="mission-1" aria-pressed="true">
+                <span>01</span><b>ERSTER KONTAKT</b><small>Abfanggefecht</small>
+              </button>
+              <button type="button" data-mission="mission-2" aria-pressed="false" disabled>
+                <span>02</span><b>RELAISKNOTEN</b><small>Kontrollpunkt</small>
+              </button>
+              <button type="button" data-mission="mission-3" aria-pressed="false" disabled>
+                <span>03</span><b>GEBROCHENE WERFT</b><small>Drohnenproduktion</small>
+              </button>
+            </div>
+            <div class="campaign-briefing">
+              <strong id="mission-briefing-title">MISSION 01 · ERSTER KONTAKT</strong>
+              <small id="mission-briefing-copy">Zwei Vorpostenschiffe blockieren die Voidline. Breche den Verband und sichere erste Bergungsgüter.</small>
             </div>
           </section>
 
           <footer class="menu-footer">
             <p id="menu-status" role="status">Ausgewählt: <strong id="selected-starter-label">Sovereign's Fury</strong></p>
-            <button id="start-button" type="button"><span>MISSION 01</span><strong>ERSTEN KONTAKT STARTEN</strong><small>Flaggschiff + AI-Eskorte · Echtzeit</small></button>
+            <button id="start-button" type="button"><span id="start-mission-number">MISSION 01</span><strong id="start-mission-name">ERSTEN KONTAKT STARTEN</strong><small>Flaggschiff + AI-Eskorte · Echtzeit</small></button>
           </footer>
         </section>
 
@@ -96,7 +106,7 @@
           </div>
           <div class="objective-block">
             <small>ZIEL</small>
-            <strong>Feinde ausschalten</strong>
+            <strong id="objective-label">Feinde ausschalten</strong>
           </div>
         </header>
 
@@ -198,7 +208,15 @@
         <dialog id="result-dialog" class="modal panel">
           <h2 id="result-title">MISSION BEENDET</h2>
           <p id="result-copy"></p>
-          <button id="restart-button" type="button">MISSION NEU STARTEN</button>
+          <p id="result-reward"></p>
+          <section id="upgrade-choice" hidden aria-label="Upgrade auswählen">
+            <small>EIN UPGRADE INSTALLIEREN</small>
+            <div></div>
+          </section>
+          <div class="result-actions">
+            <button id="restart-button" type="button">MISSION NEU STARTEN</button>
+            <button id="continue-button" type="button" disabled>WEITER</button>
+          </div>
         </dialog>
       </section>
     </main>

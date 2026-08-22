@@ -12,7 +12,7 @@ export class ShipView extends Phaser.GameObjects.Container {
 
   public constructor(scene: Phaser.Scene, ship: ShipState) {
     super(scene, ship.position.x, ship.position.y);
-    const presentation = SHIP_PRESENTATIONS[ship.id];
+    const presentation = SHIP_PRESENTATIONS[ship.presentationId ?? ship.id];
     this.hullGraphics = scene.add.graphics();
     this.engineGlow = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     this.status = scene.add.graphics();
@@ -54,7 +54,7 @@ export class ShipView extends Phaser.GameObjects.Container {
     const friendly = ship.team === 'player';
     const length = ship.radius * 2.15;
     const width = ship.radius * (ship.class === 'frigate' ? 0.74 : 0.96);
-    const presentation = SHIP_PRESENTATIONS[ship.id];
+    const presentation = SHIP_PRESENTATIONS[ship.presentationId ?? ship.id];
     const statusLength = ship.radius * (presentation ? presentation.spriteLengthInRadii * 1.12 : 2.96);
     const statusWidth = ship.radius * (presentation ? presentation.spriteWidthInRadii * 1.38 : 2.96);
     this.hullGraphics.clear();

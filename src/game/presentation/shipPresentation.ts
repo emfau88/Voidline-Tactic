@@ -122,7 +122,7 @@ function toWorldPoint(ship: ShipState, hardpoint: RelativeHardpoint): Vector2 {
 }
 
 export function weaponOrigins(ship: ShipState, target: Vector2, weapon: WeaponKind): readonly Vector2[] {
-  const presentation = SHIP_PRESENTATIONS[ship.id];
+  const presentation = SHIP_PRESENTATIONS[ship.presentationId ?? ship.id];
   if (!presentation) return [ship.position];
   if (weapon === 'lance') return presentation.hardpoints.lance.map((point) => toWorldPoint(ship, point));
   if (weapon === 'torpedo') return presentation.hardpoints.torpedo.map((point) => toWorldPoint(ship, point));
@@ -130,5 +130,5 @@ export function weaponOrigins(ship: ShipState, target: Vector2, weapon: WeaponKi
   const targetAngle = Math.atan2(target.y - ship.position.y, target.x - ship.position.x);
   const side = Math.sin(targetAngle - ship.facing);
   const hardpoints = side >= 0 ? presentation.hardpoints.starboardBroadside : presentation.hardpoints.portBroadside;
-  return hardpoints.map((point) => toWorldPoint(ship, point));
+  return (hardpoints.length > 0 ? hardpoints : [{ x: 0, y: side >= 0 ? 0.7 : -0.7 }]).map((point) => toWorldPoint(ship, point));
 }

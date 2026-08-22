@@ -64,6 +64,38 @@ describe('real-time combat engine', () => {
     expect(frigateStart.ships['p-cruiser'].role).toBe('escort');
   });
 
+  it('builds escalating mission fleets and applies persistent fleet upgrades', () => {
+    const first = createCombatState('p-cruiser', 'mission-1');
+    const second = createCombatState('p-cruiser', 'mission-2', ['reinforced-hull', 'escort-plating']);
+    const third = createCombatState('p-cruiser', 'mission-3');
+
+    expect(Object.keys(first.ships)).toHaveLength(4);
+    expect(Object.keys(second.ships)).toHaveLength(5);
+    expect(Object.keys(third.ships)).toHaveLength(6);
+    expect(second.objective.kind).toBe('relay');
+    expect(third.objective.kind).toBe('shipyard');
+    expect(second.ships['p-cruiser'].maxHull).toBe(first.ships['p-cruiser'].maxHull + 18);
+    expect(second.ships['p-frigate'].maxHull).toBe(first.ships['p-frigate'].maxHull + 14);
+  });
+
+  it('captures the mission-three shipyard and spawns a capped reinforcement', () => {
+    let state = createCombatState('p-cruiser', 'mission-3');
+    const objective = state.objective.position!;
+    const ships = Object.fromEntries(Object.values(state.ships).map((ship) => [ship.id, ship.team === 'player' && ship.id === state.flagshipId
+      ? freeze({ ...ship, position: objective })
+      : ship.team === 'enemy'
+        ? freeze({ ...ship, role: 'hostile' })
+        : freeze({ ...ship, position: { x: 300, y: 1_100 } })]));
+    state = { ...state, ships };
+    const captured = advance(state, 6_200, 100);
+
+    expect(captured.state.objective.owner).toBe('player');
+    expect(captured.events).toContainEqual(expect.objectContaining({ type: 'objective-captured', team: 'player' }));
+    const reinforced = advance(captured.state, 2_600, 100);
+    expect(Object.values(reinforced.state.ships).some((ship) => ship.id.startsWith('p-drone-'))).toBe(true);
+    expect(reinforced.events).toContainEqual(expect.objectContaining({ type: 'reinforcement-spawned', team: 'player' }));
+  });
+
   it('accepts a drawn flagship course and clamps it to the battlefield', () => {
     const state = createCombatState();
     const result = setCourse(state, state.flagshipId, [{ x: -500, y: 900 }, { x: 5_000, y: 300 }]);

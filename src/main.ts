@@ -1,12 +1,16 @@
 import './styles.css';
+import { getCampaignState, selectMission } from './app/campaign';
 import { createGame } from './app/createGame';
 import { setStarterShipId, type StarterShipId } from './app/starterSelection';
+import { MISSIONS } from './domain/combat/missions';
+import type { MissionId } from './domain/combat/types';
 
 const shell = document.getElementById('game-shell');
 const menu = document.getElementById('main-menu');
 const startButton = document.getElementById('start-button') as HTMLButtonElement | null;
 const starterButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-starter]')];
 const fullscreenButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-fullscreen]')];
+const missionButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-mission]')];
 let selectedStarter: StarterShipId = 'p-cruiser';
 let gameStarted = false;
 let shellStatusTimer: number | undefined;
@@ -37,8 +41,38 @@ function selectStarter(starter: StarterShipId): void {
   if (label) label.textContent = starterName;
 }
 
+function updateCampaignUi(): void {
+  const campaign = getCampaignState();
+  const mission = MISSIONS[campaign.selectedMissionId];
+  for (const button of missionButtons) {
+    const missionId = button.dataset.mission as MissionId;
+    const definition = MISSIONS[missionId];
+    const selected = missionId === campaign.selectedMissionId;
+    button.disabled = definition.number > campaign.unlockedMission;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  }
+  const salvage = document.getElementById('campaign-salvage');
+  const briefingTitle = document.getElementById('mission-briefing-title');
+  const briefingCopy = document.getElementById('mission-briefing-copy');
+  const startNumber = document.getElementById('start-mission-number');
+  const startName = document.getElementById('start-mission-name');
+  if (salvage) salvage.textContent = `${campaign.salvage} SALVAGE · ${campaign.upgrades.length} UPGRADES`;
+  if (briefingTitle) briefingTitle.textContent = `MISSION 0${mission.number} · ${mission.name.toUpperCase()}`;
+  if (briefingCopy) briefingCopy.textContent = mission.briefing;
+  if (startNumber) startNumber.textContent = `MISSION 0${mission.number}`;
+  if (startName) startName.textContent = `${mission.name.toUpperCase()} STARTEN`;
+}
+
 for (const button of starterButtons) {
   button.addEventListener('click', () => selectStarter(button.dataset.starter as StarterShipId));
+}
+
+for (const button of missionButtons) {
+  button.addEventListener('click', () => {
+    selectMission(button.dataset.mission as MissionId);
+    updateCampaignUi();
+  });
 }
 
 startButton?.addEventListener('click', () => {
@@ -78,3 +112,4 @@ document.addEventListener('fullscreenchange', () => {
 
 shell?.setAttribute('aria-busy', 'false');
 selectStarter(selectedStarter);
+updateCampaignUi();

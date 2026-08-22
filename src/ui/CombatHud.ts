@@ -1,7 +1,8 @@
 import { SHIELD_BOOST_COST } from '../domain/combat/constants';
 import { WEAPONS } from '../domain/combat/content';
 import { distance, normalizeAngle } from '../domain/combat/math';
-import type { AbilityPreview, CombatState, EscortDirective, ShipState, TimeScale } from '../domain/combat/types';
+import { UPGRADES } from '../domain/combat/missions';
+import type { AbilityPreview, CombatState, EscortDirective, MissionId, ShipState, TimeScale, UpgradeId } from '../domain/combat/types';
 
 export type ActionMode = 'course' | 'target';
 export type HudAction = ActionMode | 'lance' | 'torpedo' | 'shield' | 'escort';
@@ -11,6 +12,7 @@ export interface HudCallbacks {
   readonly onSteer: (heading: number) => void;
   readonly onTimeScale: (scale: TimeScale) => void;
   readonly onRestart: () => void;
+  readonly onContinue: () => void;
   readonly onZoom: (direction: number) => void;
   readonly onZoomReset: () => void;
 }
@@ -25,6 +27,17 @@ export interface HudViewModel {
   readonly lancePreview: AbilityPreview;
   readonly torpedoPreview: AbilityPreview;
   readonly shieldPreview: AbilityPreview;
+}
+
+export interface MissionResultView {
+  readonly status: CombatState['status'];
+  readonly missionId: MissionId;
+  readonly missionName: string;
+  readonly elapsedMs: number;
+  readonly salvage: number;
+  readonly totalSalvage: number;
+  readonly upgradeChoices: readonly UpgradeId[];
+  readonly finalMission: boolean;
 }
 
 function requiredElement<T extends HTMLElement>(id: string): T {
@@ -86,6 +99,7 @@ export class CombatHud {
     requiredElement<HTMLButtonElement>('slow-button').addEventListener('click', () => callbacks.onTimeScale(0.25));
     requiredElement<HTMLButtonElement>('live-button').addEventListener('click', () => callbacks.onTimeScale(1));
     requiredElement<HTMLButtonElement>('restart-button').addEventListener('click', callbacks.onRestart);
+    requiredElement<HTMLButtonElement>('continue-button').addEventListener('click', callbacks.onContinue);
     requiredElement<HTMLButtonElement>('zoom-out-button').addEventListener('click', () => callbacks.onZoom(-1));
     requiredElement<HTMLButtonElement>('zoom-in-button').addEventListener('click', () => callbacks.onZoom(1));
     requiredElement<HTMLButtonElement>('zoom-reset-button').addEventListener('click', callbacks.onZoomReset);
@@ -106,6 +120,10 @@ export class CombatHud {
     const { state, flagship, escort, target, mode, timeScale, lancePreview, torpedoPreview, shieldPreview } = model;
     setText('turn-number', formatTime(state.elapsedMs));
     setText('phase-label', timeScale === 0 ? 'TAKTISCHE PAUSE' : timeScale === 0.25 ? '0,25× SLOW' : '1× LIVE');
+    const captureSuffix = state.objective.position
+      ? ` · ${state.objective.owner === 'player' ? 'GEHALTEN' : state.objective.owner === 'enemy' ? 'FEINDLICH' : `${Math.round(Math.abs(state.objective.captureProgress) * 100)} %`}`
+      : '';
+    setText('objective-label', `${state.objective.label}${captureSuffix}`);
     setText('ship-name', flagship.name);
     setText('ship-class', `${flagship.class.toUpperCase()} · FLAGGSCHIFF`);
     setText('ship-hull-text', `${flagship.hull}/${flagship.maxHull}`);
@@ -179,16 +197,49 @@ export class CombatHud {
       requiredElement<HTMLButtonElement>(id).classList.toggle('active', timeScale === scale);
     }
 
-    if (state.status !== 'active' && !this.resultDialog.open) {
-      setText('result-title', state.status === 'player-won' ? 'MISSION ERFÜLLT' : 'FLAGGSCHIFF VERLOREN');
-      setText(
-        'result-copy',
-        state.status === 'player-won'
-          ? `Feindverband nach ${formatTime(state.elapsedMs)} gebrochen. Der Real-Time-Combat-Pivot ist abgeschlossen.`
-          : 'Die Formation wurde aufgerieben. Nutze Pause, Kurswechsel und Spezialwaffen gezielter.',
-      );
-      this.resultDialog.showModal();
+  }
+
+  public showResult(result: MissionResultView, onUpgrade: (upgradeId: UpgradeId) => void): void {
+    const victory = result.status === 'player-won';
+    setText('result-title', victory ? `MISSION 0${Number(result.missionId.at(-1))} ERFÜLLT` : 'FLAGGSCHIFF VERLOREN');
+    setText(
+      'result-copy',
+      victory
+        ? `${result.missionName} nach ${formatTime(result.elapsedMs)} abgeschlossen. Die nächste Operation ist jetzt verfügbar.`
+        : 'Die Formation wurde aufgerieben. Nutze Pause, Joystick-Korrekturen und Spezialwaffen gezielter.',
+    );
+    setText('result-reward', victory ? `+${result.salvage} SALVAGE · GESAMT ${result.totalSalvage}` : 'KEINE BERGUNGSGÜTER GESICHERT');
+    const upgradeSection = requiredElement<HTMLElement>('upgrade-choice');
+    const upgradeContainer = upgradeSection.querySelector('div');
+    const continueButton = requiredElement<HTMLButtonElement>('continue-button');
+    if (!upgradeContainer) throw new Error('Missing upgrade choice container.');
+    upgradeContainer.replaceChildren();
+    upgradeSection.hidden = !victory || result.upgradeChoices.length === 0;
+    continueButton.disabled = !victory || result.upgradeChoices.length > 0;
+    continueButton.textContent = result.finalMission ? 'KAMPAGNE ABSCHLIESSEN' : 'NÄCHSTE MISSION';
+
+    for (const upgradeId of result.upgradeChoices) {
+      const upgrade = UPGRADES[upgradeId];
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.upgrade = upgradeId;
+      const name = document.createElement('strong');
+      name.textContent = upgrade.name;
+      const description = document.createElement('small');
+      description.textContent = upgrade.description;
+      button.append(name, description);
+      button.addEventListener('click', () => {
+        for (const sibling of upgradeContainer.querySelectorAll('button')) {
+          sibling.classList.toggle('selected', sibling === button);
+          (sibling as HTMLButtonElement).disabled = sibling !== button;
+        }
+        button.classList.add('selected');
+        continueButton.disabled = false;
+        onUpgrade(upgradeId);
+      }, { once: true });
+      upgradeContainer.append(button);
     }
+    if (!this.resultDialog.open) this.resultDialog.showModal();
   }
 
   public toast(message: string): void {

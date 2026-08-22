@@ -13,8 +13,9 @@ import {
   SHIELD_BOOST_DURATION_MS,
   SHIELD_BOOST_RESTORE,
 } from './constants';
-import { SHIPS, WEAPONS } from './content';
+import { WEAPONS } from './content';
 import { angleBetween, angleDifference, clamp, distance, normalizeAngle } from './math';
+import { createMissionFleet, MISSIONS, objectivePosition } from './missions';
 import type {
   AbilityPreview,
   CombatEvent,
@@ -22,11 +23,13 @@ import type {
   CommandResult,
   EscortDirective,
   ManualAbility,
+  MissionId,
   ProjectileState,
   ShipDefinition,
   ShipState,
   StepResult,
   Team,
+  UpgradeId,
   Vector2,
   WeaponDefinition,
   WeaponKind,
@@ -34,18 +37,28 @@ import type {
 
 const ZERO_COOLDOWNS = { broadside: 0, lance: 0, torpedo: 0, shield: 0 } as const;
 
-function createShipState(definition: ShipDefinition, flagshipId: string): ShipState {
+function createShipState(definition: ShipDefinition, flagshipId: string, upgrades: readonly UpgradeId[] = []): ShipState {
   const isFlagship = definition.id === flagshipId;
-  const maxShield = definition.maxShield + (isFlagship && definition.id === 'p-cruiser' ? 15 : 0);
-  const maxEnergy = definition.maxEnergy + (isFlagship && definition.id === 'p-frigate' ? 12 : 0);
-  const maxSpeed = definition.maxSpeed + (isFlagship && definition.id === 'p-frigate' ? 8 : 0);
   const role = definition.team === 'enemy' ? 'hostile' : isFlagship ? 'flagship' : 'escort';
+  const reinforcedFlagship = isFlagship && upgrades.includes('reinforced-hull');
+  const vectorFlagship = isFlagship && upgrades.includes('vector-thrusters');
+  const platedEscort = role === 'escort' && upgrades.includes('escort-plating');
+  const fluxFlagship = isFlagship && upgrades.includes('flux-capacitor');
+  const maxHull = definition.maxHull + (reinforcedFlagship ? 18 : platedEscort ? 14 : 0);
+  const maxShield = definition.maxShield
+    + (isFlagship && definition.id === 'p-cruiser' ? 15 : 0)
+    + (reinforcedFlagship ? 10 : platedEscort ? 8 : 0);
+  const maxEnergy = definition.maxEnergy + (isFlagship && definition.id === 'p-frigate' ? 12 : 0) + (fluxFlagship ? 20 : 0);
+  const maxSpeed = definition.maxSpeed + (isFlagship && definition.id === 'p-frigate' ? 8 : 0) + (vectorFlagship ? 12 : 0);
   return {
     ...definition,
+    maxHull,
     maxShield,
     maxEnergy,
     maxSpeed,
-    hull: definition.maxHull,
+    energyRegenPerSecond: definition.energyRegenPerSecond + (fluxFlagship ? 0.9 : 0),
+    turnRate: definition.turnRate * (vectorFlagship ? 1.15 : 1),
+    hull: maxHull,
     shield: maxShield,
     energy: maxEnergy,
     position: { ...definition.startPosition },
@@ -68,18 +81,36 @@ function createShipState(definition: ShipDefinition, flagshipId: string): ShipSt
   };
 }
 
-export function createCombatState(flagshipId = 'p-cruiser'): CombatState {
-  const resolvedFlagship = SHIPS.some((ship) => ship.id === flagshipId && ship.team === 'player')
+export function createCombatState(
+  flagshipId = 'p-cruiser',
+  missionId: MissionId = 'mission-1',
+  upgrades: readonly UpgradeId[] = [],
+): CombatState {
+  const fleet = createMissionFleet(missionId);
+  const resolvedFlagship = fleet.some((ship) => ship.id === flagshipId && ship.team === 'player')
     ? flagshipId
     : 'p-cruiser';
+  const position = objectivePosition(missionId);
+  const mission = MISSIONS[missionId];
   return {
     elapsedMs: 0,
     status: 'active',
-    ships: Object.fromEntries(SHIPS.map((definition) => [definition.id, createShipState(definition, resolvedFlagship)])),
+    ships: Object.fromEntries(fleet.map((definition) => [definition.id, createShipState(definition, resolvedFlagship, upgrades)])),
     projectiles: {},
     nextProjectileId: 1,
     flagshipId: resolvedFlagship,
     escortDirective: 'follow',
+    missionId,
+    upgrades: [...upgrades],
+    objective: {
+      kind: mission.objectiveKind,
+      label: mission.objectiveLabel,
+      position,
+      radius: position ? 220 : 0,
+      captureProgress: 0,
+      spawnCooldownMs: mission.objectiveKind === 'shipyard' ? 8_000 : 0,
+    },
+    nextReinforcementId: 1,
   };
 }
 
@@ -462,6 +493,83 @@ function tickCooldowns(ship: ShipState, deltaMs: number): ShipState {
   };
 }
 
+function createReinforcement(state: CombatState, team: Team): ShipState {
+  const position = state.objective.position ?? { x: BATTLEFIELD_WIDTH / 2, y: BATTLEFIELD_HEIGHT / 2 };
+  const index = state.nextReinforcementId;
+  const friendly = team === 'player';
+  const definition: ShipDefinition = {
+    id: `${friendly ? 'p' : 'e'}-drone-${index}`,
+    team,
+    name: friendly ? `Voidwing ${index}` : `Cinder Drone ${index}`,
+    class: 'frigate',
+    presentationId: friendly ? 'p-frigate' : 'e-destroyer',
+    maxHull: 28,
+    maxShield: 12,
+    armor: 0,
+    maxEnergy: 36,
+    energyRegenPerSecond: 2.4,
+    maxSpeed: 96,
+    acceleration: 46,
+    turnRate: Math.PI * 0.32,
+    radius: 24,
+    weapons: ['broadside'],
+    startPosition: { x: position.x + (friendly ? -95 : 95), y: position.y + (index % 2 === 0 ? -55 : 55) },
+    startFacing: friendly ? 0 : Math.PI,
+  };
+  return createShipState(definition, state.flagshipId, state.upgrades);
+}
+
+function tickObjective(
+  state: CombatState,
+  ships: Record<string, ShipState>,
+  deltaMs: number,
+  events: CombatEvent[],
+): CombatState {
+  const objective = state.objective;
+  if (!objective.position || objective.kind === 'eliminate') return state;
+  const inside = Object.values(ships).filter((ship) => ship.alive && distance(ship.position, objective.position!) <= objective.radius);
+  const players = inside.filter((ship) => ship.team === 'player').length;
+  const enemies = inside.filter((ship) => ship.team === 'enemy').length;
+  const captureDelta = deltaMs / 6_000;
+  let captureProgress = objective.captureProgress;
+  if (players > 0 && enemies === 0) captureProgress = Math.min(1, captureProgress + captureDelta * Math.min(2, players));
+  if (enemies > 0 && players === 0) captureProgress = Math.max(-1, captureProgress - captureDelta * Math.min(2, enemies));
+
+  let owner = objective.owner;
+  if (captureProgress >= 1) owner = 'player';
+  else if (captureProgress <= -1) owner = 'enemy';
+  else if (owner === 'player' && captureProgress <= 0) owner = undefined;
+  else if (owner === 'enemy' && captureProgress >= 0) owner = undefined;
+
+  const newlyCaptured = Boolean(owner && owner !== objective.owner);
+  if (owner && newlyCaptured) events.push({ type: 'objective-captured', objective: objective.kind, team: owner });
+  let spawnCooldownMs = newlyCaptured && objective.kind === 'shipyard'
+    ? 2_400
+    : Math.max(0, objective.spawnCooldownMs - (owner && objective.kind === 'shipyard' ? deltaMs : 0));
+  let nextReinforcementId = state.nextReinforcementId;
+
+  if (owner && objective.kind === 'shipyard' && spawnCooldownMs <= 0) {
+    const activeDrones = Object.values(ships).filter((ship) => ship.alive && ship.team === owner && ship.id.includes('-drone-')).length;
+    if (activeDrones < 3) {
+      const reinforcementState = { ...state, ships, nextReinforcementId };
+      const reinforcement = createReinforcement(reinforcementState, owner);
+      ships[reinforcement.id] = reinforcement;
+      nextReinforcementId += 1;
+      events.push({ type: 'reinforcement-spawned', shipId: reinforcement.id, team: owner });
+      spawnCooldownMs = 18_000;
+    } else {
+      spawnCooldownMs = 2_000;
+    }
+  }
+
+  return {
+    ...state,
+    ships,
+    nextReinforcementId,
+    objective: { ...objective, captureProgress, owner, spawnCooldownMs },
+  };
+}
+
 function resolveCombatStatus(state: CombatState, events: CombatEvent[]): CombatState {
   const playersAlive = getLivingShips(state, 'player').length > 0;
   const enemiesAlive = getLivingShips(state, 'enemy').length > 0;
@@ -488,6 +596,7 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
   }
   applySeparation(ships);
   state = { ...state, ships };
+  state = tickObjective(state, ships, deltaMs, events);
 
   for (const ship of Object.values(ships)) {
     if (!ship.alive || ship.lanceChargeMs <= 0 || !ship.lanceTargetId) continue;
