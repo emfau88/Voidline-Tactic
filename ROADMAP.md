@@ -1,151 +1,127 @@
 # Roadmap
 
-Diese Datei ist der aktuelle, überprüfbare Projektstatus. Erledigte Meilensteine bleiben sichtbar; einzelne Änderungen stehen chronologisch im [Changelog](CHANGELOG.md).
+Diese Datei ist der aktuelle, überprüfbare Projektstatus. Erledigte Meilensteine bleiben sichtbar; jede relevante Änderung steht chronologisch im [Changelog](CHANGELOG.md).
 
-Stand: 22. August 2026
+Stand: 22. August 2026  
+Aktiver Produktpfad: **Fleet Corridors – indirekte Mobile-Flottenstrategie**
 
-## Statuslegende
+## Legende
 
 - ✅ abgeschlossen
 - 🚧 in Arbeit
 - ⏳ geplant
-- ⛔ bewusst außerhalb des aktuellen Scopes
+- ⛔ außerhalb des aktuellen Scopes
 
-## M0 – Repository und Produktgrundlage ✅
+## M0 – Repository, Deployment und Qualität ✅
 
-- Repository analysiert, geordnet und von den isolierten HTML-Spikes getrennt
-- Vision, Audit, Produktionsplan, Art-/VFX-Richtung und Asset-Provenienz dokumentiert
-- GitHub Pages, CI, Unit- und Browser-Tests als verbindliche Qualitätsgates eingerichtet
+- Repository-Audit, Vision, Produktionsplanung und Asset-Provenienz
+- Phaser 4, TypeScript, Vite, Vitest und Playwright reproduzierbar gepinnt
+- GitHub Pages mit Typecheck, Unit-, Build- und Browser-Gate
+- installierbare Landscape-PWA, Safe Areas, Fullscreen-Fallback und HiDPI
+- reproduzierbare README-Screenshots
 
-## M1 – Mobile-first Produktionsfundament ✅
+## M1 – Deterministischer Combat-Core ✅
 
-- Phaser 4, TypeScript, Vite und Vitest reproduzierbar gepinnt
-- Vollbreiten-Shell mit Safe Areas statt einer fest eingeschlossenen Gerätesäule
-- Browser-Fullscreen, installierbares Web-App-Manifest und Plattform-Fallback
-- 65–240-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
-- Landscape-first Combat mit Portrait-Drehaufforderung und gleichzeitiger Zwei-Finger-Kartenverschiebung
-- Mobile-Full-field-Layout mit rund 90 % Kamerahöhe unter der Topbar und ohne reservierten Bottom-HUD-Streifen
-- bis zu 2× HiDPI-Canvas-Backbuffer und hochauflösende Environment-Runtime
-- automatisches GitHub-Pages-Deployment mit Typecheck, Unit-, Build- und Browser-Gate
+- 2400×1400 World Space und 30-Hz-Fixed-Step
+- träge Kinematik, Beschleunigung, Drehrate und Separation
+- Hull, Shield, Armor, Energy, Cooldowns und Nebelreduktion
+- Auto-Breitseite, aufladbare Lance, physische Homing-Torpedos und Shield Boost
+- deterministische gültige Treffer; keine Miss-/Intercept-Würfe
+- vier originale Schiffspräsentationen mit sichtbaren Hardpoints und Startmodulen
 
-## M2 – Deterministischer Echtzeit-Combat-Core ✅
+## M2 – Fleet-Corridors-Domain ✅
 
-- feste 2400×1400 World Units und deterministischer 30-Hz-Fixed-Step
-- kontinuierliche Position, Facing, Geschwindigkeit, Beschleunigung und begrenzte Drehrate
-- datengetriebene Definitionen für vier Schiffe und drei Waffenfamilien
-- Energie, Cooldowns, Hull, Shield, Armor, Shield-Boost und Nebelreduktion
-- persistenter Flaggschiff-Sollkurs, Routendaten, Fokusziel und vier Eskorte-Direktiven
-- Auto-Breitseiten, aufladbare Lance und physische Homing-Torpedos
-- halbautonome Formation sowie gegnerische Approach-/Orbit-KI auf derselben Regelbasis
-- garantierte deterministische Treffer bei gültiger Lösung; keine Miss-/Intercept-Würfe
-- 19 Unit-Tests für Kinematik, Joystick-Sollkurs, Startmodule, Missionssieg, Capture, Verstärkung, Waffen, Cover und Hardpoints
+- obere, mittlere und untere natürliche Route mit zwei Junctions
+- fünf Haltungen: Angriff, Breitseite, Halten, Abstand und Rückzug
+- rollenbasierte autonome Navigation und Zielpriorisierung
+- echte Korridorbindung für Feuerlösungen und Junction-Routing für Transfers
+- oberes Relais, untere Werft/Nebelzone und mittlerer Direktweg
+- Versorgung, Regeneration, Deployment-Cooldown, Fregatte/Zerstörer und 7-Schiff-Limit
+- strategische Gegner-KI nutzt dieselben Regeln und reagiert auf Routendruck/Objectives
+- Sieg/Niederlage über die Command Ships
+- 11 Fleet-Unit-Tests; insgesamt 30 Unit-Tests grün
 
-## M3 – Spielbarer Echtzeit-Kampfkern ✅
+## M3 – Spielbarer Mobile-Proof-of-Concept ✅
 
-- Cruiser-/Frigate-Auswahl mit spielwirksamer Flaggschiff-Doktrin
-- direkter persistenter Sollkurs per Touch-/Maus-Joystick; frühere Kurszeichnung bleibt dormant erhalten
-- Zielerfassung als gemeinsamer Fokus für Flaggschiff und Eskorte
-- jederzeit verfügbare taktische Pause, ¼-Tempo und Live
-- kompakter Fünf-Aktionen-Dock mit Status, Tempo, Energie, Cooldowns und Direktive; dormant Route belegt auf Phones keinen Platz
-- direkte Gegner-Taps mit mindestens 34 CSS-Pixeln tolerantem Trefferradius und ZIEL-Button zum Durchschalten
-- deutlich hellere Feindmarkierung mit roter Kontur und Formmarker
-- sichtbare Lance-Ladephase, physische Torpedos, Shield-Ripple und Hardpoint-Feuer
-- taktischer Nebel mit 25 % Schadensreduktion
-- Hilfe, Toasts, Ergebnisdialog, Restart und Reduced-Motion-Fallback
-- acht E2E-Flows auf zwei Mobile-Landscape-Größen und Desktop: Shell, Kampagne, Pause/Joystick, Ziel/Lance, Torpedo/Eskorte, Hilfe und Pinch
+- Startwahl aus Cruiser/Frigate und verpflichtendes sichtbares Aegis-/Vector-Modul
+- Startflotten mit je zwei Schiffen; skalierbar auf 3–7 pro Seite
+- Routengruppen-Haltung statt direkter Einzelsteuerung
+- Schiffe navigieren, wenden, wählen Ziele und feuern autonom
+- Einzelwahl nur für Telemetrie, optionalen Fokus/Spezialsysteme und seltenen Transfer
+- Full-bleed-Karte ohne reservierten Bottom-HUD-Streifen
+- freies One-Finger-/Maus-Pan ohne Auto-Rücksprung
+- Pinch-/Mausrad-/Button-Zoom von 72–270 % plus expliziter Flottenfokus
+- deutsches Command-HUD, Prozent-Telemetrie und kontextuelle Vier-Schritt-Einführung
+- Relais-/Werft-Capture, Versorgung und manuelles Deployment vollständig spielbar
+- 18/18 E2E-Gates auf 844×390, 667×375 und Desktop
 
-## M3.5 – Design-Pivot von Command Beats zu Tactical Real-Time ✅
+## M3.1 – Strategie- und Balance-Validierung ✅
 
-- Command-Beat-, AP-, Turn- und Seed-RNG-System vollständig aus der Runtime entfernt
-- direkte Kontrolle auf das Flaggschiff konzentriert; Eskorte übernimmt Mikromanagement
-- Standardfeuer automatisiert und Entscheidungslast auf drei manuelle Systeme reduziert
-- Bewegung permanent wirksam gemacht: Kurs, Drehrate, Seitenbogen und Lade-Telegraph ändern Feuerlösungen laufend
-- Anfangsdistanzen für einen schnellen ersten Kontakt reduziert
-- Roadmap, Vision, Produktionsplan, README, Tests und Screenshots auf das neue Modell umgestellt
+- 100/100 Headless-Matches abgeschlossen
+- Median 204 s, P90 297 s, erster Verlust median nach 37 s
+- Center Push: 122 s Median
+- Upper Relay: 215 s Median
+- Lower Shipyard/Nebel: 204 s Median
+- 167 Captures, 1.166 Deployments, Peak 14 Schiffe
+- kritische Bewertung dokumentiert
 
-## M3.6 – Joystick-Steuerung und Control Decision ✅
+Offene Befunde:
 
-- absoluter Richtungs-Joystick setzt einen persistenten Sollkurs statt einer kurzen Bewegungsaktion
-- Loslassen hält den Sollkurs; Masse, Beschleunigung und Drehrate bleiben spielwirksam
-- Zwei-Daumen-HUD mit Steuerung links und Kampfsystemen rechts
-- aktuelle und gewünschte Ausrichtung sowie ein heller Richtungsvektor im Spielfeld
-- Nutzerfeedback bestätigt den Joystick klar als primäre Echtzeitsteuerung
-- 125-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
-- Kurszeichnung technisch erhalten, im HUD klar als inaktiv markiert und gegen Eingaben gesperrt
-- 19 Unit-Tests und 24 Mobile-/Desktop-E2E-Läufe grün
-- neue reproduzierbare README-Screenshots für Joystick, Zielwahl und Telegraph
+- 🚧 84 % Spielersiege sind zu leicht
+- 🚧 Center Push ist gegenüber Seitensystemen zu effizient
+- 🚧 Command-Ship-Zielzeit entsteht noch zu stark über reine Lebenspunkte
+- 🚧 Objective-Boni sind regelwirksam, aber visuell nicht konkret genug erklärt
 
-## M3.7 – Prolog und sichtbarer modularer Refit 🚧
+## M4 – Combat Readability und audiovisuelle Wirkung 🚧
 
-- ✅ verpflichtende Preflight-Montage; Mission 1 startet ohne Modul nicht
-- ✅ Aegis-Emitter (+12 Schild) und Vector-Drive (+10 Tempo, +12 % Drehen) als echte Trade-offs
-- ✅ beide Module als transparente Layer im Menü und auf dem Flaggschiff im Gefecht sichtbar
-- ✅ 1-gegen-1-Kalibrierungsflug als Mission 1: gewähltes Schiff gegen einen schwächeren Cinder Scout
-- ✅ Eskorte samt HUD-Aktion in Mission 1 entfernt und erst in späteren Missionen aktiviert
-- ⏳ zwei kleine Starterhüllen mit klarer Rolle statt der aktuellen Übergangs-Cruiser/-Frigate
-- ⏳ zweiter sichtbarer Montageschritt vor dem Kampf: eine echte Waffenwahl
-- ⏳ Salvage, geborgenes Modul und erneuter sichtbarer Refit direkt nach dem ersten Sieg
-- ⏳ Vorschau auf die nächsten zwei bis drei Hüllen; bestehende große Schiffe werden spätere Freischaltungen
-- ✅ Foozle „Void – Main Ship“ (CC0) als Struktur-/Animationsreferenz geprüft; Produktionskunst bleibt original und hochauflösend
-- verbindliches Detailkonzept: [Prolog und modulare Schiffe](docs/design/PROLOGUE_AND_MODULAR_SHIPS.md)
-
-## M4 – Combat Feel und visuelle Produktionsreife 🚧
-
-- ✅ vier originale, gut unterscheidbare Schiffssilhouetten mit vollständigen Hardpoints
-- ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
-- ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
-- ✅ Landscape-HUD, klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
-- ✅ kompakter 34-px-Topbar und Full-field-Kamera ohne reservierte Bottom-Aussparung
-- ✅ 48-px-Telemetrie oben links und organisch schwebende Ecksteuerung
-- ✅ vier getrennte 46–68-px-Ability-Buttons mit klarer Priorität, Energiekosten und radialer Cooldownanzeige
-- ✅ automatisches Browser-Gate verhindert überlappende Ability-Touchflächen auf dem kleinen 667×375-Profil
-- ✅ zentrierter visueller Kamera-Overscan ohne schwarze Zoomflächen sowie Autoframing des nächsten Gegners
-- ✅ größere Arena, längere Waffenreichweiten, Zwei-Finger-Pan und sanftes Follow-Framing
-- ✅ erste gestaffelte Broadside-Produktionschoreografie von Hardpoint bis Impact
-- ✅ drei reproduzierbare Mobile-Screenshots für README und Standabnahme
-- 🚧 Lance-/Torpedo-Choreografie, VFX-Pooling und klassenspezifische Trefferreaktionen
-- 🚧 Kamera-Fokus, kurzer Impact-Zoom und lesbares Action Framing
-- ⏳ originale Audio-Busse, Varianten, Ducking und Mobile-Audio-Unlock
-- ⏳ beschädigte Schiffszustände, Debris, Engine-Ausfall und bessere Zerstörungssequenz
-- ⏳ kontextuelles 60-Sekunden-Onboarding statt ausschließlich statischer Hilfe
-- ⏳ ein erster dokumentierter Fünf-Personen-Mobile-Playtest mit Zeit-/Fehlerdaten
+- ✅ klare Routengrafik, Junctions, Owner-Farben und Capture-Ringe
+- ✅ feindliche rote Konturen, Zielmarker, Schildringe und Healthbars
+- ✅ Broadside-Bolts, Lance-Beam, Torpedos, Trefferwellen und Explosionen
+- 🚧 Center-Risiko und Objective-Feedback visuell stärker kommunizieren
+- 🚧 klassenspezifische Salven, Trefferreaktionen und Zerstörungssequenzen
+- 🚧 Command-Ship-Phasen statt HP-Schwamm
+- ⏳ originale Audio-Busse, UI-/Waffen-/Impact-Varianten, Ducking und Mobile-Unlock
+- ⏳ VFX-Pooling, Performance-Telemetrie und Drei-Match-Memory-Soak
+- ⏳ lesbare 7v7-Formation ohne Effekt-/Marker-Chaos
 
 ### Abnahme M4
 
-- fünf Erstspieler verstehen Joystick-Sollkurs, Ziel, Pause und ein Spezialsystem ohne externe Erklärung
-- erste bewusste Aktion in höchstens 20 Sekunden, erster Waffeneffekt in höchstens 35 Sekunden
-- ein Kampf dauert im Median 3–5 Minuten und erzeugt mindestens drei relevante Kursentscheidungen
-- stabile 60 FPS im Pixel-7-Profil, keine wachsenden VFX-Objektzahlen nach drei Restarts
-- alle zentralen Zustände bleiben bei 844×390 Landscape und 200 % Browser-Textzoom bedienbar
+- erster Waffeneffekt in höchstens 35 Sekunden
+- Center, Relais und Werft sind ohne Hilfe visuell unterscheidbar
+- Spieler kann Trefferquelle, Objective-Owner und Rückzugsgrund erklären
+- stabile 60 FPS auf Pixel-7-Klasse bei 7v7 und drei vollständigen Restarts
+- keine wachsenden Projectile-/VFX-Objektzahlen
 
-## M5 – Drei-Missionen-Loop, Reward und Persistenz 🚧
+## M5 – Verständlichkeit, Balance und erster Content-Loop 🚧
 
-- ✅ drei freischaltbare Missionen mit eskalierender Feindzahl und Elite-Cruiser
-- ✅ Relaispunkt in Mission 2 und eroberbare Drohnenwerft in Mission 3
-- ✅ strategische Ziele sind siegrelevant; eine verwaiste Feindwerft produziert keine neuen Drohnen
-- ✅ Mission Result, einmaliges Salvage, Upgrade-Wahl, Continue und Replay
-- ✅ vier persistente Flaggschiff-/Eskorte-Upgrades in versioniertem LocalStorage
-- 🚧 vollständige Leistungsmetriken und expliziter Save-Reset
-- ⏳ sichtbare Hardpoint-/Emitter-Änderungen sowie echte Waffenvarianten statt überwiegend numerischer Upgrades
-- 🚧 Missionskurve begonnen: Mission 1 ist 1v1; Mission 2/3 müssen noch zu 1v2 → erste Eskorte/Objective neu geordnet werden
+- ✅ In-App-Kurzanleitung und makroorientierte Hilfe
+- 🚧 fünf externe Mobile-Erstspieler mit Zeit-, Fehl- und Verständnisprotokoll
+- 🚧 Siegquote Richtung 55–65 % und Strategiedauern näher zusammenführen
+- ⏳ Nachkampfbericht: Routendruck, Captures, Verluste, Versorgung und Wendepunkt
+- ⏳ zweiter sichtbarer Waffen-Montageschritt im Preflight
+- ⏳ Reward → sichtbarer Refit → nächster Einsatz
+- ⏳ drei langsam eskalierende Missionen auf Basis desselben Fleet-Loops
+- ⏳ Vorschau auf nächste Hüllen, Rollen und Waffen ohne Meta-Überladung
 
-## M6 – Vertical-Slice-Release ⏳
+## M6 – Hochwertiger Vertical Slice ⏳
 
-- Responsive-, Accessibility- und Browser-Matrix
-- Visual Regression, Performance-Budget und Restart-/Memory-Soak
-- externe Verständlichkeits- und Balance-Playtests
-- finale Audio-/VFX-Mischung, Credits, Datenschutz-/Lizenzhinweise
+- drei abgestimmte Missionen mit verständlicher Eskalation
+- vollständiger Audio-/VFX-/Damage-State-Pass
+- originale sichtbare Waffen- und Schiffsupgrades
+- Accessibility-, Browser-, Performance- und Visual-Regression-Matrix
+- finale Credits, Lizenz-/Datenschutzhinweise und Save-Reset
 - öffentlich markierter Vertical-Slice-Release
 
-## Später / außerhalb des Slice ⛔
+## Außerhalb des aktuellen Scopes ⛔
 
-- Boarding-Minispiel
-- Officers und detaillierte Crew
-- vollständige Kampagne mit 10–15 Missionen
-- Multiplayer, 3D, Open World und prozedurale Galaxie
+- Multiplayer
+- 3D, Höhenebenen oder freie ballistische Physik
+- Open World, prozedurale Galaxie und 10–15-Missionen-Kampagne
+- Boarding, Officers und detaillierte Crewverwaltung
+- komplexer Task-Force-Editor vor einem bewiesenen Drei-Missionen-Loop
 
-## Aktuelle Position und nächster überprüfbarer Meilenstein
+## Aktuelle Position
 
-Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Full-field Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, vollflächige Kamera, kompakte Telemetrie oben links, getrennte Ability-Buttons mit Cooldown-Ringen, tolerante Zielerfassung, große Arena, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die erste M3.7-Stufe ist ebenfalls spielbar: sichtbares Startmodul vor dem Kampf und ein echtes 1v1. Kleine eigene Starterhüllen, Waffenmontage und erneuter sichtbarer Refit fehlen noch.
+Wir stehen am Ende von **M3.1**: Der neue Fleet-Corridors-Kern ist implementiert, mobil bedienbar, automatisiert getestet und als einzelner PoC spielbar. Der frühere Joystick-/Drei-Missionen-Pfad bleibt nur noch als Legacy-Code im Repository und ist nicht aktiv.
 
-Der nächste überprüfbare Teilmeilenstein von **M3.7 „Prologue Loadout Slice“** ist die sichtbare Waffenmontage plus Reward→Refit nach dem gewonnenen 1v1. Danach werden die aktuellen großen Übergangsschiffe durch zwei kleine Starterhüllen ersetzt und Mission 2 neu geordnet. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).
+Der nächste überprüfbare Meilenstein ist **M4 „Combat Readability und audiovisuelle Wirkung“**. Reihenfolge: Center-/Objective-Balance → konkretes Objective-Feedback → Audio-Foundation → klassenbasierte Waffen-/Trefferchoreografie → 7v7-Performance. Erst danach wird der PoC zu drei Missionen erweitert. Die priorisierte Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

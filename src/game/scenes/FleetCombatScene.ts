@@ -8,6 +8,7 @@ import { distance } from '../../domain/combat/math';
 import type { CombatEvent, ManualAbility, ShipState, TimeScale, Vector2 } from '../../domain/combat/types';
 import { createFleetBattleState, stepFleetBattle } from '../../domain/fleet/fleetBattle';
 import { assignFleetLane, deployFleetShip, setFleetFocus, setFleetStance } from '../../domain/fleet/fleetCommands';
+import { laneLabel } from '../../domain/fleet/lanes';
 import type { DeployKind, FleetBattleState, FleetCommandResult, FleetEvent, FleetStance, LaneId } from '../../domain/fleet/types';
 import { FleetCommandHud, type FleetHudAction } from '../../ui/FleetCommandHud';
 import { StrategicCameraController } from '../controllers/StrategicCameraController';
@@ -207,7 +208,7 @@ export class FleetCombatScene extends Phaser.Scene {
   private deploy(kind: DeployKind, lane: LaneId): void {
     const result = deployFleetShip(this.state, 'player', kind, lane);
     this.applyFleetCommand(result);
-    if (!result.error) this.hud.toast(`${kind === 'frigate' ? 'FREGATTE' : 'ZERSTÖRER'} · ${lane.toUpperCase()} EINGESETZT`);
+    if (!result.error) this.hud.toast(`${kind === 'frigate' ? 'FREGATTE' : 'ZERSTÖRER'} · ${laneLabel(lane)} EINGESETZT`);
   }
 
   private applyGroupStance(stance: FleetStance): void {

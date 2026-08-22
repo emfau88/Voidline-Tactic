@@ -47,6 +47,7 @@ function timeLabel(ms: number): string {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 function cooldown(ms: number): string { return ms > 0 ? `${(ms / 1_000).toFixed(1)}s` : 'BEREIT'; }
+function percent(value: number, maximum: number): string { return `${Math.round(value / maximum * 100)} %`; }
 
 const STANCE_LABELS: Record<FleetStance, string> = {
   advance: 'ANGRIFF', broadside: 'BREITSEITE', hold: 'POSITION HALTEN', 'keep-range': 'ABSTAND HALTEN', retreat: 'RÜCKZUG',
@@ -138,9 +139,9 @@ export class FleetCommandHud {
     text('ship-name', selected.name);
     text('ship-class', `${CLASS_LABELS[selected.class]} · ${laneLabel(directive.laneId)}`);
     text('ship-status', STANCE_LABELS[directive.stance]);
-    text('ship-hull-text', `${selected.hull}/${selected.maxHull}`);
-    text('ship-shield-text', `${selected.shield}/${selected.maxShield}`);
-    text('ship-energy-text', `${Math.floor(selected.energy)}/${selected.maxEnergy}`);
+    text('ship-hull-text', percent(selected.hull, selected.maxHull));
+    text('ship-shield-text', percent(selected.shield, selected.maxShield));
+    text('ship-energy-text', percent(selected.energy, selected.maxEnergy));
     text('ship-ap', `${Math.round(selected.speed)}`);
     text('ship-facing', laneLabel(directive.laneId));
     meter('ship-hull-bar', selected.hull, selected.maxHull);
@@ -156,8 +157,8 @@ export class FleetCommandHud {
     if (target) {
       text('target-name', target.name);
       text('target-class', `${CLASS_LABELS[target.class]} · ${Math.round(distance(selected.position, target.position))} m`);
-      text('target-hull-text', `${target.hull}/${target.maxHull}`);
-      text('target-shield-text', `${target.shield}/${target.maxShield}`);
+      text('target-hull-text', percent(target.hull, target.maxHull));
+      text('target-shield-text', percent(target.shield, target.maxShield));
       meter('target-hull-bar', target.hull, target.maxHull);
       meter('target-shield-bar', target.shield, target.maxShield);
       text('hit-chance', target.id === state.fleet.commandShipIds.enemy ? 'KOMMANDO' : 'ERFASST');

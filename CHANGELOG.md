@@ -4,6 +4,41 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Fleet Corridors – Indirect Fleet Command — 2026-08-22
+
+Meilenstein-Commits:
+
+- `f79f605` – Fleet-Corridor-Audit und Pivot-Architektur
+- `3656354` – Korridore, Haltungen, Navigation, Versorgung, Deployment und Strategie-KI
+- `025cbc7` – aktive Mobile-Fleet-Szene, freie Kamera und Routengruppen-HUD
+
+#### Added
+
+- drei natürliche Raumkorridore mit zwei Junctions, Lane-Bindung und sichtbaren Routenflächen
+- fünf indirekte Haltungen: Angriff, Breitseite, Halten, Abstand und Rückzug
+- Upper Relay, Lower Shipyard/Nebel, Versorgung, Deploy-Cooldown und 7-Schiff-Limit
+- rollenbasierte autonome Navigation/Zielwahl sowie strategische Gegnerreaktion
+- freie persistente Kamera mit One-Finger-/Maus-Pan, Pinch-/Mausrad-Zoom und explizitem Flottenfokus
+- kompaktes deutsches Mobile-HUD für autonome Routengruppen plus optionale Einzelschiff-Systeme
+- kontextuelle Vier-Schritt-Einführung und makroorientierte Hilfe
+- 11 Fleet-Unit-Tests, 100-Match-Balance-Batch und neue 18-Läufe-E2E-Suite
+- kritische Strategie-/Balancebewertung mit Center-, Relay- und Shipyard-Runs
+
+#### Changed
+
+- aktiver Produktpfad von direkter Joystick-Steuerung auf indirektes Makro-Management umgestellt
+- Haltungen gelten für alle eigenen Schiffe der gewählten Route; Einzelwahl ist sekundär
+- Startmenü, Telemetrie und Begriffe auf Fleet Corridors und verständliche deutsche Sprache reduziert
+- Weltkamera belegt den gesamten Viewport und kehrt nach Spielereingabe nicht automatisch zurück
+- Command-Ship-Telemetrie zeigt Prozentwerte statt technisch wirkender vierstelliger Rohwerte
+- README, Roadmap, Game Vision, Production Plan und Top-20-Hebel vollständig auf den Pivot aktualisiert
+
+#### Validation
+
+- 30 Unit-Tests, 18 Browser-Gates und Production Build grün
+- 100/100 Simulationen abgeschlossen; Median 204 s, P90 297 s, erster Verlust 37 s
+- dokumentierte offene Risiken: 84 % Spielersiege, zu effizienter Center Push und noch fehlendes Audio/VFX-Polish
+
 ### Full-field Mobile Combat HUD — 2026-08-22
 
 #### Added

@@ -88,9 +88,11 @@ test('keeps special weapons optional and supports pinch zoom', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('120%');
   await page.locator('#game-root canvas').evaluate((canvas) => {
     const bounds = canvas.getBoundingClientRect();
-    const emit = (type: string, pointerId: number, x: number): void => canvas.dispatchEvent(new PointerEvent(type, {
-      bubbles: true, pointerType: 'touch', pointerId, clientX: bounds.left + x, clientY: bounds.top + bounds.height * 0.45,
-    }));
+    const emit = (type: string, pointerId: number, x: number): void => {
+      canvas.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, pointerType: 'touch', pointerId, clientX: bounds.left + x, clientY: bounds.top + bounds.height * 0.45,
+      }));
+    };
     emit('pointerdown', 41, bounds.width * 0.42); emit('pointerdown', 42, bounds.width * 0.58);
     emit('pointermove', 41, bounds.width * 0.30); emit('pointermove', 42, bounds.width * 0.70);
     emit('pointerup', 41, bounds.width * 0.30); emit('pointerup', 42, bounds.width * 0.70);

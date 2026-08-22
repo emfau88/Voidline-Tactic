@@ -1,7 +1,7 @@
 # Fleet Corridors – Pivot-Plan
 
 Stand: 22. August 2026  
-Status: verbindlicher Implementierungsplan für den ersten spielbaren Proof of Concept
+Status: ✅ implementiert und validiert; Messergebnisse in [Fleet-Corridors-Validierung](../reviews/FLEET_CORRIDOR_VALIDATION.md)
 
 ## Ziel des Schnitts
 
@@ -52,13 +52,13 @@ src/game/controllers/StrategicCameraController.ts
 src/ui/FleetCommandHud.ts
 ```
 
-`CombatScene.ts` wird nur als Integrationspunkt angepasst. Lane-Zeichnung, Kamera-Gesten und Fleet-HUD-Logik leben außerhalb der Szene.
+Der aktive Modus lebt in `FleetCombatScene.ts`; Lane-Zeichnung, Kamera-Gesten und Fleet-HUD-Logik bleiben außerhalb der Szene. Die frühere `CombatScene.ts` ist ein inaktiver Legacy-Referenzpfad.
 
 ## Bestehende Dateien mit gezielter Änderung
 
 - `src/domain/combat/types.ts`: expliziter `controlMode`, keine Fleet-Details
 - `src/domain/combat/combatEngine.ts`: öffentliche Ship-State-Fabrik und Legacy-AI-Gate
-- `src/game/scenes/CombatScene.ts`: aktiver Fleet-State, Auswahl, Commands und neue Controller
+- `src/game/scenes/FleetCombatScene.ts`: aktiver Fleet-State, Auswahl, Commands und neue Controller
 - `src/game/presentation/ShipView.ts`: Lane-/Stance-Readability nur wenn nötig
 - `index.html`, `src/styles.css`: Command-, Lane-, Supply- und Deploy-UI statt Joystick
 - `src/main.ts`: PoC-Titel/Startstatus statt Missionsauswahl
@@ -160,6 +160,13 @@ src/ui/FleetCommandHud.ts
 3. Unit- und Headless-Gates
 4. Lane-/Objective-Präsentation und freie Kamera
 5. Auswahl und kontextuelles Mobile-HUD
-6. E2E, drei Strategieruns und kritische Bewertung
-7. Dokumentation, Screenshots, Commits, Push und Live-Test
+6. ✅ E2E, drei Strategieruns und kritische Bewertung
+7. 🚧 Dokumentation, Screenshots, Commits, Push und Live-Test
 
+## Abnahmeergebnis
+
+- 30 Unit-Tests grün
+- 18 Browser-Gates auf zwei Mobilegrößen und Desktop grün
+- 100/100 Matches abgeschlossen; Median 204 s, P90 297 s
+- Center Push 122 s, Upper Relay 215 s, Lower Shipyard 204 s
+- offene Balancebefunde: 84 % Spielersiege und zu effizienter Mitteldruck

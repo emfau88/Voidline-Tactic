@@ -40,24 +40,14 @@ try {
     fullPage: true,
   });
 
-  const canvas = page.locator('#game-root canvas');
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('Canvas has no layout box.');
-
   await page.getByRole('button', { name: 'Taktische Pause' }).click();
-  const stick = page.getByRole('button', { name: /Steuerjoystick/ });
-  const stickBox = await stick.boundingBox();
-  if (!stickBox) throw new Error('Flight stick has no layout box.');
-  await page.mouse.move(stickBox.x + stickBox.width * 0.68, stickBox.y + stickBox.height * 0.18);
-  await page.mouse.down();
-  await page.mouse.up();
-  await page.getByRole('button', { name: /ZIEL/ }).click();
-  const screens = JSON.parse(await page.locator('#game-shell').getAttribute('data-ship-screens') ?? '{}');
-  const target = screens['e-destroyer'];
-  if (!target) throw new Error('Calibration enemy has no exposed screen position.');
-  await canvas.click({ position: { x: box.width * target.x, y: box.height * target.y } });
-  await page.locator('#target-card').waitFor({ state: 'visible', timeout: 5_000 });
-  await page.getByRole('button', { name: /LANZE/ }).click();
+  const commandPanel = page.locator('#fleet-command-panel');
+  await commandPanel.getByRole('button', { name: 'OBERE ROUTE', exact: true }).click();
+  await commandPanel.getByRole('button', { name: /ABSTAND/ }).click();
+  const deploymentPanel = page.locator('#deployment-panel');
+  await deploymentPanel.getByRole('button', { name: 'OBEN', exact: true }).click();
+  await deploymentPanel.getByRole('button', { name: /FREGATTE/ }).click();
+  await page.locator('#close-command-guide').click();
   await page.waitForTimeout(180);
   await page.screenshot({
     path: path.join(outputDirectory, 'mobile-target-preview.png'),

@@ -2,109 +2,103 @@
 
 [![Deploy GitHub Pages](https://github.com/emfau88/Voidline-Tactic/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/emfau88/Voidline-Tactic/actions/workflows/deploy-pages.yml)
 
-Mobile-first 2D-Flottentaktik in langsamer Echtzeit mit taktischer Pause: Du steuerst den Sollkurs eines Flaggschiffs per virtuellem Joystick, markierst Feuerziele und löst entscheidende Systeme selbst aus. Die Eskorte handelt halbautonom, Standardbatterien feuern aus passenden Seitenbögen und gegnerische Spezialangriffe werden sichtbar angekündigt.
+Mobile-first 2D-Flottenstrategie in langsamer Echtzeit: Du kommandierst autonome Schiffe über drei Raumkorridore, gibst Routengruppen eine Haltung, sicherst strategische Anlagen und setzt begrenzte Versorgung für Verstärkungen ein.
 
-## [▶ Jetzt im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
+## [▶ Fleet Corridors im Browser spielen](https://emfau88.github.io/Voidline-Tactic/)
 
-Der aktuelle Stand ist ein spielbarer Drei-Missionen-Slice mit Startschiffwahl, einem verpflichtenden **sichtbaren Startmodul vor dem ersten Kampf**, direkter Joystick-Steuerung, eskalierenden Feindverbänden, einnehmbaren Kontrollpunkten, Werft-Drohnen, Salvage, vier persistenten Upgrades und Replay. Mission 1 ist ein echtes 1v1; Eskorte und größere Verbände beginnen erst danach. Auto-Breitseiten, aufladbare Rift Lance, physische Void Torpedoes und Shield Boost treffen deterministisch. **Pause**, **¼-Tempo** und **Live** können jederzeit gewechselt werden. Die frühere Kurszeichnung bleibt im Code erhalten, ist aber bewusst inaktiv.
-
-Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Die Weltkamera läuft unter dem schwebenden HUD bis zum unteren Displayrand und belegt rund 90 % der Höhe unterhalb der 34-px-Topbar; es gibt keinen reservierten schwarzen Bottom-Streifen. Hülle, Schild und Energie stehen kompakt oben links, der Joystick frei unten links und vier getrennte, cooldownfähige Ability-Buttons unten rechts. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
+Der aktive Build ist ein einzelner spielbarer Proof of Concept für den neuen Kern. Er ersetzt direkte Joystick-Steuerung durch Makro-Management: Schiffe navigieren, wenden, suchen Ziele und feuern selbstständig. Der Spieler entscheidet, welche Routengruppe angreift, eine Breitseite aufbaut, Position hält, Abstand wahrt oder zurückfällt. Einzelne Schiffe werden nur für Informationen, einen optionalen Fokus, Spezialwaffen oder eine seltene Verlegung ausgewählt.
 
 ## Aktueller Mobile-Build
 
-| Schiff und sichtbares Startmodul | Echtes 1v1-Kalibrierungsgefecht | Pause, Ziel und Lance-Telegraph |
+| Startflotte und sichtbares Modul | Drei Korridore und zwei Ziele | Autonome Routengruppe im Gefecht |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl mit sichtbar montiertem Aegis-Emitter vor Mission 1" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Echtes 1v1 mit vollflächiger Karte, Telemetrie oben links und getrennten Ability-Buttons" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Taktische Pause im 1v1 mit Zielerfassung, Lance-Telegraph und sichtbarem Cooldown" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Mobile Startschiffwahl mit sichtbar montiertem Modul" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Fleet-Corridors-Gefecht mit drei Routen, Relais und Werft" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Autonome Routengruppe und optionale Schiffssysteme" width="260">](docs/screenshots/mobile-target-preview.png) |
 
-Die Galerie wird reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisiert.
+Die Galerie wird reproduzierbar mit `npm run capture:readme` erstellt.
 
-## So funktioniert der Kampf
+## So spielt es sich
 
-1. **Montieren:** Vor dem Start genau ein sichtbares Modul wählen. Aegis gibt +12 Schild; Vector gibt +10 Tempo und +12 % Drehrate. Der Start bleibt bis zur Montage gesperrt.
-2. **Steuern:** Den linken Stick in die gewünschte Richtung ziehen. Das Schiff dreht entsprechend Masse und Drehrate auf den angezeigten Sollkurs; beim Loslassen bleibt dieser Kurs aktiv.
-3. **Ziel:** Einen Gegner direkt antippen oder mit **ZIEL** wechseln. Vergrößerte unsichtbare Touch-Flächen helfen auch im Überblickzoom. Verfügbare Breitseiten feuern automatisch, sobald Entfernung und Seitenbogen passen.
-4. **Spezialsysteme:** Lanze, Torpedo und Schild-Boost selbst auslösen. Die Lanze braucht eine stabile Feuerlösung; Torpedos existieren sichtbar im Raum und besitzen keinen Miss-Wurf.
-5. **Zeit:** Mit PAUSE vollständig anhalten, in PLANEN auf ¼-Tempo beobachten oder mit LIVE normal weiterlaufen lassen. Alle Befehle bleiben in der Pause verfügbar.
-6. **Steigerung:** Mission 1 ist nur dein gewähltes Schiff gegen einen Cinder Scout. Mission 2 führt Eskorte, weitere Gegner und den Relaispunkt ein. Mission 3 ergänzt eine eroberbare Drohnenwerft.
+1. **Vorbereiten:** Cruiser oder Frigate wählen und vor dem Start sichtbar Aegis-Emitter oder Vector-Drive montieren.
+2. **Route führen:** Obere, mittlere oder untere Routengruppe wählen. Die markierte Haltung gilt für alle eigenen Schiffe dort.
+3. **Makro entscheiden:** Angriff erzeugt Druck, Breitseite sucht einen Seitenbogen, Halten verteidigt Raum, Abstand wahrt Reichweite, Rückzug löst einen geordneten Rückmarsch aus.
+4. **Ziele nutzen:** Das obere Relais verbessert Versorgung. Die untere Werft beschleunigt Verstärkungen; der Nebel reduziert Schaden. Die Mitte ist der direkte, riskante Weg.
+5. **Verstärken:** Fregatte oder Zerstörer für eine Route anfordern. Pro Seite leben höchstens sieben Schiffe.
+6. **Optional eingreifen:** Fokus, Lanze, Torpedo und Schild-Boost gehören zum ausgewählten Schiff, sind aber kein Pflicht-Mikromanagement. Standardwaffen arbeiten autonom.
+7. **Kamera kontrollieren:** Ein Finger beziehungsweise Maus-Drag verschiebt die Karte dauerhaft. Pinch oder Mausrad zoomt am Fokuspunkt. Nur der ◎-Knopf zentriert bewusst auf die Flotte.
 
-Die Kernidee ist bewusste Verantwortungsteilung: Der Spieler trifft wenige hochwertige Entscheidungen, während Navigation, Standardfeuer und Eskorte kontinuierlich weiterarbeiten. So bleibt der Kampf auf Touch-Geräten verständlich, ohne statisch oder zäh zu werden.
+Siegbedingung ist die Vernichtung des gegnerischen Command Ships. Pause, ¼-Tempo und Live bleiben jederzeit verfügbar.
+
+## Nachgewiesener Stand
+
+- ✅ drei natürliche Korridore mit zwei Junctions und nachvollziehbarem Routenwechsel
+- ✅ fünf Haltungen: Angriff, Breitseite, Halten, Abstand, Rückzug
+- ✅ autonome Navigation, Zielwahl und Standardwaffen für 3–7 Schiffe pro Seite
+- ✅ oberes Versorgungsrelais, untere Werft/Nebelzone und mittlerer Direktweg
+- ✅ Versorgung, Deployment-Cooldown, Fregatte/Zerstörer und hartes 7-Schiff-Limit
+- ✅ strategische Gegner-KI mit Objective-Reaktion und denselben Deployment-Regeln
+- ✅ freie Full-bleed-Kamera, Buttons/Mausrad und echter Zwei-Finger-Zoom ohne Auto-Rücksprung
+- ✅ kompaktes deutsches Mobile-HUD mit Routengruppen-Hierarchie und kontextueller Einführung
+- ✅ vier originale Schiffsdarstellungen, Hardpoints, Broadside-Bolts, Lance, Torpedos, Schild-/Treffer-/Explosions-VFX
+- ✅ deterministischer 30-Hz-Combat-Core ohne Miss-/Intercept-Würfe
+- ✅ 30 Unit-Tests, 18 Browser-Gates und 100-Match-Balance-Simulation
+- ✅ GitHub-Pages-Deployment erst nach Typecheck, Unit-, Build- und Browser-Gate
+
+Der 100-Match-Test endet zu 100 %, im Median nach 204 Sekunden. Mitteldruck ist mit 122 Sekunden deutlich schneller als Relais (215 s) und Werft (204 s). Die Spielersiegquote von 84 % ist noch zu hoch und steht als offenes Balanceproblem in der [kritischen Bewertung](docs/reviews/FLEET_CORRIDOR_VALIDATION.md).
 
 ## Projektstatus
 
-- ✅ Landscape-first Combat-Shell, Safe Areas, Fullscreen-Fallback, HiDPI und 65–240-%-Pinch-Zoom samt Zwei-Finger-Pan
-- ✅ Full-field Mobile-HUD ohne reservierten Bottom-Streifen: 48-px-Telemetrie oben links, 64-px-Joystick und getrennte 46–68-px-Ability-Buttons mit Cooldown-Ringen
-- ✅ Startmenü mit Cruiser-/Frigate-Wahl, verpflichtender sichtbarer Aegis-/Vector-Montage und drei freischaltbaren Missionen
-- ✅ Mission 1 als echtes 1v1; Eskorte ist im Combat und HUD erst ab späteren Missionen aktiv
-- ✅ 2400×1400-Schlachtfeld mit längeren Waffenreichweiten und sanftem Formation-Follow
-- ✅ deterministische 30-Hz-Fixed-Step-Simulation ohne versteckte Treffer- oder Abfangwürfe
-- ✅ direkte träge Flaggschiff-Kinematik mit persistentem Joystick-Sollkurs und sichtbarer Kursanzeige
-- 🧪 Kurszeichnung als reversible Alternative erhalten, aber im aktuellen Build bewusst inaktiv
-- ✅ halbautonome Eskorte mit vier Direktiven und gegnerische Echtzeit-KI
-- ✅ gestaffelte Hardpoint-Breitseiten mit sichtbaren Bolts, Mündungsblitzen, Rückstoß, Schildwellen und Hull-Splittern
-- ✅ manuelle Lanze/Torpedo/Schild-Systeme, Cooldowns und Energie
-- ✅ physische Homing-Torpedos, Lance-Telegraph, Hardpoint-VFX, Nebel-Cover und Sieg/Niederlage
-- ✅ Pause, ¼-Tempo und Live während jeder Kampfaktion
-- ✅ drei eskalierende Missionen, Relay-/Shipyard-Capture, begrenzte Drohnenproduktion, Salvage und vier persistente Upgrades
-- ✅ 19 Unit-Tests und 24 Browser-Läufe auf 844×390, 667×375 und Desktop einschließlich Preflight-Montage, echtem 1v1, Ziel-Toleranz, Joystick, Multi-Touch und Kampagnenpersistenz
-- ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
-- 🚧 Combat-Feel-Pass: tiefere VFX, Trefferreaktionen, Kamera-Choreografie, Audio und Onboarding
-- 🚧 zweiter sichtbarer Waffen-Slot, kleinere echte Starterhüllen, sichtbare Reward-Upgrades und vollständige Results-Metriken
+Der Fleet-Corridors-PoC ist funktional und online testbar. Er ist noch kein fertiger Vertical Slice: Audio fehlt, Center Push ist zu stark, Objective-Boni brauchen besseres Feedback, 7v7 benötigt mehr Rollenlesbarkeit und die aktuelle VFX-/Trefferchoreografie liegt noch klar unter dem Zielniveau.
 
-Den verbindlichen Fortschritt führt die [Roadmap](ROADMAP.md); jede relevante Änderung steht im [Changelog](CHANGELOG.md). Die [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) bewerten die Lücke zu den Konzeptbildern und geben messbare nächste Schritte vor.
+Den verbindlichen Stand führt die [Roadmap](ROADMAP.md). Änderungen stehen im [Changelog](CHANGELOG.md); die nächsten Qualitätshebel sind in den [Top 20](docs/planning/TOP_20_LEVERS.md) priorisiert.
 
 ## Lokal entwickeln
 
-Voraussetzung ist Node.js 24 mit npm.
+Voraussetzung: Node.js 24 und npm.
 
 ```powershell
 npm ci
 npm run dev
 ```
 
-Für die vollständige Qualitätsprüfung:
-
 ```powershell
 npm run check
 npm run test:e2e
+npm run balance:sim
 ```
 
 | Befehl | Aufgabe |
 |---|---|
 | `npm run dev` | lokaler Entwicklungsserver |
-| `npm run typecheck` | TypeScript-Prüfung |
-| `npm test` | deterministische Domänen- und Präsentationstests |
-| `npm run test:e2e` | acht Flows auf zwei Mobile-Landscape-Größen und Desktop-Chromium |
+| `npm run check` | Typecheck, 30 Unit-Tests und Production Build |
+| `npm run test:e2e` | 18 Mobile-/Desktop-Browser-Gates |
+| `npm run balance:sim` | 100 Matches mit drei Strategien und Guardrails |
 | `npm run capture:readme` | drei reproduzierbare Mobile-Screenshots |
-| `npm run build` | statischer Production Build in `dist/` |
-| `npm run check` | Typecheck, Unit Tests und Production Build |
+| `npm run build` | statischer Build in `dist/` |
 
 ## Kanonische Dokumente
 
-- [Roadmap](ROADMAP.md) – aktueller, überprüfbarer Projektstatus
+- [Roadmap](ROADMAP.md) – überprüfbarer Projektstatus
 - [Changelog](CHANGELOG.md) – chronologische Änderungshistorie
-- [Game Vision](docs/design/GAME_VISION.md) – verbindliche Echtzeit-Produktvision und Designleitplanken
-- [Prolog und modulare Schiffe](docs/design/PROLOGUE_AND_MODULAR_SHIPS.md) – erster spielbarer Montage-/1v1-Stand und nächste Refit-Stufen
-- [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – Bildsprache und Asset-Pipeline
-- [Asset Manifest](docs/assets/ASSET_MANIFEST.md) – Herkunft, Version, Rechte-/IP-Status und Runtime-Pfade
-- [Production Plan](docs/planning/PRODUCTION_PLAN.md) – phasenweiser Weg zum hochwertigen Vertical Slice
-- [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) – priorisierte Lücke vom Build zum Mockup-Niveau
-- [Repository Audit](docs/reviews/REPOSITORY_AUDIT.md) – historische Bestandsaufnahme des Ausgangsrepos
-- [Prototype Notes](prototypes/README.md) – Einordnung früherer HTML-Interaction-Spikes
+- [Game Vision](docs/design/GAME_VISION.md) – verbindliches Produkt- und Combat-Modell
+- [Fleet-Corridor Audit](docs/reviews/FLEET_CORRIDOR_AUDIT.md) – Architekturentscheidungen vor dem Pivot
+- [Pivot-Plan](docs/planning/FLEET_CORRIDOR_PIVOT_PLAN.md) – implementierte technische Zerlegung
+- [Validierung](docs/reviews/FLEET_CORRIDOR_VALIDATION.md) – 100-Match-Test und kritische Bewertung
+- [Production Plan](docs/planning/PRODUCTION_PLAN.md) – Weg zum hochwertigen Vertical Slice
+- [Top-20-Hebel](docs/planning/TOP_20_LEVERS.md) – priorisierte nächste Qualitätsarbeit
+- [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – visuelle Leitplanken
+- [Asset Manifest](docs/assets/ASSET_MANIFEST.md) – Herkunft und Runtime-Pfade
 
-## Repository-Struktur
+## Struktur
 
 ```text
-src/
-  app/                 Bootstrap, Anzeige und Startschiffwahl
-  domain/combat/       pure Fixed-Step-Regeln, Kinematik, Waffen und KI
-  game/                Phaser-Szene, Schiffsdarstellung und VFX
-  ui/                  zugängliches DOM-HUD
-tests/
-  unit/                Combat-Core- und Hardpoint-Tests
-  e2e/                 echte Mobile-/Desktop-Browser-Flows
-scripts/               reproduzierbare Screenshot- und Projektwerkzeuge
-docs/                   Vision, Planung, Screenshots, Art-Richtung und Audit
-prototypes/             isolierte frühere Interaction-Spikes
+src/domain/combat/    deterministische Kinematik, Waffen und Schaden
+src/domain/fleet/     Korridore, Haltungen, Navigation, Versorgung und Strategie-KI
+src/game/             Fleet-Szene, freie Kamera, Lane-/Schiffsansicht und VFX
+src/ui/               zugängliches DOM-Command-HUD
+tests/unit/           Combat-/Fleet-Regeln
+tests/simulation/     100-Match-Balance-Batch
+tests/e2e/            Mobile-/Desktop-Flows und Layout-Gates
+docs/                 Vision, Planung, Reviews, Assets und Screenshots
 ```
 
-Die Konzeptbilder unter `docs/reference/mockups/` sind visuelle Referenzen und keine Runtime-Assets. Neue Spielgrafik und Audio werden eigenständig produziert und mit Herkunft sowie Nutzungsrechten dokumentiert.
+Die Konzeptbilder unter `docs/reference/mockups/` sind ausschließlich visuelle Referenzen. Neue Runtime-Kunst und Audio werden eigenständig produziert und im Asset Manifest dokumentiert.
