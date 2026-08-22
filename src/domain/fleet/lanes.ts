@@ -21,24 +21,24 @@ export const LANE_ORDER: readonly LaneId[] = ['upper', 'center', 'lower'];
 
 export const LANES: Readonly<Record<LaneId, LaneDefinition>> = {
   upper: {
-    id: 'upper', name: 'Upper Vector', shortName: 'UPPER', color: 0x58bfe8, width: 250,
+    id: 'upper', name: 'Upper Vector', shortName: 'UPPER', color: 0x58bfe8, width: 210,
     points: [
-      { x: 190, y: 390 }, { x: 560, y: 285 }, { x: 1_030, y: 330 },
-      { x: 1_470, y: 255 }, { x: 1_880, y: 310 }, { x: 2_210, y: 390 },
+      { x: 260, y: 540 }, { x: 850, y: 470 }, { x: 1_450, y: 515 },
+      { x: 2_100, y: 475 }, { x: 2_760, y: 510 }, { x: 3_340, y: 540 },
     ],
   },
   center: {
-    id: 'center', name: 'Center Voidline', shortName: 'CENTER', color: 0xd3b66d, width: 285,
+    id: 'center', name: 'Center Voidline', shortName: 'CENTER', color: 0xd3b66d, width: 220,
     points: [
-      { x: 190, y: 700 }, { x: 590, y: 660 }, { x: 1_020, y: 710 },
-      { x: 1_430, y: 675 }, { x: 1_840, y: 730 }, { x: 2_210, y: 700 },
+      { x: 260, y: 1_000 }, { x: 860, y: 970 }, { x: 1_470, y: 1_015 },
+      { x: 2_100, y: 980 }, { x: 2_760, y: 1_020 }, { x: 3_340, y: 1_000 },
     ],
   },
   lower: {
-    id: 'lower', name: 'Lower Drift', shortName: 'LOWER', color: 0x7ca7d7, width: 270,
+    id: 'lower', name: 'Lower Drift', shortName: 'LOWER', color: 0x7ca7d7, width: 210,
     points: [
-      { x: 190, y: 1_010 }, { x: 540, y: 1_115 }, { x: 960, y: 1_055 },
-      { x: 1_390, y: 1_135 }, { x: 1_850, y: 1_085 }, { x: 2_210, y: 1_010 },
+      { x: 260, y: 1_460 }, { x: 850, y: 1_530 }, { x: 1_450, y: 1_485 },
+      { x: 2_100, y: 1_525 }, { x: 2_760, y: 1_490 }, { x: 3_340, y: 1_460 },
     ],
   },
 };
@@ -60,7 +60,8 @@ export function lanePointAt(laneId: LaneId, progress: number): Vector2 {
 }
 
 export function laneProgressAt(position: Vector2): number {
-  return clamp((position.x - 190) / (2_210 - 190), 0, 1);
+  const points = LANES.center.points;
+  return clamp((position.x - points[0].x) / (points[points.length - 1].x - points[0].x), 0, 1);
 }
 
 export function laneDistance(position: Vector2, laneId: LaneId): number {

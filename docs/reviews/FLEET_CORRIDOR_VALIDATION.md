@@ -1,7 +1,7 @@
 # Fleet Corridors – Validierung und kritische Bewertung
 
 Stand: 22. August 2026  
-Build: `025cbc7` plus nachfolgender Dokumentations-/Polish-Pass
+Build: Map-first Mobile Redesign nach `eaec20e`
 
 ## Urteil
 
@@ -52,7 +52,10 @@ Die Strategien erzeugen messbar verschiedene Zeitprofile. Das ist ein gutes Sign
 
 - 18/18 E2E-Läufe auf 844×390, 667×375 und Desktop
 - Canvas belegt 100 % der Viewport-Breite und -Höhe; kein reservierter Bottom-Streifen
-- Command- und Ability-Pods überlappen sich nicht
+- Startansicht unter 15 % persistenter HUD-Fläche und mit höchstens fünf sichtbaren Controls
+- Command-Pod ist kontextuell und minimiert nach einem Befehl auf 220×38 px
+- Telemetrie und Ability-Pod erscheinen ausschließlich nach direkter Schiffsauswahl
+- Deployment und Ansichtsoptionen sind temporäre Popover und überlappen die Karte nicht dauerhaft
 - vier optionale Einzelaktionen mindestens 44×44 CSS-Pixel
 - Routengruppen-Haltungen, Deployment, Pause, Hilfe und Pinch-Zoom verifiziert
 - freie Kamera kehrt nicht automatisch zum Flaggschiff zurück

@@ -10,34 +10,34 @@ Der aktive Build ist ein einzelner spielbarer Proof of Concept für den neuen Ke
 
 ## Aktueller Mobile-Build
 
-| Startflotte und sichtbares Modul | Drei Korridore und zwei Ziele | Autonome Routengruppe im Gefecht |
+| Startflotte und sichtbares Modul | Ruhige Map-first-Kampfübersicht | Kontextbefehl für eine Routengruppe |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Mobile Startschiffwahl mit sichtbar montiertem Modul" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Fleet-Corridors-Gefecht mit drei Routen, Relais und Werft" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Autonome Routengruppe und optionale Schiffssysteme" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Mobile Startschiffwahl mit sichtbar montiertem Modul" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Ruhiges Fleet-Corridors-Gefecht mit drei feinen Routen und zwei Anlagen" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Kompaktes Kontext-Pod für den Befehl einer autonomen Routengruppe" width="260">](docs/screenshots/mobile-target-preview.png) |
 
 Die Galerie wird reproduzierbar mit `npm run capture:readme` erstellt.
 
 ## So spielt es sich
 
 1. **Vorbereiten:** Cruiser oder Frigate wählen und vor dem Start sichtbar Aegis-Emitter oder Vector-Drive montieren.
-2. **Route führen:** Obere, mittlere oder untere Routengruppe wählen. Die markierte Haltung gilt für alle eigenen Schiffe dort.
+2. **Route führen:** Eine der drei dünn markierten Routen direkt auf der Karte antippen. Das kleine Kontext-Pod gibt allen eigenen Schiffen dort eine Haltung.
 3. **Makro entscheiden:** Angriff erzeugt Druck, Breitseite sucht einen Seitenbogen, Halten verteidigt Raum, Abstand wahrt Reichweite, Rückzug löst einen geordneten Rückmarsch aus.
 4. **Ziele nutzen:** Das obere Relais verbessert Versorgung. Die untere Werft beschleunigt Verstärkungen; der Nebel reduziert Schaden. Die Mitte ist der direkte, riskante Weg.
-5. **Verstärken:** Fregatte oder Zerstörer für eine Route anfordern. Pro Seite leben höchstens sieben Schiffe.
-6. **Optional eingreifen:** Fokus, Lanze, Torpedo und Schild-Boost gehören zum ausgewählten Schiff, sind aber kein Pflicht-Mikromanagement. Standardwaffen arbeiten autonom.
-7. **Kamera kontrollieren:** Ein Finger beziehungsweise Maus-Drag verschiebt die Karte dauerhaft. Pinch oder Mausrad zoomt am Fokuspunkt. Nur der ◎-Knopf zentriert bewusst auf die Flotte.
+5. **Verstärken:** Das kompakte `+ Versorgung`-Pill öffnet die temporäre Auswahl für Route und Schiffstyp. Danach schließt es automatisch.
+6. **Optional eingreifen:** Erst ein Schiff antippen, um seine drei Statusbalken sowie Fokus, Lanze, Torpedo und Schild-Boost einzublenden. Standardwaffen arbeiten autonom.
+7. **Kamera kontrollieren:** Ein Finger beziehungsweise Maus-Drag verschiebt die Karte dauerhaft. Pinch oder Mausrad zoomt am Fokuspunkt; weitere Ansichtsoptionen liegen hinter `•••`.
 
-Siegbedingung ist die Vernichtung des gegnerischen Command Ships. Pause, ¼-Tempo und Live bleiben jederzeit verfügbar.
+Siegbedingung ist die Vernichtung des gegnerischen Command Ships. Pause und Live bleiben jederzeit als zwei kompakte Knöpfe verfügbar.
 
 ## Nachgewiesener Stand
 
-- ✅ drei natürliche Korridore mit zwei Junctions und nachvollziehbarem Routenwechsel
+- ✅ 3600×2000-Flottenraum mit drei feinen, direkt antippbaren Routen; Transfers nutzen weiterhin nachvollziehbare Junctions ohne technische Linienwände
 - ✅ fünf Haltungen: Angriff, Breitseite, Halten, Abstand, Rückzug
 - ✅ autonome Navigation, Zielwahl und Standardwaffen für 3–7 Schiffe pro Seite
 - ✅ oberes Versorgungsrelais, untere Werft/Nebelzone und mittlerer Direktweg
 - ✅ Versorgung, Deployment-Cooldown, Fregatte/Zerstörer und hartes 7-Schiff-Limit
 - ✅ strategische Gegner-KI mit Objective-Reaktion und denselben Deployment-Regeln
 - ✅ freie Full-bleed-Kamera, Buttons/Mausrad und echter Zwei-Finger-Zoom ohne Auto-Rücksprung
-- ✅ kompaktes deutsches Mobile-HUD mit Routengruppen-Hierarchie und kontextueller Einführung
+- ✅ Map-first-Mobile-HUD: unter 15 % persistente HUD-Fläche, maximal fünf Start-Controls und kontextuelle Route-/Schiff-/Deployment-Pods
 - ✅ vier originale Schiffsdarstellungen, Hardpoints, Broadside-Bolts, Lance, Torpedos, Schild-/Treffer-/Explosions-VFX
 - ✅ deterministischer 30-Hz-Combat-Core ohne Miss-/Intercept-Würfe
 - ✅ 30 Unit-Tests, 18 Browser-Gates und 100-Match-Balance-Simulation
@@ -47,7 +47,7 @@ Der 100-Match-Test endet zu 100 %, im Median nach 204 Sekunden. Mitteldruck ist 
 
 ## Projektstatus
 
-Der Fleet-Corridors-PoC ist funktional und online testbar. Er ist noch kein fertiger Vertical Slice: Audio fehlt, Center Push ist zu stark, Objective-Boni brauchen besseres Feedback, 7v7 benötigt mehr Rollenlesbarkeit und die aktuelle VFX-/Trefferchoreografie liegt noch klar unter dem Zielniveau.
+Der Fleet-Corridors-PoC ist funktional und online testbar. Die vorherige visuelle Überladung von Karte und HUD ist grundlegend behoben. Er ist noch kein fertiger Vertical Slice: Audio fehlt, Center Push ist zu stark, Objective-Boni brauchen besseres Feedback, 7v7 benötigt mehr Rollenlesbarkeit und die aktuelle VFX-/Trefferchoreografie liegt noch klar unter dem Zielniveau.
 
 Den verbindlichen Stand führt die [Roadmap](ROADMAP.md). Änderungen stehen im [Changelog](CHANGELOG.md); die nächsten Qualitätshebel sind in den [Top 20](docs/planning/TOP_20_LEVERS.md) priorisiert.
 

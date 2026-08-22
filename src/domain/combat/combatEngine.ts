@@ -4,6 +4,8 @@ import {
   BATTLEFIELD_MARGIN,
   BATTLEFIELD_WIDTH,
   COURSE_REACHED_DISTANCE,
+  FLEET_BATTLEFIELD_HEIGHT,
+  FLEET_BATTLEFIELD_WIDTH,
   NEBULA_CENTER,
   NEBULA_DAMAGE_REDUCTION,
   NEBULA_RADIUS,
@@ -141,12 +143,12 @@ export function isInsideNebula(position: Vector2): boolean {
   return distance(position, NEBULA_CENTER) <= NEBULA_RADIUS;
 }
 
-function isInsideBattlefield(position: Vector2, radius: number): boolean {
+function isInsideBattlefield(position: Vector2, radius: number, width = BATTLEFIELD_WIDTH, height = BATTLEFIELD_HEIGHT): boolean {
   return (
     position.x >= BATTLEFIELD_MARGIN + radius &&
-    position.x <= BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - radius &&
+    position.x <= width - BATTLEFIELD_MARGIN - radius &&
     position.y >= BATTLEFIELD_MARGIN + radius &&
-    position.y <= BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - radius
+    position.y <= height - BATTLEFIELD_MARGIN - radius
   );
 }
 
@@ -730,7 +732,9 @@ export function stepCombat(initialState: CombatState, deltaMs: number): StepResu
       delete projectiles[projectile.id];
       continue;
     }
-    if (!isInsideBattlefield(position, 0)) {
+    const battlefieldWidth = state.controlMode === 'fleet' ? FLEET_BATTLEFIELD_WIDTH : BATTLEFIELD_WIDTH;
+    const battlefieldHeight = state.controlMode === 'fleet' ? FLEET_BATTLEFIELD_HEIGHT : BATTLEFIELD_HEIGHT;
+    if (!isInsideBattlefield(position, 0, battlefieldWidth, battlefieldHeight)) {
       delete projectiles[projectile.id];
       events.push({ type: 'projectile-expired', projectileId: projectile.id });
       continue;

@@ -153,9 +153,9 @@ describe('Fleet Corridors domain', () => {
     const state = advance(createFleetBattleState(), 30_000);
     for (const ship of Object.values(state.ships).filter((candidate) => candidate.alive)) {
       expect(ship.position.x).toBeGreaterThan(70);
-      expect(ship.position.x).toBeLessThan(2_330);
+      expect(ship.position.x).toBeLessThan(3_530);
       expect(ship.position.y).toBeGreaterThan(70);
-      expect(ship.position.y).toBeLessThan(1_330);
+      expect(ship.position.y).toBeLessThan(1_930);
       const directive = state.fleet.directives[ship.id];
       if (directive) {
         const corridorDistance = Math.min(

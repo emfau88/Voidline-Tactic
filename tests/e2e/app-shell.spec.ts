@@ -30,60 +30,78 @@ test('loads a full-bleed compact mobile command HUD', async ({ page }) => {
   await expect(page.locator('#game-shell')).toHaveAttribute('data-control-mode', 'fleet');
   await expect(page.locator('#ship-name')).toHaveText('Aster Vale');
   await expect(page.locator('#command-group-count')).toContainText('AUTONOM');
-  await expect(page.locator('#command-guide')).toContainText('Eine Haltung gilt für alle Schiffe');
+  await expect(page.locator('#command-guide')).toContainText('Gib einer ganzen Routengruppe');
+  await expect(page.locator('#fleet-command-panel')).toBeHidden();
+  await expect(page.locator('#ship-card')).toBeHidden();
+  await expect(page.locator('#action-grid')).toBeHidden();
 
   const layout = await page.evaluate(() => {
     const rect = (selector: string): DOMRect => document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
-    const command = rect('#fleet-command-panel');
-    const actions = rect('#action-grid');
     const canvas = rect('#game-root canvas');
-    const abilityButtons = [...document.querySelectorAll<HTMLElement>('#action-grid button')].map((button) => button.getBoundingClientRect());
-    const stanceButtons = [...document.querySelectorAll<HTMLElement>('.stance-grid button')].map((button) => button.getBoundingClientRect());
+    const persistent = ['#topbar', '#time-controls', '#command-guide'].map(rect);
+    const persistentArea = persistent.reduce((sum, item) => sum + item.width * item.height, 0);
     return {
       canvas: { width: canvas.width, height: canvas.height }, viewport: { width: innerWidth, height: innerHeight },
-      commandActionGap: actions.left - command.right, commandHeightRatio: command.height / innerHeight,
-      abilityButtons: abilityButtons.map(({ width, height }) => ({ width, height })),
-      stanceWidths: stanceButtons.map(({ width }) => width), bodyFits: document.body.scrollWidth <= innerWidth,
+      persistentRatio: persistentArea / (innerWidth * innerHeight),
+      visibleControls: [...document.querySelectorAll<HTMLElement>('.battle-ui button')].filter((button) => {
+        const style = getComputedStyle(button); const bounds = button.getBoundingClientRect();
+        return style.display !== 'none' && style.visibility !== 'hidden' && bounds.width > 0 && bounds.height > 0;
+      }).length,
+      bodyFits: document.body.scrollWidth <= innerWidth,
     };
   });
   expect(Math.abs(layout.canvas.width - layout.viewport.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(layout.canvas.height - layout.viewport.height)).toBeLessThanOrEqual(1);
-  expect(layout.commandActionGap).toBeGreaterThanOrEqual(8);
-  expect(layout.commandHeightRatio).toBeLessThan(0.30);
-  expect(Math.min(...layout.abilityButtons.map(({ width }) => width))).toBeGreaterThanOrEqual(44);
-  expect(Math.min(...layout.abilityButtons.map(({ height }) => height))).toBeGreaterThanOrEqual(44);
-  expect(Math.min(...layout.stanceWidths)).toBeGreaterThanOrEqual(48);
+  expect(layout.persistentRatio).toBeLessThan(0.15);
+  expect(layout.visibleControls).toBeLessThanOrEqual(5);
   expect(layout.bodyFits).toBe(true);
+
+  const selected = await page.locator('#game-shell').getAttribute('data-selected-ship');
+  const screens = JSON.parse(await page.locator('#game-shell').getAttribute('data-ship-screens') ?? '{}') as Record<string, { x: number; y: number }>;
+  const selectedScreen = selected ? screens[selected] : undefined;
+  const canvasBox = await page.locator('#game-root canvas').boundingBox();
+  if (!selectedScreen || !canvasBox) throw new Error('Selected ship screen position missing');
+  await page.locator('#game-root canvas').click({ position: { x: selectedScreen.x * canvasBox.width, y: selectedScreen.y * canvasBox.height } });
+  await expect(page.locator('#ship-card')).toBeVisible();
+  await expect(page.locator('#action-grid')).toBeVisible();
 });
 
 test('issues one stance to an autonomous route group', async ({ page }) => {
   await startBattle(page);
+  const canvas = page.locator('#game-root canvas');
+  const bounds = await canvas.boundingBox();
+  if (!bounds) throw new Error('Battlefield canvas missing');
+  await canvas.click({ position: { x: bounds.width * 0.5, y: bounds.height * 0.27 } });
   const panel = page.locator('#fleet-command-panel');
-  await panel.getByRole('button', { name: 'OBERE ROUTE', exact: true }).click();
+  await expect(panel).toBeVisible();
   await panel.getByRole('button', { name: /ABSTAND/ }).click();
   await expect(page.locator('#command-group-title')).toHaveText('OBEN · ROUTENGRUPPE');
   await expect(page.locator('#command-group-count')).toHaveText('1 SCHIFF · AUTONOM');
-  await expect(panel.getByRole('button', { name: /ABSTAND/ })).toHaveClass(/active/);
+  await expect(panel).toHaveClass(/collapsed/);
+  await expect(panel.locator('[data-stance="keep-range"]')).toHaveClass(/active/);
   await expect(page.locator('#toast')).toContainText('ROUTENBEFEHL ÜBERNOMMEN');
-  await expect(page.locator('#transfer-selected-button')).toBeVisible();
 });
 
 test('deploys a reinforcement into a chosen route', async ({ page }) => {
   await startBattle(page);
   await page.getByRole('button', { name: 'Taktische Pause' }).click();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-time-scale', '0');
+  await page.getByRole('button', { name: 'Verstärkungen öffnen' }).click();
   const deployment = page.locator('#deployment-panel');
+  await expect(deployment).toBeVisible();
   await deployment.getByRole('button', { name: 'OBEN', exact: true }).click();
   const before = Number(await page.locator('#game-shell').getAttribute('data-ship-count'));
   await deployment.getByRole('button', { name: /FREGATTE/ }).click();
   await expect.poll(async () => Number(await page.locator('#game-shell').getAttribute('data-ship-count'))).toBe(before + 1);
   await expect(page.locator('#toast')).toContainText('FREGATTE');
-  await expect(page.locator('#command-guide')).toContainText('Wechsle Schiffe');
+  await expect(page.locator('#command-guide')).toContainText('Tippe Schiffe');
+  await expect(deployment).toBeHidden();
 });
 
 test('keeps special weapons optional and supports pinch zoom', async ({ page }) => {
   await startBattle(page);
-  await expect(page.locator('#optional-systems-label')).toHaveText('OPTIONAL · EINZELSCHIFF');
+  await expect(page.locator('#action-grid')).toBeHidden();
+  await page.getByRole('button', { name: 'Ansichtsmenü öffnen' }).click();
   await page.getByRole('button', { name: 'Hineinzoomen' }).click();
   await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('120%');
   await page.locator('#game-root canvas').evaluate((canvas) => {
@@ -102,6 +120,7 @@ test('keeps special weapons optional and supports pinch zoom', async ({ page }) 
 
 test('explains the macro loop in plain language', async ({ page }) => {
   await startBattle(page);
+  await page.getByRole('button', { name: 'Ansichtsmenü öffnen' }).click();
   await page.getByRole('button', { name: 'Spielhilfe öffnen' }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('Haltung');

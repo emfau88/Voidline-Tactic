@@ -1,4 +1,4 @@
-import { BATTLEFIELD_HEIGHT, BATTLEFIELD_MARGIN, BATTLEFIELD_WIDTH } from '../combat/constants';
+import { BATTLEFIELD_MARGIN, FLEET_BATTLEFIELD_HEIGHT, FLEET_BATTLEFIELD_WIDTH } from '../combat/constants';
 import { angleBetween, clamp, distance } from '../combat/math';
 import type { ShipState, Vector2 } from '../combat/types';
 import { laneChangeRoute, laneDistance, laneOffsetForShip, lanePointAt, lanePointWithOffset, laneProgressAt, nearestLane } from './lanes';
@@ -13,8 +13,8 @@ function optimalRange(ship: ShipState): number {
 
 function clampDestination(point: Vector2, ship: ShipState): Vector2 {
   return {
-    x: clamp(point.x, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius),
-    y: clamp(point.y, BATTLEFIELD_MARGIN + ship.radius, BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius),
+    x: clamp(point.x, BATTLEFIELD_MARGIN + ship.radius, FLEET_BATTLEFIELD_WIDTH - BATTLEFIELD_MARGIN - ship.radius),
+    y: clamp(point.y, BATTLEFIELD_MARGIN + ship.radius, FLEET_BATTLEFIELD_HEIGHT - BATTLEFIELD_MARGIN - ship.radius),
   };
 }
 

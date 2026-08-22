@@ -4,6 +4,30 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Map-first Mobile Battlefield — 2026-08-22
+
+#### Added
+
+- eigener 3600×2000-Flottenraum mit unverändertem Legacy-Combat-Space
+- direktes Antippen einer Route zum Öffnen eines kompakten Gruppenbefehls
+- temporäre Popover für Verstärkungen und Ansichtsoptionen
+- E2E-Flächengate: weniger als 15 % persistentes HUD und maximal fünf sichtbare Start-Controls
+
+#### Changed
+
+- breite Korridorbänder, Junction-Wände, Segmentstriche und technische Großkreise durch drei feine Routenlinien ersetzt
+- Objectives zu kleinen Anlagenmarkern reduziert; Capture-Bogen erscheint nur bei tatsächlichem Fortschritt
+- Routengruppen-Pod nach dem Befehl auf ein 220×38-px-Status-Pill minimiert
+- Schiffstelemetrie und Spezialfähigkeiten vollständig kontextuell gemacht
+- Topbar auf Zeit, Versorgung und ein Ansichtsmenü reduziert; Pause/Live schweben separat
+- Tutorial von einem großen Panel auf ein automatisch verschwindendes Ein-Zeilen-Pill reduziert
+
+#### Validation
+
+- 30 Unit-Tests, 18 Browser-Gates und Production Build grün
+- 667×375 und 844×390 mit vollflächigem Canvas, getrennten Touchflächen und Pinch-Zoom geprüft
+- neue README-Screenshots aus dem Map-first-Build reproduzierbar erfasst
+
 ### Small-mobile CI Layout Stabilization — 2026-08-22
 
 - 667×375-Command-Pod gegen abweichende Linux-Fontmetriken auf ein festes, einzeiliges Kompaktraster begrenzt

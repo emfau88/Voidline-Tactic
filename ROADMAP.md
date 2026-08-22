@@ -72,9 +72,21 @@ Offene Befunde:
 - 🚧 Command-Ship-Zielzeit entsteht noch zu stark über reine Lebenspunkte
 - 🚧 Objective-Boni sind regelwirksam, aber visuell nicht konkret genug erklärt
 
+## M3.2 – Map-first Mobile Redesign ✅
+
+- eigener 3600×2000-Flottenraum, ohne die Legacy-Missionen geometrisch zu verändern
+- breite Korridorflächen, Junction-Wände, Segmentmarken und technische Nebelkreise entfernt
+- drei ruhige, direkt antippbare Routenlinien und kleine anlagenartige Objectives
+- Startansicht unter 15 % persistenter HUD-Fläche und höchstens fünf sichtbare Controls
+- Route antippen → 318-px-Befehlspod → nach Befehl 220×38-px-Status-Pill
+- Schiff antippen → nur dann kompakte Statusbalken und vier optionale Spezialfähigkeiten
+- Versorgung antippen → temporäres Deployment-Popover, das sich nach Auswahl schließt
+- Zoom, Flottenfokus, Vollbild und Hilfe hinter einem kompakten Ansichtsmenü
+- 18/18 E2E-Gates inklusive 667×375, Touch-Zielen, Kontextzuständen und Pinch-Zoom
+
 ## M4 – Combat Readability und audiovisuelle Wirkung 🚧
 
-- ✅ klare Routengrafik, Junctions, Owner-Farben und Capture-Ringe
+- ✅ ruhige Routengrafik, Owner-Farben und nur bei Capture sichtbare Fortschrittsbögen
 - ✅ feindliche rote Konturen, Zielmarker, Schildringe und Healthbars
 - ✅ Broadside-Bolts, Lance-Beam, Torpedos, Trefferwellen und Explosionen
 - 🚧 Center-Risiko und Objective-Feedback visuell stärker kommunizieren
@@ -122,6 +134,6 @@ Offene Befunde:
 
 ## Aktuelle Position
 
-Wir stehen am Ende von **M3.1**: Der neue Fleet-Corridors-Kern ist implementiert, mobil bedienbar, automatisiert getestet und als einzelner PoC spielbar. Der frühere Joystick-/Drei-Missionen-Pfad bleibt nur noch als Legacy-Code im Repository und ist nicht aktiv.
+Wir stehen am Ende von **M3.2**: Der Fleet-Corridors-Kern ist implementiert, die zuvor überladene Karten-/HUD-Schicht wurde durch ein gemessenes Map-first-System ersetzt und der PoC ist mobil wie am Desktop automatisiert spielbar. Der frühere Joystick-/Drei-Missionen-Pfad bleibt nur noch als Legacy-Code im Repository und ist nicht aktiv.
 
 Der nächste überprüfbare Meilenstein ist **M4 „Combat Readability und audiovisuelle Wirkung“**. Reihenfolge: Center-/Objective-Balance → konkretes Objective-Feedback → Audio-Foundation → klassenbasierte Waffen-/Trefferchoreografie → 7v7-Performance. Erst danach wird der PoC zu drei Missionen erweitert. Die priorisierte Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

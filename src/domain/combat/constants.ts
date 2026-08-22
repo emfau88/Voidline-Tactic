@@ -1,5 +1,7 @@
 export const BATTLEFIELD_WIDTH = 2_400;
 export const BATTLEFIELD_HEIGHT = 1_400;
+export const FLEET_BATTLEFIELD_WIDTH = 3_600;
+export const FLEET_BATTLEFIELD_HEIGHT = 2_000;
 export const BATTLEFIELD_MARGIN = 80;
 
 export const FIXED_STEP_MS = 1_000 / 30;

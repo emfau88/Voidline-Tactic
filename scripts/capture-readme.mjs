@@ -41,13 +41,13 @@ try {
   });
 
   await page.getByRole('button', { name: 'Taktische Pause' }).click();
-  const commandPanel = page.locator('#fleet-command-panel');
-  await commandPanel.getByRole('button', { name: 'OBERE ROUTE', exact: true }).click();
-  await commandPanel.getByRole('button', { name: /ABSTAND/ }).click();
-  const deploymentPanel = page.locator('#deployment-panel');
-  await deploymentPanel.getByRole('button', { name: 'OBEN', exact: true }).click();
-  await deploymentPanel.getByRole('button', { name: /FREGATTE/ }).click();
   await page.locator('#close-command-guide').click();
+  const canvas = page.locator('#game-root canvas');
+  const canvasBounds = await canvas.boundingBox();
+  if (!canvasBounds) throw new Error('Battlefield canvas missing');
+  await canvas.click({ position: { x: canvasBounds.width * 0.5, y: canvasBounds.height * 0.27 } });
+  const commandPanel = page.locator('#fleet-command-panel');
+  await commandPanel.waitFor({ state: 'visible' });
   await page.waitForTimeout(180);
   await page.screenshot({
     path: path.join(outputDirectory, 'mobile-target-preview.png'),

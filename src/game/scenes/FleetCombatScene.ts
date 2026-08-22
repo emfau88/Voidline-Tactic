@@ -3,12 +3,12 @@ import { getCampaignState } from '../../app/campaign';
 import { RENDER_DENSITY } from '../../app/display';
 import { getStarterModuleId, getStarterShipId } from '../../app/starterSelection';
 import { activateAbility, getAbilityPreview } from '../../domain/combat/combatEngine';
-import { BATTLEFIELD_HEIGHT, BATTLEFIELD_WIDTH, FIXED_STEP_MS } from '../../domain/combat/constants';
+import { FIXED_STEP_MS, FLEET_BATTLEFIELD_HEIGHT, FLEET_BATTLEFIELD_WIDTH } from '../../domain/combat/constants';
 import { distance } from '../../domain/combat/math';
 import type { CombatEvent, ManualAbility, ShipState, TimeScale, Vector2 } from '../../domain/combat/types';
 import { createFleetBattleState, stepFleetBattle } from '../../domain/fleet/fleetBattle';
 import { assignFleetLane, deployFleetShip, setFleetFocus, setFleetStance } from '../../domain/fleet/fleetCommands';
-import { laneLabel } from '../../domain/fleet/lanes';
+import { laneDistance, laneLabel, nearestLane } from '../../domain/fleet/lanes';
 import type { DeployKind, FleetBattleState, FleetCommandResult, FleetEvent, FleetStance, LaneId } from '../../domain/fleet/types';
 import { FleetCommandHud, type FleetHudAction } from '../../ui/FleetCommandHud';
 import { StrategicCameraController } from '../controllers/StrategicCameraController';
@@ -20,6 +20,8 @@ type RuntimeEvent = CombatEvent | FleetEvent;
 
 const DEFAULT_CAMERA_ZOOM = 1.08;
 const CAMERA_OVERSCAN = 180;
+const BATTLEFIELD_WIDTH = FLEET_BATTLEFIELD_WIDTH;
+const BATTLEFIELD_HEIGHT = FLEET_BATTLEFIELD_HEIGHT;
 
 export class FleetCombatScene extends Phaser.Scene {
   private state!: FleetBattleState;
@@ -42,6 +44,7 @@ export class FleetCombatScene extends Phaser.Scene {
   private lastGestureMidpoint?: { x: number; y: number };
   private gestureActive = false;
   private resultShown = false;
+  private shipContextVisible = false;
   private removePinchListeners?: () => void;
   private resizeObserver?: ResizeObserver;
 
@@ -62,7 +65,7 @@ export class FleetCombatScene extends Phaser.Scene {
     this.hud = new FleetCommandHud({
       onAction: (action) => this.handleAction(action),
       onStance: (stance) => this.applyGroupStance(stance),
-      onCommandLane: (lane) => { this.commandLane = lane; this.refreshHud(); },
+      onCommandLane: (lane) => { this.commandLane = lane; this.hud.openCommandPanel(); this.refreshHud(); },
       onTransferSelected: () => this.applyFleetCommand(assignFleetLane(this.state, this.selectedShipId, this.commandLane)),
       onDeploy: (kind, lane) => this.deploy(kind, lane),
       onTimeScale: (scale) => this.setTimeScale(scale),
@@ -96,7 +99,7 @@ export class FleetCombatScene extends Phaser.Scene {
       this.resizeObserver?.disconnect();
     });
     this.refreshHud();
-    this.hud.toast('SCHIFF WÄHLEN · Verhalten und Route befehlen · Karte frei wischen');
+    this.hud.toast('ROUTE ANTIPPEN · Flotte befehlen · Karte frei wischen');
     const shell = document.getElementById('game-shell');
     shell?.setAttribute('aria-busy', 'false');
     if (shell) shell.dataset.gameReady = 'true';
@@ -180,12 +183,30 @@ export class FleetCombatScene extends Phaser.Scene {
     if (friendly) {
       this.selectedShipId = friendly.id;
       this.commandLane = this.state.fleet.directives[friendly.id].laneId;
+      this.shipContextVisible = true;
+      this.hud.setShipContextVisible(true);
       this.hud.toast(`${friendly.name.toUpperCase()} · BEFEHLSBEREIT`);
       this.refreshHud();
       return;
     }
     const enemy = ships.filter((ship) => ship.team === 'enemy').sort((a, b) => distance(a.position, { x, y }) - distance(b.position, { x, y }))[0];
-    if (enemy) this.applyFleetCommand(setFleetFocus(this.state, this.selectedShipId, enemy.id));
+    if (enemy) {
+      this.shipContextVisible = true;
+      this.hud.setShipContextVisible(true);
+      this.applyFleetCommand(setFleetFocus(this.state, this.selectedShipId, enemy.id));
+      return;
+    }
+    const point = { x, y };
+    const lane = nearestLane(point);
+    if (laneDistance(point, lane) <= 230) {
+      this.commandLane = lane;
+      this.shipContextVisible = false;
+      this.hud.openCommandPanel();
+      this.refreshHud();
+      return;
+    }
+    this.shipContextVisible = false;
+    this.hud.clearContext();
   }
 
   private handleAction(action: FleetHudAction): void {
@@ -274,13 +295,7 @@ export class FleetCombatScene extends Phaser.Scene {
     const selected = this.state.ships[this.selectedShipId];
     if (!selected?.alive) return;
     const directive = this.state.fleet.directives[selected.id];
-    this.overlay.lineStyle(5, 0x74dcff, 0.62);
-    let last = selected.position;
-    for (const point of selected.course) {
-      this.overlay.lineBetween(last.x, last.y, point.x, point.y);
-      this.overlay.fillStyle(0xd8f8ff, 0.72).fillCircle(point.x, point.y, 7);
-      last = point;
-    }
+    if (!this.shipContextVisible) return;
     const target = selected.targetId ? this.state.ships[selected.targetId] : undefined;
     if (target?.alive) {
       this.overlay.lineStyle(3, 0xff7c86, 0.46);
@@ -401,6 +416,7 @@ export class FleetCombatScene extends Phaser.Scene {
     this.timeScale = 1;
     this.accumulatorMs = 0;
     this.resultShown = false;
+    this.shipContextVisible = false;
     for (const view of this.shipViews.values()) view.destroy(true);
     this.shipViews.clear();
     for (const view of this.projectileViews.values()) view.destroy(true);
@@ -408,6 +424,7 @@ export class FleetCombatScene extends Phaser.Scene {
     this.resetCamera();
     this.syncPresentation();
     this.refreshHud();
+    this.hud.clearContext();
     this.hud.toast('FLEET CORRIDORS · NEUER EINSATZ');
   }
 

@@ -69,11 +69,11 @@ export function createFleetBattleState(
       objectives: {
         'upper-relay': {
           id: 'upper-relay', kind: 'relay', name: 'Aster Relay', laneId: 'upper', position: relayPosition,
-          radius: 145, captureProgress: 0,
+          radius: 120, captureProgress: 0,
         },
         'lower-shipyard': {
           id: 'lower-shipyard', kind: 'shipyard', name: 'Drift Shipyard', laneId: 'lower', position: shipyardPosition,
-          radius: 165, captureProgress: 0,
+          radius: 130, captureProgress: 0,
         },
       },
       supply: { player: 45, enemy: 45 },

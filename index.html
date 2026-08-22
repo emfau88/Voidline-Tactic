@@ -132,7 +132,8 @@
             <small>ZIEL</small>
             <strong id="objective-label">Command Ship ausschalten</strong>
           </div>
-          <strong id="supply-label">45 SUPPLY</strong>
+          <button id="supply-label" type="button" aria-label="Verstärkungen öffnen" aria-expanded="false">+ 45</button>
+          <button id="view-menu-button" type="button" aria-label="Ansichtsmenü öffnen" aria-expanded="false">•••</button>
         </header>
 
         <nav id="time-controls" class="battle-ui" aria-label="Simulationsgeschwindigkeit">
@@ -202,7 +203,7 @@
           </div>
         </section>
 
-        <section id="deployment-panel" class="panel battle-ui" aria-label="Verstärkungen anfordern">
+        <section id="deployment-panel" class="panel battle-ui" aria-label="Verstärkungen anfordern" hidden>
           <header><strong>VERSTÄRKUNG</strong><small>VERSORGUNG <span id="deployment-supply">45 / 100</span></small></header>
           <div class="deploy-lanes" aria-label="Einsatzkorridor">
             <button type="button" data-deploy-lane="upper">OBEN</button>
@@ -217,8 +218,8 @@
 
         <footer id="combat-hud" class="battle-ui">
           <div id="control-deck">
-            <section id="fleet-command-panel" aria-label="Indirekte Flottenbefehle">
-              <div class="command-heading"><strong id="command-group-title">ROUTENGRUPPE</strong><small id="command-group-count">AUTONOM</small></div>
+            <section id="fleet-command-panel" aria-label="Indirekte Flottenbefehle" hidden>
+              <button id="command-summary-button" class="command-heading" type="button" aria-expanded="true"><strong id="command-group-title">ROUTENGRUPPE</strong><small id="command-group-count">AUTONOM</small></button>
               <div class="stance-grid" aria-label="Haltung">
                 <button type="button" data-stance="advance"><strong>▲</strong><small>ANGRIFF</small></button>
                 <button type="button" data-stance="broadside"><strong>↔</strong><small>BREITSEITE</small></button>

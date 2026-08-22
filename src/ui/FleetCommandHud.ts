@@ -62,6 +62,11 @@ export class FleetCommandHud {
   private readonly deployLaneButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-deploy-lane]')];
   private readonly deployButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-deploy]')];
   private readonly targetCard = required<HTMLElement>('target-card');
+  private readonly shipCard = required<HTMLElement>('ship-card');
+  private readonly commandPanel = required<HTMLElement>('fleet-command-panel');
+  private readonly deploymentPanel = required<HTMLElement>('deployment-panel');
+  private readonly actionGrid = required<HTMLElement>('action-grid');
+  private readonly viewControls = required<HTMLElement>('view-controls');
   private readonly helpDialog = required<HTMLDialogElement>('help-dialog');
   private readonly resultDialog = required<HTMLDialogElement>('result-dialog');
   private deployLane: LaneId = 'center';
@@ -72,6 +77,7 @@ export class FleetCommandHud {
     for (const button of this.actionButtons) button.addEventListener('click', () => callbacks.onAction(button.dataset.action as FleetHudAction));
     for (const button of this.stanceButtons) button.addEventListener('click', () => {
       callbacks.onStance(button.dataset.stance as FleetStance);
+      this.collapseCommandPanel();
       this.showGuide(2);
     });
     for (const button of this.laneButtons) button.addEventListener('click', () => {
@@ -85,7 +91,26 @@ export class FleetCommandHud {
     });
     for (const button of this.deployButtons) button.addEventListener('click', () => {
       callbacks.onDeploy(button.dataset.deploy as DeployKind, this.deployLane);
+      this.closeDeployment();
       this.showGuide(4);
+    });
+    required<HTMLButtonElement>('command-summary-button').addEventListener('click', () => {
+      const collapsed = this.commandPanel.classList.toggle('collapsed');
+      required<HTMLButtonElement>('command-summary-button').setAttribute('aria-expanded', String(!collapsed));
+    });
+    required<HTMLButtonElement>('supply-label').addEventListener('click', (event) => {
+      event.stopPropagation();
+      const opening = this.deploymentPanel.hidden;
+      this.deploymentPanel.hidden = !opening;
+      required<HTMLButtonElement>('supply-label').setAttribute('aria-expanded', String(opening));
+      if (opening) this.viewControls.hidden = true;
+    });
+    required<HTMLButtonElement>('view-menu-button').addEventListener('click', (event) => {
+      event.stopPropagation();
+      const opening = this.viewControls.hidden;
+      this.viewControls.hidden = !opening;
+      required<HTMLButtonElement>('view-menu-button').setAttribute('aria-expanded', String(opening));
+      if (opening) this.closeDeployment();
     });
     required<HTMLButtonElement>('pause-button').addEventListener('click', () => callbacks.onTimeScale(0));
     required<HTMLButtonElement>('slow-button').addEventListener('click', () => callbacks.onTimeScale(0.25));
@@ -102,17 +127,52 @@ export class FleetCommandHud {
       required<HTMLButtonElement>(id).disabled = false;
     }
     this.syncDeployLane();
+    this.viewControls.hidden = true;
+    this.setShipContextVisible(false);
     this.showGuide(1);
+    window.setTimeout(() => required('command-guide').setAttribute('hidden', ''), 5_500);
+  }
+
+  public openCommandPanel(): void {
+    this.commandPanel.hidden = false;
+    this.commandPanel.classList.remove('collapsed');
+    required<HTMLButtonElement>('command-summary-button').setAttribute('aria-expanded', 'true');
+    this.setShipContextVisible(false);
+    this.closeDeployment();
+  }
+
+  public collapseCommandPanel(): void {
+    this.commandPanel.hidden = false;
+    this.commandPanel.classList.add('collapsed');
+    required<HTMLButtonElement>('command-summary-button').setAttribute('aria-expanded', 'false');
+  }
+
+  public setShipContextVisible(visible: boolean): void {
+    this.shipCard.hidden = !visible;
+    this.actionGrid.hidden = !visible;
+    required<HTMLElement>('optional-systems-label').hidden = !visible;
+    if (!visible) this.targetCard.hidden = true;
+  }
+
+  public clearContext(): void {
+    this.setShipContextVisible(false);
+    this.commandPanel.hidden = true;
+    this.closeDeployment();
+  }
+
+  private closeDeployment(): void {
+    this.deploymentPanel.hidden = true;
+    required<HTMLButtonElement>('supply-label').setAttribute('aria-expanded', 'false');
   }
 
   private showGuide(step: number): void {
     if (step <= this.guideStep && step !== 1) return;
     this.guideStep = step;
     const messages = {
-      1: ['AUTONOME ROUTENGRUPPE', 'Eine Haltung gilt für alle Schiffe auf der gewählten Route.'],
-      2: ['ANDERE ROUTE', 'Wähle oben links im Befehlsfeld eine andere Routengruppe.'],
-      3: ['KARTE BEOBACHTEN', 'Relais bringt Versorgung, die Werft schnelleren Nachschub.'],
-      4: ['BEREIT ZUM KOMMANDO', 'Wechsle Schiffe und passe ihre Befehle jederzeit an.'],
+      1: ['ROUTE ANTIPPEN', 'Gib einer ganzen Routengruppe einen einfachen Befehl.'],
+      2: ['SCHIFFE HANDELN AUTONOM', 'Du steuerst Haltung, Route und Verstärkung.'],
+      3: ['ZIELE SICHERN', 'Relais und Werft stärken deine Flotte.'],
+      4: ['KOMMANDO BEREIT', 'Tippe Schiffe nur für Status und Spezialfähigkeiten an.'],
     } as const;
     const message = messages[step as keyof typeof messages] ?? messages[4];
     const guide = required('command-guide');
@@ -135,7 +195,7 @@ export class FleetCommandHud {
     text('turn-number', timeLabel(state.elapsedMs));
     text('phase-label', timeScale === 0 ? 'TAKTISCHE PAUSE' : timeScale === 0.25 ? '0,25× PLANUNG' : '1× LIVE');
     text('objective-label', 'FEINDLICHES COMMAND SHIP AUSSCHALTEN');
-    text('supply-label', `${Math.floor(state.fleet.supply.player)} VERSORGUNG`);
+    text('supply-label', `+ ${Math.floor(state.fleet.supply.player)}`);
     text('ship-name', selected.name);
     text('ship-class', `${CLASS_LABELS[selected.class]} · ${laneLabel(directive.laneId)}`);
     text('ship-status', STANCE_LABELS[directive.stance]);
@@ -153,7 +213,7 @@ export class FleetCommandHud {
     text('command-group-title', `${laneLabel(commandLane)} · ROUTENGRUPPE`);
     text('command-group-count', `${groupCount} SCHIFF${groupCount === 1 ? '' : 'E'} · AUTONOM`);
 
-    this.targetCard.hidden = !target;
+    this.targetCard.hidden = !target || this.actionGrid.hidden;
     if (target) {
       text('target-name', target.name);
       text('target-class', `${CLASS_LABELS[target.class]} · ${Math.round(distance(selected.position, target.position))} m`);
