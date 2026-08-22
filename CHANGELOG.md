@@ -4,6 +4,12 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Small-mobile CI Layout Stabilization — 2026-08-22
+
+- 667×375-Command-Pod gegen abweichende Linux-Fontmetriken auf ein festes, einzeiliges Kompaktraster begrenzt
+- Höhen-Gate von unter 35 % auf unter 30 % des Viewports verschärft, statt den CI-Grenzwert an den Fehler anzupassen
+- verborgenes Transfer-Control am kleinen Landscape-Breakpoint explizit aus dem Layoutfluss entfernt
+
 ### Fleet Corridors – Indirect Fleet Command — 2026-08-22
 
 Meilenstein-Commits:

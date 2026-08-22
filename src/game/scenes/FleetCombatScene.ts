@@ -52,6 +52,7 @@ export class FleetCombatScene extends Phaser.Scene {
     this.createBattlefield();
     this.state = createFleetBattleState(getStarterShipId(), getCampaignState().upgrades, getStarterModuleId());
     this.selectedShipId = this.state.fleet.commandShipIds.player;
+    this.commandLane = this.state.fleet.directives[this.selectedShipId].laneId;
     this.laneView = new FleetLaneView(this, this.state);
     this.overlay = this.add.graphics().setDepth(13);
     this.cameras.main.setBounds(-CAMERA_OVERSCAN, -CAMERA_OVERSCAN, BATTLEFIELD_WIDTH + CAMERA_OVERSCAN * 2, BATTLEFIELD_HEIGHT + CAMERA_OVERSCAN * 2);
@@ -396,7 +397,7 @@ export class FleetCombatScene extends Phaser.Scene {
     this.hud.closeResult();
     this.state = createFleetBattleState(getStarterShipId(), getCampaignState().upgrades, getStarterModuleId());
     this.selectedShipId = this.state.fleet.commandShipIds.player;
-    this.commandLane = 'center';
+    this.commandLane = this.state.fleet.directives[this.selectedShipId].laneId;
     this.timeScale = 1;
     this.accumulatorMs = 0;
     this.resultShown = false;

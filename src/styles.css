@@ -216,6 +216,49 @@
     gap: 18px;
   }
   #game-shell[data-screen='battle'] #topbar .objective-block { display: none; }
+  #game-shell[data-screen='battle'] #fleet-command-panel {
+    min-height: 0;
+    padding: 5px;
+  }
+  #game-shell[data-screen='battle'] #fleet-command-panel .command-heading {
+    height: 12px;
+    margin: 0 2px 4px;
+    line-height: 12px;
+  }
+  #game-shell[data-screen='battle'] #fleet-command-panel .stance-grid button {
+    height: 40px;
+    min-height: 40px;
+    padding: 2px;
+  }
+  #game-shell[data-screen='battle'] #fleet-command-panel .stance-grid button small {
+    overflow: hidden;
+    font-size: 5px;
+    line-height: 7px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #game-shell[data-screen='battle'] #fleet-command-panel .lane-grid {
+    margin-top: 4px;
+  }
+  #game-shell[data-screen='battle'] #fleet-command-panel .lane-grid button {
+    height: 32px;
+    min-height: 32px;
+    overflow: hidden;
+    padding: 2px;
+    font-size: 5px;
+    line-height: 7px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #game-shell[data-screen='battle'] #transfer-selected-button {
+    min-height: 20px;
+    margin-top: 3px;
+    padding: 2px 5px;
+    line-height: 10px;
+  }
+  #game-shell[data-screen='battle'] #transfer-selected-button[hidden] {
+    display: none !important;
+  }
 }
 
 @media (orientation: portrait) {

@@ -49,7 +49,7 @@ test('loads a full-bleed compact mobile command HUD', async ({ page }) => {
   expect(Math.abs(layout.canvas.width - layout.viewport.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(layout.canvas.height - layout.viewport.height)).toBeLessThanOrEqual(1);
   expect(layout.commandActionGap).toBeGreaterThanOrEqual(8);
-  expect(layout.commandHeightRatio).toBeLessThan(0.35);
+  expect(layout.commandHeightRatio).toBeLessThan(0.30);
   expect(Math.min(...layout.abilityButtons.map(({ width }) => width))).toBeGreaterThanOrEqual(44);
   expect(Math.min(...layout.abilityButtons.map(({ height }) => height))).toBeGreaterThanOrEqual(44);
   expect(Math.min(...layout.stanceWidths)).toBeGreaterThanOrEqual(48);
