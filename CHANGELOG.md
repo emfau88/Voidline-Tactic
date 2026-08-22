@@ -4,6 +4,46 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Tactical Real-Time Pivot — 2026-08-22
+
+Meilenstein-Commit:
+
+- `e0bc84a` – langsame Echtzeit, taktische Pause und direkte Flaggschiff-Kontrolle
+
+#### Added
+
+- deterministische 30-Hz-Fixed-Step-Simulation mit kontinuierlicher Geschwindigkeit, Beschleunigung und begrenzter Drehrate
+- geglättete direkte Kurszeichnung für das Flaggschiff auf Touch und Maus
+- jederzeit verfügbare taktische Pause, ¼-Tempo und Live-Geschwindigkeit
+- gemeinsames Fokusziel sowie vier Eskorte-Direktiven: Folgen, linke/rechte Flanke und Schutz
+- halbautonome Eskorte und gegnerische Approach-/Orbit-KI
+- automatische Mass-Driver-Breitseiten bei gültigem Seitenbogen
+- manuelle Rift Lance mit sichtbarer Ladephase und brechbarer Feuerlösung
+- physische Homing-Torpedos mit Position, Drehgeschwindigkeit, Lebenszeit und sichtbarer Reise
+- manueller Shield Boost mit Sofortwiederherstellung, Schadensreduktion und Cooldown
+- Diagnosezustände für reproduzierbare Browser-Tests von Zeit, Kurs und Projectiles
+- sieben neue E2E-Szenarien auf Mobile und Desktop für Pause, Kurs, Ziel/Lance, Torpedo/Eskorte, Hilfe, Pinch und HiDPI
+- neue Unit-Abdeckung für Echtzeit-Kinematik, Determinismus, Direktiven, Telegraph, Projectiles, Boost und Cover
+
+#### Changed
+
+- Kampf von WEGO/Command Beats auf langsame Echtzeit mit taktischer Pause umgestellt
+- direkte Kontrolle auf ein Flaggschiff reduziert; Eskorte übernimmt Navigation und Standardkampf halbautonom
+- Mobile-HUD auf sechs klare Aktionen und drei permanente Zeitsteuerungen umgebaut
+- Kampfstartdistanzen verkürzt, damit der erste relevante Waffenkontakt schneller entsteht
+- gegnerische Konturen und Marker für den dunklen Battlefield-Hintergrund verstärkt
+- Schiffsschilde zeigen den aktiven Boost als helle zusätzliche Fläche
+- README-Screenshots auf Live-Kampf und Tactical-Pause-/Telegraph-Zustand aktualisiert
+- Game Vision, Roadmap, Production Plan und Top-20-Hebel vollständig auf Tactical Real-Time ausgerichtet
+
+#### Removed
+
+- AP, Turns, Command Beats, Plan-/Confirm-Phase und erzwungene Vorwärtsdrift
+- separater Command-Beat-Gegnerresolver
+- seedbarer Treffer-RNG; gültige Waffenlösungen bleiben deterministisch
+
+### Command-Beat-Iteration — 2026-08-21 (historisch)
+
 Meilenstein-Commit:
 
 - `39e9513` – Command Beats, deterministisches Tempo-Balancing und Mobile-Pinch/HiDPI

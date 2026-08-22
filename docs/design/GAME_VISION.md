@@ -1,1664 +1,283 @@
-# Command-Beat Gothic Fleet Tactics — Game Vision & Implementation Specification
+# Voidline Tactics — Game Vision
 
-## 1. Zweck dieses Dokuments
+Status: verbindliche Produktvision ab 22. August 2026
 
-Dieses Dokument beschreibt die **verbindliche Produktvision, Gameplay-Architektur, visuellen Leitplanken, Scope-Grenzen und Umsetzungsreihenfolge** für ein neues HTML5-Spiel.
+Primärplattform: Mobile Browser, Portrait
 
-Es soll von einem Coding Agenten als **Master-Spezifikation** verwendet werden.
+Sekundärplattform: Desktop Browser
 
-Wichtig:
+Combat-Modell: langsame Echtzeit mit taktischer Pause
 
-- Nicht versuchen, sofort das komplette Endspiel zu bauen.
-- Zuerst einen **spielbaren Vertical Slice** erstellen.
-- Die Mockups dienen als **Zielvision für Stil, Lesbarkeit und UX**, nicht als Aufforderung, jedes dekorative Detail 1:1 nachzubauen.
-- Technische Entscheidungen müssen die spätere Erweiterbarkeit unterstützen.
-- Kein unnötiges 3D.
-- Keine Single-File-Monolithen.
-- Keine Systeme implementieren, die für die erste spielbare Version keinen klaren Gameplay-Nutzen haben.
+## 1. High Concept
 
----
+**Voidline Tactics ist ein lesbares, optisch hochwertiges 2D-Flottentaktikspiel, in dem der Spieler ein Flaggschiff direkt steuert, einer kleinen Eskorte Absichten vorgibt und wenige entscheidende Schiffssysteme im richtigen Moment auslöst.**
 
-# 2. High-Level Vision
+Der Spieler soll sich wie ein Captain fühlen, nicht wie ein Buchhalter für vier Aktionsleisten. Die Flotte bewegt und verteidigt sich kontinuierlich; der Spieler zeichnet den Kurs, setzt den Fokus und übernimmt die dramatischen Entscheidungen.
 
-Das Spiel ist ein:
+Die taktische Pause ist kein Ausnahmezustand, sondern ein gleichwertiges Werkzeug. Sie lässt das Gefecht vollständig ruhen, ohne Aktionen zu sperren. ¼-Tempo erlaubt Beobachtung und Korrektur; Live sorgt für Fluss und Wirkung.
 
-> **hochwertiges, simultan geplantes 2D-Top-Down-Weltraum-Taktikspiel mit kurzen Command Beats, kleiner persistenter Flotte, individueller Schiffsausrüstung, Positionierung, Feuerwinkeln, Energie-/Aktionspunkt-Management, Subsystemschäden, Torpedos und Boarding.**
+## 2. Produktversprechen
 
-Der Spieler kommandiert keine riesige Armada.
+Ein neuer Spieler soll innerhalb der ersten Minute verstehen:
 
-Stattdessen führt er eine kleine Flotte aus ungefähr:
+1. Ich steuere das hervorgehobene Flaggschiff.
+2. Eine gezeichnete Route verändert Kurs und Feuerwinkel, aber nicht sofort die Position.
+3. Standardbatterien arbeiten automatisch.
+4. Lanze, Torpedo und Schild-Boost sind meine bewussten Entscheidungen.
+5. Pause ist jederzeit erlaubt und kostet nichts.
+6. Rote Telegraphs bedeuten: Jetzt kann ich noch reagieren.
 
-- 1–4 eigenen Schiffen
-- gegen 1–5 gegnerische Schiffe
+Nach einem Kampf soll er sagen können, **warum** er gewonnen oder verloren hat: falscher Seitenbogen, gebrochene Lance-Lösung, zu früher Shield-Boost, schlechte Formation oder ignoriertes Terrain.
 
-Jedes Schiff soll sich wie ein wertvolles individuelles Asset anfühlen.
+## 3. Designpfeiler
 
-Schiffe werden:
+### 3.1 Fluss statt Rundenverwaltung
 
-- verbessert
-- spezialisiert
-- beschädigt
-- repariert
-- mit Modulen ausgestattet
-- von Offizieren und Crew beeinflusst
+Schiffe bewegen, drehen, regenerieren Energie und kämpfen kontinuierlich. Es gibt keine AP, Turns, Command Beats oder verpflichtende Bestätigungsphase.
 
-Das Spiel soll die taktische Klarheit eines Brettspiels mit dem visuellen Eindruck einer hochwertigen Weltraumschlacht verbinden.
+### 3.2 Wenige hochwertige Entscheidungen
 
----
+Direkt kontrolliert werden:
 
-# 3. Kernfantasie
+- der Kurs des Flaggschiffs
+- ein gemeinsames Fokusziel
+- eine grobe Eskorte-Direktive
+- Rift Lance
+- Void Torpedo
+- Shield Boost
+- Simulationsgeschwindigkeit
 
-Der Spieler soll das Gefühl haben:
+Standardbreitseiten, Formationsnavigation und grundlegende Zielverfolgung laufen automatisch.
 
-> „Ich kommandiere wenige mächtige Kriegsschiffe und gewinne Gefechte nicht durch hektisches Klicken, sondern durch Positionierung, Feuerwinkel, Energieverwaltung, gezielten Systemschaden und kluge Nutzung meiner Flotte.“
+### 3.3 Position muss laufend Bedeutung haben
 
-Wichtige emotionale Säulen:
+Entfernung allein genügt nicht. Relevante Größen sind:
 
-1. **Schiffe fühlen sich mächtig an**
-2. **Jede Bewegung ist relevant**
-3. **Facing und Broadside sind taktisch wichtig**
-4. **Treffer haben sichtbare Konsequenzen**
-5. **Schiffe entwickeln Identität**
-6. **Upgrades verändern Spielweisen**
-7. **Boarding ist eine echte Alternative zu bloßem Schaden**
+- Front- und Seitenbogen
+- begrenzte Drehrate und Beschleunigung
+- sichere beziehungsweise gefährliche Telegraph-Zonen
+- Formation und gegenseitige Deckung
+- Nebel- und spätere Terrain-Effekte
+- physische Flugbahn von Torpedos
 
----
+Nach dem ersten Kontakt müssen weitere Kursentscheidungen lohnend bleiben.
 
-# 4. Technische Grundentscheidung
+### 3.4 Telegraph vor Bestrafung
 
-## 4.1 Rendering
+Starke Effekte werden früh, einheitlich und farblich eindeutig angekündigt. Ein Spieler bekommt eine faire Reaktionsfrist und versteht, ob Kurs, Pause, Shield oder Zielwechsel helfen kann.
 
-Das Spiel soll primär als:
+### 3.5 Mobile-first, nicht mobile-simplistisch
 
-> **2D Top-Down HTML5 Game**
+Touch-Ziele sind groß, Status ist hierarchisch, Text knapp und Gesten kollisionsfrei. Taktische Tiefe entsteht aus Geometrie, Timing und Verantwortungsteilung, nicht aus vielen kleinen Buttons.
 
-umgesetzt werden.
+### 3.6 Originale, glaubwürdige Welt
 
-Empfohlene Technologien:
+Die Bildsprache verbindet Navy-Instrumente, gotische Schiffskultur und klare holografische Taktik. Jede Schiffsklasse hat eine unverwechselbare Silhouette, sichtbare Waffenorte, Thruster und Schadenszustände.
 
-- TypeScript
-- Phaser 3 oder PixiJS
-- Vite
-- HTML/CSS für komplexere Meta-UI optional
-- Canvas/WebGL Rendering
-- JSON-basierte Game Data
-
-Kein echtes 3D für die Kernversion.
-
-## 4.2 Warum kein 3D?
-
-3D würde unnötig erhöhen:
-
-- Asset-Aufwand
-- Modellierung
-- UV-Mapping
-- Materialpflege
-- Kamera-Probleme
-- Lighting
-- Performance-Risiko
-- Browser-Komplexität
-- Perspektivfehler
-- Produktionszeit
-
-Die Kernmechanik profitiert kaum davon.
-
-Die visuelle Illusion soll stattdessen entstehen durch:
-
-- hochwertige Top-Down-Sprites
-- Rotation
-- Parallax-Hintergründe
-- Shader/VFX
-- Schild-Effekte
-- Partikel
-- Projektiltrails
-- Einschläge
-- Lighting Overlays
-
----
-
-# 5. Visuelle Zielrichtung
-
-## 5.1 Perspektive
-
-Strikt:
-
-> **True Top-Down / orthografische Draufsicht**
-
-Keine isometrische Kamera.
-
-Keine 3D-Schrägansicht.
-
-Keine perspektivisch verzerrten Schiffe.
-
-Alle taktischen Informationen müssen aus der Draufsicht klar lesbar sein.
-
-## 5.2 Schiffsdarstellung
-
-Die Mockups zeigen ein visuelles Ideal.
-
-Für die tatsächliche Implementierung:
-
-> ungefähr **60–70 % des Mockup-Detaillevels**
-
-verwenden.
-
-Wichtiger als Mikrodetails sind:
-
-- Silhouette
-- Größe
-- Orientierung
-- Fraktionszugehörigkeit
-- Feuerwinkel
-- Schadenszustand
-
-Schiffe sollen auf dem Spielfeld sofort unterscheidbar sein.
-
-## 5.3 Stil
-
-Visuelle Richtung:
-
-- dunkler Weltraum
-- hochwertige Nebula-Hintergründe
-- zurückhaltende Sterne
-- vereinzelte Asteroiden
-- dunkles Metall
-- Gold-/Messingakzente
-- gedämpfte blaue UI-Effekte
-- Rot für gegnerische Bedrohungen
-- Violett/Magenta für Energie-Lanzen
-- Orange/Gelb für konventionelle Geschosse
-
-Keine übertriebene Neonoptik.
-
-Keine überfüllte Partikelwand.
-
-Lesbarkeit geht vor Spektakel.
-
----
-
-# 6. Core Gameplay Loop
-
-Der grundlegende Loop:
-
-1. Mission auswählen
-2. Flotte vorbereiten
-3. Schiffe ausrüsten
-4. Gefecht starten
-5. In kurzen Command Beats planen und gemeinsam ausführen
-6. Mission abschließen
-7. Credits / Salvage / Tech erhalten
-8. Reparieren
-9. Upgrades kaufen
-10. Crew / Offiziere verbessern
-11. Neue Mission starten
-
----
-
-# 7. Kampfsystem
-
-## 7.1 Grundprinzip
-
-Das Spiel ist **WEGO/Command-Beat-basiert**: Gegnerabsichten werden angekündigt, der Spieler plant einen Befehl je Schiff, danach führen beide Seiten ihre Befehle in einem kurzen Impuls gemeinsam aus.
-
-Jedes Schiff hat pro Beat:
-
-- Aktionspunkte
-- Energie
-- Bewegung
-- Feueroptionen
-
-Beispiel:
+## 4. Kern-Loop
 
 ```text
-AP: 1
-Energy: 60 / 80
+Startschiff / Loadout wählen
+        ↓
+kurzes Missionsbriefing
+        ↓
+2–5 Minuten Echtzeitkampf
+        ↓
+Resultat, Credits und Salvage
+        ↓
+sichtbares Trade-off-Upgrade wählen
+        ↓
+nächster Encounter oder Replay
 ```
 
-Aktionen können AP und/oder Energie kosten.
+Der aktuelle Vertical Slice endet noch nach dem Kampf. Der vollständige Slice muss den Results-/Refit-/Replay-Teil ergänzen.
 
----
+## 5. Combat-Verantwortung
 
-# 8. Bewegung
+| System | Spieler | Automation |
+|---|---|---|
+| Flaggschiff-Kurs | zeichnet Route | folgt träge der Route |
+| Fokusziel | markiert Gegner | Standardbatterien priorisieren ihn |
+| Eskorte | wählt Folgen/Flanke/Schutz | navigiert, hält Formation, nutzt Standardwaffen |
+| Broadside | stellt Kurs und Seitenbogen her | feuert bei gültiger Lösung |
+| Rift Lance | löst Ladephase aus | feuert nach Telegraph bei stabiler Lösung |
+| Void Torpedo | löst Start aus | verfolgt Ziel physisch |
+| Shield Boost | löst Timing aus | reduziert Schaden für kurze Zeit |
+| Zeit | Pause/¼/Live | Simulation bleibt deterministisch |
 
-## 8.1 Kein Grid als primäre Darstellung
+Diese Trennung ist verbindlich. Weitere Systeme dürfen nur dann einen eigenen Button erhalten, wenn ihre Entscheidung wichtiger ist als die dadurch erzeugte HUD-Last.
 
-Die Bewegung soll zunächst **frei innerhalb eines Radius** funktionieren.
+## 6. Steuerung
 
-Das Spielfeld hat keine sichtbaren Hexfelder.
+### Touch
 
-## 8.2 Move Action
+- Drag vom Flaggschiff oder KURS + Drag: Route zeichnen
+- Tap auf Gegner: Fokusziel setzen
+- Tap auf Fähigkeit: sofort auslösen oder Zielauswahl anfordern
+- Tap auf Eskorte: Direktive zyklisch wechseln
+- Zwei-Finger-Pinch: Kamera um Mittelpunkt zoomen
+- Zeitbuttons: Pause, ¼-Tempo, Live
 
-Beim Klick auf:
+### Desktop
 
-`MOVE`
+Die gleichen Regeln gelten für Maus. Mausrad und Zoom-Buttons ergänzen Pinch. Tastaturkürzel sind optional und dürfen kein exklusives Feature sein.
 
-wird um das ausgewählte Schiff ein:
+## 7. Combat-Systeme
 
-> **Movement Range Circle**
+### 7.1 Kinematik
 
-angezeigt.
+Jedes Schiff besitzt maximale Geschwindigkeit, Beschleunigung, Drehrate und Radius. Eine Route ist ein Zielpfad, kein Teleport. Große Schiffe wenden sichtbar langsamer als kleine.
 
-Der Spieler wählt darin eine Zielposition.
+### 7.2 Energie und Cooldowns
 
-## 8.3 Bewegungsplanung
+Energie regeneriert kontinuierlich. Fähigkeiten besitzen transparente Kosten und Cooldowns. Energie soll Timing-Entscheidungen erzeugen, aber den Spieler nicht lange untätig lassen.
 
-Darstellung:
+### 7.3 Standardbatterien
 
-- aktuelles Schiff
-- transparenter Bewegungsradius
-- gestrichelter oder gebogener Pfad
-- Ghost-Silhouette am Ziel
-- geplante Position
-- geplante Ausrichtung
+Breitseiten sind automatisch, deterministisch und an Seitenbögen gebunden. Ihre Kadenz erzeugt Grunddruck; der Spieler verantwortet die Geometrie.
 
-Beispiel:
+### 7.4 Rift Lance
 
-```text
-Current Ship
-     |
-     | curved route
-     v
-Ghost Ship
-+ Facing Arrow
-```
+- Frontbogen
+- klarer Lade-Telegraph
+- hoher Schilddruck
+- Feuerlösung kann während der Ladezeit gebrochen werden
+- deutliche Audio-/Licht-Eskalation bis zum Schuss
 
----
+### 7.5 Void Torpedo
 
-# 9. Facing / Ausrichtung
+- Frontbogen beim Start
+- physisches, sichtbares Projektil
+- begrenzte Drehgeschwindigkeit und Lebenszeit
+- kein versteckter Miss- oder Intercept-Wurf
+- später durch sichtbare Point Defense oder Gelände konterbar, niemals durch unsichtbare Prozentchance
 
-Facing ist ein Kernsystem.
+### 7.6 Shield Boost
 
-Der Spieler soll nach einer Bewegung bestimmen können, in welche Richtung das Schiff zeigt.
+- sofortige Teilwiederherstellung
+- kurze sichtbare Schadensreduktion
+- hoher Cooldown
+- klare Start-, Aktiv- und Endzustände
 
-Das ermöglicht:
+### 7.7 Terrain
 
-- Front zum Gegner
-- Flanke/Broadside zum Gegner
-- Rückzug
-- Schutz beschädigter Seiten
+Der aktuelle Nebel reduziert eingehenden Schaden um 25 %. Weitere Terrain-Typen müssen auf einen Blick verständlich sein und Bewegung provozieren, etwa Sensorstörung, Energiegewinn, gefährliche Trümmer oder Line-of-Sight-Blocker.
 
-Die UI muss das möglichst einfach lösen.
+## 8. Encounter-Ziele
 
-Empfohlener Ablauf:
+Der erste Encounter ist ein 2-gegen-2-Lehrkampf. Er soll:
 
-1. MOVE anklicken
-2. Zielposition wählen
-3. Ghost Ship erscheint
-4. Spieler zieht oder dreht einen Facing-Arrow
-5. Bewegung bestätigen
+- innerhalb von 20–35 Sekunden einen ersten lesbaren Waffeneffekt zeigen
+- mindestens einen sinnvollen Kurswechsel nach Kontakt verlangen
+- die Rolle von Seitenbogen, Lance-Telegraph, Torpedo und Pause demonstrieren
+- in 3–5 Minuten enden
+- ohne externe Erklärung lösbar sein
 
-Keine komplizierte Winkel-Eingabe.
+Der zweite Encounter darf nicht nur mehr Lebenspunkte besitzen. Er braucht eine neue taktische Frage, beispielsweise Terrain-Zwang, schnelle Torpedoboote oder eine Eskorte, die geschützt werden muss.
 
----
+## 9. Informationshierarchie
 
-# 10. Feuerwinkel
+Priorität auf dem Kampfbild:
 
-Schiffe besitzen mindestens:
+1. gefährlicher gegnerischer Telegraph
+2. aktueller Fokus und Feuerlösung
+3. Kurs des Flaggschiffs
+4. Hull/Shield des Flaggschiffs
+5. Cooldown-/Energiezustand manueller Systeme
+6. Eskorte-Direktive
+7. sekundäre Detailwerte
 
-## Front Arc
+Effekte dürfen diese Reihenfolge kurzfristig verstärken, aber nicht verdecken. Farbe allein ist nie der einzige Statusindikator.
 
-Geeignet für:
+## 10. Art-, VFX- und Audio-Ziel
 
-- Lance
-- Torpedos
-- bestimmte Spezialwaffen
+### Schiffe
 
-## Port Broadside
+- true top-down und silhouette-first
+- sichtbare Hardpoints und Waffenvarianten
+- getrennte Thruster-/Emissive-Ebenen
+- mindestens intakt, beschädigt und kritisch lesbar
 
-Linke Seite.
+### VFX
 
-## Starboard Broadside
+- Warm-up → Release → Travel → Impact → Aftermath
+- klassenspezifische Mündungsbilder und Impacts
+- begrenzte Bildschirmhelligkeit auf OLED
+- gepoolte Effekte ohne Performance-Wachstum
 
-Rechte Seite.
+### Audio
 
-## 10.1 Broadside als zentrales System
+- UI, Engine/Ambience, Weapon und Impact als getrennte Busse
+- 3–5 Varianten für häufige Schüsse/Impacts
+- klares Lance-Warm-up als Gameplay-Telegraph
+- Mobile-Unlock, Suspend/Resume und Mute/Volume
 
-Große Kriegsschiffe sollen bewusst davon profitieren, Gegner seitlich anzuvisieren.
+## 11. Progression und sichtbare Ausrüstung
 
-Broadside:
+Upgrades sollen Verhalten verändern und am Schiff sichtbar werden. Beispiele:
 
-- hoher Schaden
-- guter Mehrfachtreffer
-- benötigt passende Ausrichtung
-- macht Positionierung bedeutend
+- breite Mass-Driver-Batterie: langsamer, härter, größere Salve
+- schnelle Coil-Broadside: geringerer Schaden, höherer Druck
+- Twin Torpedo Rack: zwei sichtbare Projektile, längerer Cooldown
+- Overcharged Lance: längerer Telegraph, größerer Shield-Burst
+- reinforced shield projector: stärkerer Boost, geringere Geschwindigkeit
 
-Damit unterscheidet sich das Spiel von einfachem „anklicken und feuern“.
+Reine `+5 % Schaden`-Knoten sind nur als Nebenwert erlaubt. Der Spieler soll im Menü erkennen, welche Hardpoints und taktischen Möglichkeiten ein Schiff besitzt.
 
----
+## 12. Vertical-Slice-Scope
 
-# 11. Aktionssystem
+### Enthalten
 
-Vorläufige Aktionen:
+- zwei wählbare Flaggschiffe
+- eine halbautonome Eskorte
+- zwei normale Gegner und ein Elite-/zweiter Encounter
+- Broadside, Lance, Torpedo und Shield Boost
+- ein regelrelevantes Terrain-System
+- Results, drei Trade-off-Upgrades und Replay
+- vollständiger Mobile-Flow mit Audio, VFX und Onboarding
 
-| Aktion | AP-Kosten | Zweck |
-|---|---:|---|
-| Move | 1 | Position verändern |
-| Rotate | 1 | Ausrichtung ändern |
-| Broadside | 2 | Seitenbatterie feuern |
-| Lance | 2 | Präziser Energieangriff |
-| Torpedo | 2 | Projektilangriff |
-| Board | 3 | Boarding-Angriff |
-| Shield | 1 | Schild verstärken |
-| Repair | 1 | System reparieren |
+### Nicht enthalten
 
-AP-Werte sind Startwerte und später zu balancen.
-
----
-
-# 12. Waffenklassen
-
-## 12.1 Broadside Cannons
-
-Eigenschaften:
-
-- starker Hull-Schaden
-- mittlere Reichweite
-- benötigt Side Arc
-- mehrere Geschosse
-- leicht ungenau
-
-## 12.2 Lance
-
-Eigenschaften:
-
-- präzise
-- starke Schildpenetration
-- hohe Energie-Kosten
-- Front Arc
-- lange Reichweite
-
-## 12.3 Torpedos
-
-Eigenschaften:
-
-- hohe Einzelschadensspitze
-- sichtbares Projektil
-- trifft bei gültiger Feuerlösung deterministisch
-- kann nur durch eine vorher sichtbare aktive Reaktion wie Ausweichen, Decoy oder Point Defense verhindert werden
-- benötigen Front Arc
-- verzögerte Wirkung möglich
-
-## 12.4 Point Defense
-
-Eigenschaften:
-
-- sichtbar reaktiv und als eigener Systembefehl
-- zerstört angekündigte Torpedos deterministisch
-- schützt gegen kleine Ziele
-- verbraucht Energie und die Aktionsmöglichkeit des Beats
-
-## 12.5 Boarding Torpedos
-
-Eigenschaften:
-
-- wenig direkter Hull-Schaden
-- transportieren Marines
-- können durch dieselben sichtbaren Reaktionssysteme verhindert werden
-- ermöglichen interne Angriffe
-
-Boarding soll später ein wichtiges Alleinstellungsmerkmal werden.
-
----
-
-# 13. Schildsystem
-
-Schiffe besitzen:
-
-- Hull
-- Shield
-- Armor
-- Energy
-- Crew
-
-Standardreihenfolge:
-
-```text
-Attack
-→ Shield
-→ Armor mitigation
-→ Hull
-→ possible subsystem damage
-```
-
-Schilde können:
-
-- regenerieren
-- verstärkt werden
-- überlastet werden
-- durch bestimmte Waffen besonders effektiv gebrochen werden
-
----
-
-# 14. Subsystem Damage
-
-Dieses System ist wichtig für taktische Tiefe.
-
-Mögliche Subsysteme:
-
-- Engines
-- Reactor
-- Shield Generator
-- Lance Battery
-- Broadside Battery
-- Torpedo Bay
-- Point Defense
-- Bridge
-- Boarding Bay
-
-## 14.1 Beispiele
-
-### Engine Damaged
-
-- reduzierte Movement Range
-
-### Shield Generator Damaged
-
-- reduzierte Regeneration
-
-### Reactor Damaged
-
-- reduzierte maximale Energie
-
-### Weapon Battery Damaged
-
-- entsprechende Waffe eingeschränkt oder deaktiviert
-
-### Bridge Damaged
-
-- weniger AP oder schlechtere Genauigkeit
-
----
-
-# 15. Boarding
-
-Boarding ist **nicht Teil des ersten Minimal-Prototyps**, soll aber architektonisch vorgesehen werden.
-
-Ablauf:
-
-1. Schild teilweise oder vollständig brechen
-2. Boarding Torpedo starten
-3. Point Defense versucht Abfang
-4. Torpedo trifft
-5. Boarding Status wird erzeugt
-6. Boarding-Teams greifen interne Systeme an
-
-Mögliche Ziele:
-
-- Bridge
-- Reactor
-- Engine Room
-- Shield Generator
-- Weapons
-- vollständige Eroberung
-
-Boarding kann über mehrere Runden laufen.
-
----
-
-# 16. Schiffsstatistiken
-
-Jedes Schiff benötigt mindestens:
-
-```text
-id
-name
-class
-level
-
-maxHull
-currentHull
-
-maxShield
-currentShield
-shieldRegen
-
-armor
-
-maxEnergy
-currentEnergy
-energyRegen
-
-maxAP
-currentAP
-
-speed
-movementRange
-
-crew
-maxCrew
-
-turnRate
-```
-
----
-
-# 17. Schiffsklassen
-
-Für die erste vollständige Version maximal:
-
-## Frigate
-
-- schnell
-- fragil
-- günstig
-- Torpedos
-- Flanking
-
-## Destroyer
-
-- Point Defense
-- Eskorte
-- Anti-Torpedo
-
-## Cruiser
-
-- Allrounder
-- Broadside
-- Lance
 - Boarding
-
-## Battlecruiser
-
-- langsam
-- starke Feuerkraft
-- starke Schilde
-- hoher Energiebedarf
-
----
-
-# 18. Persistente Flotte
-
-Der Spieler besitzt langfristig mehrere Schiffe.
-
-Maximal gleichzeitig im Gefecht:
-
-> 3–4 eigene Schiffe
-
-Der Spieler soll eine emotionale Bindung zu einzelnen Schiffen entwickeln.
-
-Jedes Schiff hat:
-
-- Name
-- Level
-- XP
-- Module
-- Crew
-- Captain
-- Schadenshistorie
-- eventuell Veteranenboni
-
----
-
-# 19. Upgrade-System
-
-Upgrades dürfen nicht nur lineare Prozentwerte sein.
-
-Gute Upgrades verändern Builds.
-
-Beispiele:
-
-## Overcharged Reactor
-
-+ mehr Energie
-
-aber:
-
-- höhere Überlastungsgefahr
-
-## Reinforced Armor
-
-+ Hull / Armor
-
-aber:
-
-- geringere Geschwindigkeit
-
-## Advanced Lance Battery
-
-+ Reichweite
-+ Damage
-
-aber:
-
-- höherer Energieverbrauch
-
-## Assault Barracks
-
-+ Boarding Strength
-
-aber:
-
-- benötigt Module Slot
-
----
-
-# 20. Module Slots
-
-Schiffe besitzen begrenzte Slots.
-
-Beispiel Cruiser:
-
-```text
-Weapons:
-- 2 Broadside slots
-- 1 Lance slot
-- 1 Torpedo slot
-
-Systems:
-- 1 Shield
-- 1 Reactor
-- 2 Utility
-- 1 Boarding
-```
-
-Dadurch entstehen Builds.
-
----
-
-# 21. Power Budget
-
-Module verbrauchen Power.
-
-Beispiel:
-
-```text
-Reactor Power: 100
-
-Lance Battery: 22
-Shield Generator: 25
-Torpedo Bay: 14
-Point Defense: 8
-Boarding Bay: 12
-```
-
-Übersteigt der Verbrauch das Limit:
-
-- Module können nicht aktiviert werden
-- oder Loadout ist ungültig
-
-Für MVP genügt zunächst:
-
-> Loadout darf Reactor Capacity nicht überschreiten.
-
----
-
-# 22. Upgrade Screen
-
-Der Upgrade-Screen soll ungefähr folgende Struktur haben:
-
-## Links
-
-kleine Flottenübersicht:
-
-- Frigate
-- Cruiser
-- Battlecruiser
-
-mit:
-
-- Name
-- Level
-- Zustand
-
-## Mitte
-
-ausgewähltes Schiff groß
-
-daneben:
-
-### Weapons
-
-- Lance Battery
-- Torpedo Bay
-- Broadside Cannons
-- Point Defense
-
-### Systems
-
-- Void Shield
-- Reinforced Armor
-- Reactor
-- Targeting System
-- Boarding Bay
-
-## Rechts
-
-Stats:
-
-- Hull
-- Shield
-- Armor
-- Energy
-- Speed
-- Crew
-
-darunter:
-
-### Available Upgrades
-
-mit:
-
-- Name
-- Preis
-- kurzer Effekt
-
----
-
-# 23. Offiziere
-
-Offiziere sind ein späteres Meta-System.
-
-Nicht im ersten Vertical Slice implementieren.
-
-Geplante Rollen:
-
-## Captain
-
-beeinflusst:
-
-- AP
-- Moral
-- Gesamtkoordination
-
-## Gunnery Officer
-
-beeinflusst:
-
-- Broadside
-- Lance
-- Crit Chance
-
-## Chief Engineer
-
-beeinflusst:
-
-- Reparaturen
-- Reactor
-- Shield Regen
-
-## Boarding Officer
-
-beeinflusst:
-
-- Boarding Strength
-- Marines
-- feindliche Moral
-
----
-
-# 24. Beispiel-Offiziersboni
-
-```text
-+10% Lance Accuracy
-+5% Critical Chance
-+1 AP on first turn
-+10 Shield Regen
-+1 Repair Efficiency
-+1 Boarding Action Die
-+20% Boarding Strength
-```
-
-Offiziere können:
-
-- XP erhalten
-- Level steigen
-- Traits freischalten
-
----
-
-# 25. Crew
-
-Crew kann langfristig in Kategorien unterteilt werden:
-
-- Marines
-- Armsmen
-- Engineers
-- Medicae
-- Void Crew
-
-Für MVP reicht:
-
-```text
-Crew = single numerical stat
-```
-
-Keine unnötige Simulation zu Beginn.
-
----
-
-# 26. Kampagnenstruktur
-
-Ziel für Version 1:
-
-> 10–15 Missionen
-
-Nicht sofort eine riesige Kampagne bauen.
-
-## 26.1 Missionsarten
-
-Beispiele:
-
-### Elimination
-
-Alle Gegner zerstören.
-
-### Protect
-
-Verbündetes Schiff schützen.
-
-### Survive
-
-X Runden überstehen.
-
-### Capture
-
-bestimmtes Schiff boarden.
-
-### Disable
-
-Subsystem eines Gegners zerstören.
-
-### Escort
-
-Konvoi schützen.
-
-### Ambush
-
-Gegner startet in taktisch günstiger Position.
-
----
-
-# 27. Story
-
-Die Story soll einfach bleiben.
-
-Mögliche Struktur:
-
-```text
-Mission Briefing
-→ 2–5 kurze Textabsätze
-→ optional Portrait
-→ Battle
-→ Result
-→ Reward
-```
-
-Keine aufwendigen Cutscenes nötig.
-
----
-
-# 28. Missionsfortschritt
-
-Beispiel:
-
-```text
-Mission 1
-Tutorial Patrol
-
-Mission 2
-Broken Convoy
-
-Mission 3
-Hostile Contact
-
-Mission 4
-Boarding Action
-
-Mission 5
-The Lost Cruiser
-
-...
-
-Final Mission
-Fleet Engagement
-```
-
----
-
-# 29. HUD im Gefecht
-
-## Top Bar
-
-Enthält:
-
-- Mission
-- Turn
-- Objective
-- ggf. kleine Ressourcen-/Statuswerte
-
-## Left Panel
-
-Selected Ship:
-
-```text
-Hull
-Shield
-Energy
-AP
-Crew
-
-Status
-```
-
-Keine überfüllte Statistikliste.
-
-## Right Panel
-
-Selected Enemy:
-
-```text
-Hull
-Shield
-
-Subsystem Status:
-Engine Damaged
-Shields Low
-Weapon Battery Online
-```
-
-## Bottom Action Bar
-
-Große klare Buttons:
-
-```text
-MOVE
-ROTATE
-BROADSIDE
-LANCE
-TORPEDO
-BOARD
-SHIELD
-END TURN
-```
-
-Buttons sollen:
-
-- große Hit Areas
-- Icon
-- Name
-- AP Cost
-
-anzeigen.
-
----
-
-# 30. Steuerung
-
-Mobile-first.
-
-## Maus
-
-### Linksklick
-
-- Schiff auswählen
-- Ziel wählen
-- Aktion bestätigen
-
-### Rechtsklick
-
-- Aktion abbrechen
-
-### Mouse Wheel
-
-- Zoom optional
-
-## Mobile als Referenz
-
-Die erste Entwicklung und jede Layout-Abnahme konzentriert sich auf den 390×844-Referenzviewport. Touch-Ziele sind mindestens 44×44 CSS-Pixel groß; wichtige Aktionen bleiben ohne Hover erreichbar.
-
-Desktop erweitert die mobile Komposition um Raum und gleichwertige Mausbedienung, ohne andere Kampfregeln oder Reichweiten einzuführen.
-
----
-
-# 31. Movement UX
-
-Ziel:
-
-maximal wenige Interaktionsschritte.
-
-Ideal:
-
-### Move
-
-1. MOVE klicken
-2. Ziel innerhalb Radius klicken
-3. Ghost Ship erscheint
-4. Facing über Drehgriff einstellen
-5. Confirm
-
-Optional:
-
-Doppelklick / Confirm Button.
-
----
-
-# 32. Attack UX
-
-Beispiel Broadside:
-
-1. Broadside auswählen
-2. gültige Targets leuchten
-3. Hover zeigt Preview:
-
-```text
-Hit Chance: 78%
-Shield Damage: 20–35
-Hull Damage: 35–60
-Possible subsystem hit
-```
-
-4. Klick feuert
-
----
-
-# 33. Visuelle Effekte
-
-Notwendig:
-
-- Laser/Lance Beam
-- Cannon Tracer
-- Torpedo Trail
-- Shield Impact
-- Hull Explosion
-- small debris
-- engine glow
-- selection outline
-- targeting reticle
-
-Nicht notwendig:
-
-- tausende Partikel
-- komplexe volumetrische Effekte
-- 3D-Lichtsimulation
-
----
-
-# 34. Audio
-
-Später erforderlich.
-
-Mindestens:
-
-- UI hover
-- UI click
-- ship select
-- move confirm
-- cannon
-- lance
-- torpedo launch
-- shield hit
-- hull hit
-- explosion
-- boarding launch
-- victory
-- defeat
-
-Musik:
-
-ruhig, dunkel, militärisch, aber nicht permanent bombastisch.
-
----
-
-# 35. Architektur
-
-Empfohlene Struktur:
-
-```text
-src/
-  core/
-    Game.ts
-    GameState.ts
-    EventBus.ts
-
-  combat/
-    CombatScene.ts
-    TurnManager.ts
-    ActionManager.ts
-    MovementSystem.ts
-    TargetingSystem.ts
-    DamageSystem.ts
-    WeaponSystem.ts
-    StatusSystem.ts
-
-  entities/
-    Ship.ts
-    Weapon.ts
-    Module.ts
-    Projectile.ts
-
-  data/
-    ships.json
-    weapons.json
-    modules.json
-    missions.json
-
-  ui/
-    CombatHUD.ts
-    ShipPanel.ts
-    TargetPanel.ts
-    ActionBar.ts
-    UpgradeScreen.ts
-
-  meta/
-    FleetManager.ts
-    UpgradeManager.ts
-    SaveManager.ts
-
-  effects/
-    VFXManager.ts
-    AudioManager.ts
-```
-
----
-
-# 36. Datengetrieben entwickeln
-
-Keine Waffenwerte hart im Scene-Code verteilen.
-
-Beispiel:
-
-```json
-{
-  "id": "lance_mk1",
-  "name": "Lance Battery Mk I",
-  "damage": 40,
-  "shieldMultiplier": 1.5,
-  "range": 900,
-  "apCost": 2,
-  "energyCost": 20,
-  "arc": "front"
-}
-```
-
-Dasselbe Prinzip für:
-
-- Schiffe
-- Module
-- Missionen
-- Offiziere
-
----
-
-# 37. Save System
-
-Für Browser:
-
-- LocalStorage oder IndexedDB
-
-Speichern:
-
-```text
-campaign progress
-credits
-salvage
-tech
-owned ships
-ship upgrades
-ship XP
-officers
-settings
-```
-
-Für den Vertical Slice reicht zunächst LocalStorage.
-
----
-
-# 38. KI
-
-Erste KI bewusst simpel.
-
-Prioritäten:
-
-1. gültiges Ziel suchen
-2. optimalen Feuerwinkel herstellen
-3. Waffen verwenden
-4. beschädigtes Schiff schützen
-5. keine offensichtlichen Selbstmordbewegungen
-
-Keine komplexe strategische KI für MVP.
-
----
-
-# 39. Scope-Grenzen
-
-Folgende Dinge NICHT im ersten Schritt bauen:
-
-- 3D
+- Officers/Crew-Management
+- große Kampagne
 - Multiplayer
+- 3D-Raum, Höhenebenen oder ballistische Physiksimulation
 - prozedurale Galaxie
-- riesige Tech Trees
-- komplexe Crew-Simulation
-- komplexes Boarding-Minispiel
-- 20 Schiffsklassen
-- hunderte Waffen
-- individuelle Deckpläne
-- diplomatisches System
-- Handelssystem
-- Crafting
-- Open World
 
-Diese Systeme würden das Projekt zerstören, bevor der Core Loop bewiesen ist.
-
----
-
-# 40. Vertical Slice — verbindlicher erster Entwicklungsumfang
-
-Der erste spielbare Build soll enthalten:
-
-## Combat
-
-- 1 Player Cruiser
-- 1 Player Frigate
-- 2 Enemy Ships
-- Turn System
-- AP
-- Energy
-- Movement Radius
-- Destination Preview
-- Facing Selection
-- Broadside Arc
-- Front Arc
-- Broadside Attack
-- Lance Attack
-- Torpedo Attack
-- Shield
-- basic hull damage
-- basic shield damage
-- win/lose condition
-
-## UI
-
-- Top HUD
-- Selected Ship panel
-- Target panel
-- Action bar
-- Movement/firing overlays
-
-## Meta
-
-- einfacher Upgrade Screen
-- 3–5 Upgrades
-- Credits
-- Mission Restart
-- Local Save optional
-
-Noch NICHT:
-
-- Boarding
-- Officers
-- full campaign
-- crew management
-
----
-
-# 41. Vertical Slice Mission
-
-Eine einzige Testmission.
-
-Beispiel:
-
-## Mission: First Contact
-
-Player:
-
-- Cruiser
-- Frigate
-
-Enemy:
-
-- Cruiser
-- Destroyer
-
-Objective:
-
-> Destroy all enemy ships.
-
-Battlefield:
-
-- Nebula background
-- wenige Asteroiden
-- keine komplexen Hindernisse
-
-Der Slice muss zeigen:
-
-- Bewegung
-- Facing
-- Broadside
-- Lance
-- Torpedo
-- Shield
-- Damage
-- Turn Flow
-
----
-
-# 42. Upgrade Slice
-
-Nach dem Kampf:
-
-Reward:
-
-```text
-Credits: +1000
-Salvage: +200
-```
-
-Upgrade Screen:
-
-### Option 1
-
-Improved Lance
-
-### Option 2
-
-Reinforced Shield
-
-### Option 3
-
-Reactor Upgrade
-
-Der Spieler kauft eine Verbesserung.
-
-Danach Mission erneut starten.
-
-Ziel:
-
-> beweisen, dass Combat + Meta Progression Spaß machen.
-
----
-
-# 43. Entwicklungsphasen
-
-## Phase 0 — Setup
-
-- Projektstruktur
-- TypeScript
-- Phaser/Pixi
-- Asset Loader
-- responsive canvas
-- basic state management
-
-## Phase 1 — Combat Prototype
-
-- Schiffe
-- Auswahl
-- Turns
-- Movement
-- Facing
-- AP
-
-## Phase 2 — Weapons
-
-- arcs
-- targeting
-- broadside
-- lance
-- torpedo
-- damage
-
-## Phase 3 — UX / VFX
-
-- overlays
-- path preview
-- ghost ship
-- targeting previews
-- shield effect
-- hit effects
-
-## Phase 4 — Basic Meta
-
-- credits
-- upgrade screen
-- ship stats
-- persistent upgrades
-
-## Phase 5 — Product Slice
-
-- balancing
-- sound
-- polished UI
-- tutorial
-- one complete mission flow
-
-## Phase 6 — Expansion
-
-Erst wenn Phase 5 funktioniert:
-
-- subsystem damage
-- boarding
-- officers
-- campaign
-- additional ships
-
----
-
-# 44. Acceptance Criteria für den ersten brauchbaren Build
-
-Der Build ist erst dann erfolgreich, wenn:
-
-## Gameplay
-
-- Spieler versteht ohne Erklärung, welches Schiff ausgewählt ist
-- Bewegung ist visuell klar
-- Facing kann einfach gesetzt werden
-- Broadside-Arcs sind verständlich
-- Frontwaffen funktionieren anders als Side Weapons
-- AP-Verbrauch ist sichtbar
-- Gegner reagiert sinnvoll
-- Command Beat kann sauber geplant und ausgeführt werden
-
-## UX
-
-- keine überlappenden Panels
-- keine winzigen Buttons
-- keine unlesbaren Texte
-- keine unnötigen Popups
-- keine verschachtelten Menüs im Kampf
-
-## Visuals
-
-- Schiffe sind klar unterscheidbar
-- Rotation sieht sauber aus
-- Hintergrund überstrahlt Schiffe nicht
-- VFX verdecken Gameplay nicht
-- HUD fühlt sich hochwertig, aber nicht überladen an
-
-## Technik
-
-- stabile 60 FPS auf normalem Desktop
-- keine Console Errors
-- kein Memory Leak bei Neustart
-- State Reset funktioniert
-- Build läuft lokal und als statische Website
-
----
-
-# 45. Designregel: Lesbarkeit vor Simulation
-
-Bei jeder neuen Mechanik fragen:
-
-> Macht das die taktische Entscheidung interessanter?
-
-Wenn nein:
-
-nicht implementieren.
-
-Nicht simulieren um der Simulation willen.
-
----
-
-# 46. Designregel: Kein System ohne Gegenentscheidung
-
-Beispiele:
-
-Schlechtes Upgrade:
-
-```text
-+5% Damage
-```
-
-Besser:
-
-```text
-+20% Damage
-+15 Energy Cost
-```
-
-Schlechtes Movement:
-
-```text
-move anywhere in radius
-```
-
-Besser:
-
-```text
-move within range
-choose facing
-side weapons depend on orientation
-```
-
----
-
-# 47. Designregel: Schiffe als Charaktere
-
-Ein Schiff soll über mehrere Missionen Identität entwickeln.
-
-Beispiel:
-
-```text
-Sovereign's Fury
-Cruiser
-Level 7
-
-Role:
-Long-Range Lance Cruiser
-
-Traits:
-Veteran Gun Crews
-Reinforced Reactor
-
-Battle History:
-7 Missions
-3 Critical Hits
-1 Near Destruction
-```
-
-Das System kann später erweitert werden.
-
----
-
-# 48. Langfristiges Zielbild
-
-Die finale Vision:
-
-- 10–15 Missionen
-- 4 Schiffsklassen
-- 3–4 eigene Schiffe gleichzeitig
-- 5 Hauptwaffentypen
-- 10–20 sinnvolle Module
-- Subsystem Damage
-- Boarding
-- Officers
-- Crew
-- persistent fleet progression
-- hochwertige 2D-Top-Down-Präsentation
-
----
-
-# 49. Prioritäten
-
-Priorität 1:
-
-> Combat Feel
-
-Priorität 2:
-
-> Movement + Facing
-
-Priorität 3:
-
-> Broadside / Weapon Identity
-
-Priorität 4:
-
-> UI Clarity
-
-Priorität 5:
-
-> Upgrade Loop
-
-Priorität 6:
-
-> Subsystems
-
-Priorität 7:
-
-> Boarding
-
-Priorität 8:
-
-> Officers / Crew
-
-Priorität 9:
-
-> Campaign Content
-
----
-
-# 50. Nicht verhandelbare Grundsätze
-
-1. 2D Top-Down
-2. Turn-based
-3. kleine Flotten
-4. Facing ist relevant
-5. Broadside ist relevant
-6. Waffen spielen sich unterschiedlich
-7. AP und Energie sind klar sichtbar
-8. Schiffe sind persistent
-9. Upgrades verändern Builds
-10. UI bleibt lesbar
-11. kein unnötiges 3D
-12. Scope wird stufenweise erweitert
-
----
-
-# 51. Kurzfassung für den Coding Agenten
-
-Baue **nicht sofort das gesamte Spiel**.
-
-Baue zuerst einen qualitativ hochwertigen Vertical Slice mit:
-
-- 2 Player Ships
-- 2 Enemy Ships
-- Turn-based Combat
-- Movement Radius
-- Destination Preview
-- Facing
-- Broadside Arc
-- Front Arc
-- AP
-- Energy
-- Lance
-- Broadside Cannons
-- Torpedo
-- Shield
-- Damage
-- simple enemy AI
-- polished HUD
-- one upgrade screen
-
-Erst wenn dieser Slice:
-
-- verständlich
-- visuell überzeugend
-- stabil
-- spielerisch interessant
-
-ist, weitere Systeme ergänzen.
-
-Die Mockups sind die visuelle Zielrichtung.
-
-Sie sollen **nicht pixelgenau repliziert** werden.
-
-Die finale Implementierung muss glaubwürdig wie ein echtes, hochwertiges HTML5-Spiel aussehen und gleichzeitig technisch realistisch bleiben.
+## 13. Technische Leitplanken
+
+- pure TypeScript-Domäne ohne Phaser-/DOM-Abhängigkeit
+- deterministischer Fixed-Step; Rendering-Delta beeinflusst keine Regeln
+- Daten statt Scene-Hardcoding für Schiffe, Waffen, Encounter und Upgrades
+- DOM-HUD für Accessibility, Canvas für Welt und VFX
+- Projektile und Effekte werden gepoolt, sobald die Zahl regelmäßig wächst
+- Savegame ist versioniert und migrierbar
+- jedes zentrale System erhält Unit- und Mobile-E2E-Abdeckung
+- Produktionsbuild bleibt statisch auf GitHub Pages ausführbar
+
+## 14. Qualitätsmetriken
+
+| Metrik | Ziel Vertical Slice |
+|---|---|
+| Erstaktion ohne Hilfe | ≤ 20 Sekunden |
+| erster klarer Waffeneffekt | ≤ 35 Sekunden |
+| Median-Kampfzeit | 3–5 Minuten |
+| relevante Kurswechsel | ≥ 3 pro Kampf |
+| Mobile Performance | stabile 60 FPS im Pixel-7-Profil |
+| kritische Console Errors | 0 |
+| Neustarts ohne Objektwachstum | 3 vollständige Runs |
+| zentrale Flows | Mobile + Desktop automatisiert |
+| Verständlichkeit | 4 von 5 Erstspielern erklären Sieg/Niederlage korrekt |
+
+## 15. Entscheidungsregel
+
+Wenn ein neues Feature vorgeschlagen wird, muss es mindestens eines verbessern:
+
+- Kursentscheidung
+- Timingentscheidung
+- Lesbarkeit
+- Flottenidentität
+- Replay-Loop
+
+Erhöht es nur die Anzahl der Knöpfe oder Werte, ohne eines dieser Ziele messbar zu verbessern, gehört es nicht in den Vertical Slice.

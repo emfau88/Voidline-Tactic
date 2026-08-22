@@ -1,268 +1,196 @@
-# Produktionsplan für den hochwertigen Vertical Slice
+# Production Plan
 
-## Ergebnisdefinition
+Stand: 22. August 2026
 
-Der erste Produktions-Meilenstein ist eine vollständige Mission mit zwei Spieler- und zwei Gegnerschiffen, die ohne externe Erklärung verstanden und abgeschlossen werden kann. Combat, Reward und eine Upgrade-Entscheidung bilden einen durchgehenden Loop. Der Build läuft als statische Website, ist reproduzierbar getestet und besitzt originale, rechtlich saubere Art- und Audio-Assets.
+Ziel: hochwertiger, verständlicher Mobile-Vertical-Slice in langsamer Echtzeit mit taktischer Pause
 
-Der bestehende HTML-Prototyp ist Referenz, nicht Codebasis.
+## 1. Produktionsprinzip
 
-## Technische Entscheidung
+Jeder Schritt muss als spielbarer, deploybarer Build enden. Ein System gilt erst als fertig, wenn Regeln, Präsentation, Mobile-Bedienung, Tests und Dokumentation zusammenpassen.
 
-Empfohlen wird:
+Die Reihenfolge ist bewusst:
 
-- **Phaser 4 + TypeScript** für Szenen, WebGL/Canvas-Fallback, Input, Tweens, Loader, Audio und 2D-Rendering
-- **Vite** für Development Server und statischen Production Build
-- **Vitest** für den renderer-unabhängigen Combat Core
-- **Playwright** für komplette Missionspfade, Desktop-/Mobile-Layouts und visuelle Regression
-- JSON/TypeScript-Content mit Schema-Validierung für Schiffe, Waffen, Module und Missionen
+1. Kampf verstehen und fühlen
+2. Kampf audiovisuell glaubwürdig machen
+3. Ergebnis und Refit als motivierenden Loop schließen
+4. Inhalt verbreitern
+5. Release härten
 
-Phaser ist hier PixiJS vorzuziehen, weil Voidline nicht nur einen Renderer, sondern eine vollständige Spielstruktur mit Szenen, Asset Loading, Input, Audio und Zeitsteuerung benötigt. PixiJS wäre sinnvoll, wenn maximale Rendering-Kontrolle wichtiger wäre und diese Systeme bewusst selbst gebaut werden sollten. Die genaue Paketversion wird beim Setup fest gepinnt und regelmäßig, nicht automatisch, aktualisiert.
+Mehr Waffen, Schiffe oder Meta-Systeme helfen nicht, solange der erste 2-gegen-2-Kampf nicht in den ersten 60 Sekunden überzeugt.
 
-Offizielle Referenzen:
-
-- [Phaser-Dokumentation](https://docs.phaser.io/)
-- [Phaser Loader](https://docs.phaser.io/phaser/concepts/loader)
-- [Vite Production Build](https://vite.dev/guide/build)
-- [Vitest](https://vitest.dev/guide/)
-- [Playwright Browser Projects](https://playwright.dev/docs/browsers)
-
-## Zielarchitektur
+## 2. Aktueller Architekturstand
 
 ```text
 src/
-  app/                 Bootstrap, Konfiguration, Szenenwechsel
-  domain/combat/       pure Regeln, Commands, Events, seeded RNG
-  domain/fleet/        Schiffe, Loadouts, Upgrades, Rewards
-  content/             validierte Ship-/Weapon-/Mission-Definitionen
-  game/scenes/         Boot, Combat, Results, Shipyard
-  game/presentation/   Ship Views, Overlays, Camera, VFX, Audio
-  ui/                  HUD und Meta-UI
-  persistence/         Save-Schema, Migration, LocalStorage-Adapter
-  platform/            Input, Settings, Quality/Accessibility
-public/assets/
-  atlases/ audio/ backgrounds/ fonts/ shaders/
-tests/
-  unit/ integration/ e2e/ visual/
-tools/
-  content-validation/ asset-manifest/
+  app/                 Bootstrap, Display, Startschiffwahl
+  domain/combat/       pure Fixed-Step-Regeln und KI
+  game/scenes/         Battlefield, Eingabe, Kamera und VFX-Orchestrierung
+  game/presentation/   Schiffskunst und Hardpoint-Transformation
+  ui/                  DOM-HUD und Dialoge
 ```
 
-Der `domain`-Bereich kennt weder Phaser noch DOM. Aktionen werden als Commands ausgeführt und erzeugen Events. VFX und Audio reagieren auf Events; sie verändern niemals direkt Kampfwerte. So bleiben Replays, Tests, KI-Simulationen und später Save-Migrationen möglich.
+Stärken:
 
-## Phase 0 – Produkt-, IP- und Qualitätsfundament
+- deterministische 30-Hz-Domäne
+- Rendering und Regeln sauber getrennt
+- Mobile-/Desktop-E2E-Gate
+- sichtbare Originalschiffe mit Hardpoints
+- GitHub Pages als kontinuierlich testbarer Build
 
-**Ziel:** Eindeutige Definition dessen, was gebaut und was bewusst nicht gebaut wird.
+Aktuelle Produktionsrisiken:
 
-Arbeit:
+- `CombatScene` bündelt noch Eingabe, Kamera und VFX und sollte vor größerem Content modularisiert werden
+- VFX werden noch ad hoc erzeugt statt gepoolt
+- Audio-Layer fehlt vollständig
+- es gibt keine echte Telemetrie oder Balance-Simulation für Echtzeitkämpfe
+- Results, Upgrades und Save-Loop fehlen
 
-- Vision in ein kurzes Vertical-Slice-Backlog übersetzen
-- eigenständige Fraktionsnamen, Embleme und Formensprache definieren
-- Mockups auf UI-Hierarchie reduzieren; keine direkte Stilkopie
-- Asset-Manifest und Rechtefelder festlegen
-- 390×844 als primären Mobile-Referenzviewport und unterstützte Desktop-Breiten definieren
-- Definition of Done, Performance- und Download-Budgets festlegen
+## 3. Phase A — Tactical Real-Time Vertical Slice ✅
 
-Gate:
+Ergebnis:
 
-- 1 Mission, 4 Schiffe, 3 Waffen und 3 Upgrades sind verbindlich beschrieben
-- jedes geplante Asset hat Owner, Format, Quelle und Abnahmekriterium
-- Boarding, Officers, Crew-Roster und Kampagne bleiben außerhalb des Slice
+- Command-Beat-/AP-/Turn-System entfernt
+- kontinuierliche träge Kinematik
+- Flaggschiff direkt, Eskorte halbautonom
+- Auto-Breitseiten und drei manuelle Systeme
+- physische Torpedos und Lance-Telegraph
+- Pause, ¼-Tempo und Live
+- neuer Mobile-HUD und reproduzierbare Screenshots
+- 14 Unit- und 14 E2E-Läufe grün
 
-## Phase 1 – Produktionssetup
+Commit: `e0bc84a`
 
-**Ziel:** Jeder Commit ist baubar und prüfbar.
+## 4. Phase B — Combat Feel und Onboarding 🚧
 
-Arbeit:
+### B1. Lesbarkeit und Kontext-Onboarding
 
-- Phaser/TypeScript/Vite-Projekt erstellen
-- Formatierung, Linting, Typecheck, Unit Tests und Production Build einrichten
-- CI für `typecheck → test → build` anlegen
-- Boot-/Preload-/Combat-Szene und responsive Scale-Strategie aufsetzen
-- Asset-Manifest, Loading Screen, Fehlerzustand und Settings-Grundgerüst implementieren
-- GitHub Pages oder vergleichbares statisches Preview-Deployment vorbereiten
+- Intro-Hinweis zeigt Flaggschiff und fordert eine erste Route
+- erster Gegnerkontakt erklärt Fokus und Auto-Broadside im Kontext
+- erste gegnerische Lance erklärt Pause und Kursreaktion
+- erster Hull-Treffer erklärt Shield Boost
+- Hinweise verschwinden dauerhaft nach erfolgreicher Handlung
+- Hilfe bleibt als kurze Referenz erhalten
 
-Gate:
+Abnahme:
 
-- frischer Checkout startet mit dokumentierten Befehlen
-- Production Build läuft ohne Console-Fehler
-- mindestens Chromium-Desktop und ein Mobile-Viewport werden automatisiert geöffnet
+- fünf Erstspieler starten ohne mündliche Erklärung
+- vier verstehen Kurs, Ziel und Pause innerhalb von 60 Sekunden
+- Fehl-Taps, Zeit bis Erstaktion und Zeit bis Ersttreffer werden protokolliert
 
-## Phase 2 – Deterministischer Combat Core
+### B2. Weapon-/Impact-Choreografie
 
-**Ziel:** Das Spiel ist als Regeln testbar, bevor es schön wird.
+- Broadside: gestaffelte Hardpoint-Salven, kurze Recoil-/Muzzle-Sequenz, Travel-Linie, klassenspezifischer Impact
+- Lance: Warm-up-Licht, ansteigender Ring, Audio-Riser, Release-Flash, Beam-Kern, Impact-Hold
+- Torpedo: Engine-Trail, Kurskorrektur, Zielwarnung, sichtbarer Einschlag und Debris
+- Shield: Fläche verformt sich am Kontaktpunkt, Boost hat Start/Loop/Ende
+- Explosion: mehrere Stufen statt eines einzelnen Kreises
+- VFX-Pool und zentrales Intensitätsprofil für Mobile/OLED
 
-Arbeit:
+Abnahme:
 
-- feste World Units unabhängig von Auflösung und Kamera
-- Combat State, Ship State, Command Beats, AP und Energy
-- Commands für Select, Move, Rotate, Broadside, Lance, Torpedo und Shield
-- gemeinsame Validierung und Schadensberechnung für Spieler, KI und Preview
-- deterministische Treffer-/Schadensauflösung, Combat Log und Replay-fähige Events
-- Sieg/Niederlage, Reset und Save-Versionierung
-- datengetriebene Definitionen für 4 Schiffe und 3 Waffen
+- jede Waffe ist ohne HUD eindeutig erkennbar
+- kein Effekt verdeckt länger als 250 ms eine kritische Telegraphrichtung
+- drei Restarts erzeugen keine wachsende Objektzahl
 
-Gate:
+### B3. Kamera und Motion
 
-- gleiche Befehle ergeben exakt dasselbe Ergebnis
-- Preview und tatsächlicher exakter Schaden verwenden dieselbe Formel
-- Desktop- und Mobile-Viewport verändern weder Reichweite noch Schaden
-- ungültige Commands verändern den State nicht
+- sanftes Follow Framing statt dauerhaft starrem Weltzentrum
+- Fokus auf Ziel optional, ohne Flaggschiff aus dem Blick zu verlieren
+- kurze begrenzte Impulsreaktion bei Lance/Explosion
+- Banking, Thruster-Stärke und Bremslicht an Kinematik koppeln
+- Pinch und manuelle Zoomwahl haben immer Vorrang vor Autoframing
 
-## Phase 3 – Lesbarer Greybox-Vertical-Slice
+### B4. Original-Audio
 
-**Ziel:** Movement, Facing und Waffenidentität machen bereits ohne finale Art Spaß.
+- AudioManager mit UI-, Ambience-, Weapon- und Impact-Bus
+- Mobile Audio Unlock beim Startbutton
+- Suspend/Resume bei Tab-Wechsel
+- Musik-/SFX-Schalter sowie persistente Lautstärke
+- Varianten für häufige Schüsse und Impacts
+- Lance-Warm-up als zuverlässiger Telegraph
 
-Arbeit:
+## 5. Phase C — Tactical Depth
 
-- taktische Kamera, Auswahl und Hover/Touch-Zielgrößen
-- Movement Range, gebogener Pfad, Ghost und Facing-Griff
-- klar getrennte Front-/Port-/Starboard-Arcs
-- Target Preview mit exaktem Shield-/Hull-Schaden, Cover und Kosten
-- kurze Planungsbeats mit offenen Gegnerabsichten und gemeinsamer Ausführungsphase
-- regelbasierte KI: angekündigte Zielwahl, gewünschte Waffenposition, Retreat/Shield bei Gefahr
-- Tutorial als kontextuelle Hinweise statt Textwand
+### C1. Rollenidentität
 
-Gate:
+- Cruiser: breite Seitenbögen, starke Schildkontrolle, langsame Kurskorrektur
+- Frigate: aggressive Frontwaffen, schnelles Repositionieren, fragiler
+- Escort-Direktiven erzeugen sichtbar andere Ziele und Abstände
+- Gegnerrollen erhalten eindeutige Telegraph- und Bewegungsmuster
 
-- fünf neue Testspieler können ihr erstes Schiff bewegen, ausrichten und korrekt feuern
-- mindestens 80 % schließen die Testmission ohne mündliche Erklärung ab
-- ein gemeinsamer Ausführungsbeat mit vier Schiffen dauert im Standardfall höchstens etwa drei Sekunden oder ist beschleunigbar
+### C2. Terrain und Encounter
 
-## Phase 4 – Originale Art und Asset-Pipeline
+- Nebelwirkung visuell eindeutiger machen
+- zweites Terrain-Element mit anderer Entscheidung, etwa Trümmer-Line-of-Sight oder Energiezone
+- Encounter-Daten aus der Scene lösen
+- zweiter Encounter plus Elite-Gegner statt bloß höherer HP
 
-**Ziel:** Ein konsistenter, eigenständiger In-Game-Look ersetzt alle Platzhalter.
+### C3. Balance-Simulation
 
-Arbeit:
+- headless Batch-Simulationen für Time-to-First-Hit, Time-to-Kill, Energie und Fähigkeitshäufigkeit
+- Szenarien mit Cruiser/Frigate und allen Eskorte-Direktiven
+- Grenzwerte als Regression-Gate dokumentieren
 
-- Style Tiles und Silhouettenvergleich für beide Fraktionen
-- vier finale Schiffssprites mit Emissive-, Tint- und Damage-Layern
-- Hardpoints für Engines, Broadside, Lance und Torpedos als Daten
-- Atlas-/Kompressionspipeline und automatische Asset-Manifest-Prüfung
-- dreischichtiger Parallax-Hintergrund, Asteroiden und taktische Marker
-- Nine-Slice-HUD, eigenes Iconset und lizenzierte Schriften
-- tatsächlichen Spielzoom ständig als Abnahmeansicht verwenden
+## 6. Phase D — Results, Refit und Persistenz
 
-Gate:
+### D1. Mission Results
 
-- Klasse, Team und Facing sind in unter einer Sekunde erkennbar
-- jedes Schiff bleibt bei Zielzoom und Bewegung klar lesbar
-- keine ungeklärten oder aus Mockups ausgeschnittenen Assets im Build
-- Initial-Download und Texturspeicher bleiben innerhalb des in Phase 0 gesetzten Budgets
+- Ergebnis, Dauer, Rest-Hull, verhinderter Schaden und zerstörte Ziele
+- Credits/Salvage klar und kurz
+- Retry und Continue ohne Sackgasse
 
-## Phase 5 – VFX, Audio und Combat Feel
+### D2. Shipyard
 
-**Ziel:** Jede Aktion besitzt Gewicht und eine unverwechselbare Signatur.
+- drei echte Trade-off-Upgrades
+- sichtbare Änderung an Hardpoint/Silhouette
+- Vorher-/Nachher-Preview mit Kosten und taktischem Satz
+- genau ein Upgrade pro erstem Loop, damit die Entscheidung verständlich bleibt
 
-Arbeit:
+### D3. Save
 
-- VFX-Event-Pipeline mit Object Pooling und Quality Presets
-- Engine Glow/Trail, Selection, Target Lock und Movement Ghost
-- vollständige Broadside-, Lance-, Torpedo-, Shield- und Destruction-Choreografie
-- lokaler Shield Impact, Scorch/Damage Decals, Debris und Critical States
-- Audio Busse für UI, Weapons, Impacts, Ambience und Music
-- Variationen, Pitch-Streuung, Ducking, Lautstärke- und Mute-Einstellungen
-- Reduced Motion, Shake-Intensität und Low-VFX-Modus
+- versioniertes JSON-Schema
+- LocalStorage-Migration
+- expliziter Reset
+- Tests für beschädigte, alte und leere Saves
 
-Gate:
+## 7. Phase E — Vertical-Slice-Release
 
-- Waffentyp ist auch ohne UI eindeutig an Bild und Ton erkennbar
-- Shield- und Hull-Treffer können nicht verwechselt werden
-- VFX verdecken weder Ziel noch Arc oder Statusanzeige
-- stabile Framerate ohne anwachsende Partikel-/Audio-Objekte nach mehreren Restarts
+- 390×844, kleine Android-Breite, große Phones, Tablet und Desktop prüfen
+- 200-%-Textzoom, Keyboard, Reduced Motion und Kontrast prüfen
+- Visual Regression für Menü, Live Combat, Pause/Telegraph und Resultat
+- Performance-Budget, Memory-Soak und drei vollständige Replay-Loops
+- Asset-/Audio-Lizenzen und Credits vollständig
+- finale fünf externe Verständlichkeits-Playtests
+- Release-Tag und stabiler Pages-Build
 
-## Phase 6 – Reward, Shipyard und Persistenz
+## 8. Testmatrix
 
-**Ziel:** Der Combat-Loop hat einen nachvollziehbaren Grund, erneut gespielt zu werden.
-
-Arbeit:
-
-- Results Screen mit Credits/Salvage und kurzem Combat Summary
-- Shipyard mit drei echten Trade-off-Upgrades
-- Power Budget und Loadout-Validierung nur soweit für den Slice nötig
-- versioniertes LocalStorage-Save mit Migration und Reset
-- Replay-Mission und ein zweiter Schwierigkeitszustand zum Prüfen der Upgrades
-
-Gate:
-
-- Upgrade verändert eine Entscheidung oder einen Build, nicht nur eine unsichtbare Zahl
-- Reload erhält Flotte, Upgrade und Settings
-- korrupter oder alter Save führt zu kontrollierter Recovery, nicht zu einem weißen Screen
-
-## Phase 7 – Onboarding, Responsive UX und Accessibility
-
-**Ziel:** Das Spiel ist verständlich und robust, nicht nur optisch attraktiv.
-
-Arbeit:
-
-- klare Mobile-Komposition und Touch-Flow zuerst, danach bewusste Tablet-/Desktop-Erweiterung
-- vollständiger Touch-Flow plus gleichwertige Maus-/Tastatur-Bedienung
-- Fokuszustände, zugängliche Namen, Live-Feedback und skalierbare Texte
-- Farbblind-sichere Shapes/Icons, Reduced Motion und Browser-Zoom
-- lokalisierbare Strings statt gemischter Sprache
-- Tutorial- und Fehlertexte durch Nutzertests kürzen
-
-Gate:
-
-- keine abgeschnittenen Aktionen auf unterstützten Viewports
-- alle Kernaktionen funktionieren ohne präzises Pixel-Tapping
-- kritische Informationen sind nicht ausschließlich farbcodiert
-- Mission ist mit Maus und Touch vollständig spielbar
-
-## Phase 8 – Balancing und Release-Härtung
-
-**Ziel:** Der Slice ist ein vorzeigbares Produktstück statt einer Tech-Demo.
-
-Arbeit:
-
-- Telemetrie nur nach bewusster Datenschutzentscheidung; lokal zunächst Combat Logs
-- Balance-Simulationen für Beat-Zahl, Time-to-Kill, AP und Energy
-- Unit-, Integration-, E2E- und Visual-Regression-Suite
-- Chromium, Firefox, WebKit sowie mindestens ein Mobile-Chrome-/Mobile-Safari-Profil
-- Restart-/Memory-Soak, Audio-Unlock, Tab-Visibility und Resize testen
-- Credits, Lizenzen, Asset-Provenienz und Release Notes vervollständigen
-
-Gate:
-
-- 60 FPS auf normalem Desktop in der Referenzszene; definierter Mobile-Fallback
-- keine Console Errors, kein State-Leak bei zehn Restarts
-- vollständige Mission inklusive Reward und Upgrade ist automatisiert getestet
-- externe Testspieler verstehen Ziel, Auswahl, Kosten, Facing und Waffenidentität
-
-## Priorisierte Asset-Reihenfolge
-
-1. Silhouetten und Größenverhältnis der vier Schiffe
-2. Auswahl, Pfad, Ghost, Facing und Arcs
-3. Hardpoints und Engine Emissives
-4. Broadside, Lance, Torpedo und Shield Impact
-5. Damage States und Destruction
-6. taktisches HUD und Icons
-7. Hintergrund/Parallax
-8. Shipyard-Präsentation
-9. erst nach erfolgreichem Slice: Officers/Crew-Art
-
-Diese Reihenfolge verhindert, dass teure Meta-Screens entstehen, bevor das eigentliche Gefecht funktioniert.
-
-## Teststrategie
-
-| Ebene | Prüft |
+| Ebene | Verbindliche Abdeckung |
 |---|---|
-| Unit / Vitest | Winkel, Reichweite, AP/Energy, Schaden, Shield, RNG, Save-Migration |
-| Integration | vollständige Commands und Events über mehrere Command Beats |
-| E2E / Playwright | Tutorial, Mission, Sieg/Niederlage, Upgrade, Reload, Responsive Layout |
-| Visual Regression | HUD, Arcs, Target Preview, VFX-Schlüsselframes, Shipyard |
-| Playtests | Verständlichkeit, Entscheidungsqualität, Tempo und visuelle Priorität |
+| Unit | Kinematik, Arcs, Energie, Cooldowns, Damage, Cover, Projectiles, AI-Direktiven, Save-Migration |
+| Integration | Fixed-Step über komplette Gefechte, Ergebnis und Upgrade-Auswirkung |
+| E2E Mobile | Startwahl, Pause, Kurs, Ziel, jedes manuelle System, Eskorte, Zoom, Results, Refit |
+| E2E Desktop | identische Kernflows plus Maus/Mausrad |
+| Visual | Menü, Live, Telegraph-Pause, Explosion, Results, Shipyard |
+| Performance | 60 FPS Profil, Objektzahlen, drei Restarts, Hintergrund/Resume |
+| Playtest | Zeit bis Erstaktion, Ersttreffer, Kampfzeit, Fehl-Taps, Verständnis |
 
-## Realistische Planung
+## 9. Definition of Done
 
-Für eine erfahrene Einzelperson ist ein wirklich polierter Vertical Slice mit originaler Art, Audio, Tests und Shipyard eher ein Projekt von ungefähr **10–14 Vollzeitwochen**, sofern Asset-Produktion teilweise parallel oder gezielt extern unterstützt wird. Ein kleiner Kern aus Entwicklung plus 2D-Art/Audio kann die Kalenderzeit reduzieren. Die vollständige 10–15-Missionen-Version ist danach ein eigener mehrmonatiger Produktionsabschnitt und sollte erst nach den Slice-Playtests geplant werden.
+Eine Änderung ist fertig, wenn:
 
-## Unmittelbar nächste drei Arbeitspakete
+- sie im echten Mobile-Viewport bedienbar ist
+- Fehlerzustand und Feedback verständlich sind
+- Typecheck, Unit-, Build- und E2E-Gates grün sind
+- neue Assets im Manifest dokumentiert sind
+- Roadmap und Changelog aktualisiert sind
+- der Pages-Link nach dem Push geprüft wurde
+- bei sichtbarer Änderung ein reproduzierbarer Screenshot oder Visual-Test aktualisiert wurde
 
-1. ✅ **Foundation:** Phaser/TypeScript/Vite, feste World Units und ein testbarer Combat-State.
-2. ✅ **Greybox Gate:** Movement/Facing/Arcs plus dieselbe Waffenlogik für Preview, Spieler und KI.
-3. ✅ **Delivery Gate:** CI-gesicherter GitHub-Pages-Build und verifizierter öffentlicher Spiel-Link.
-4. ✅ **Art Proof:** ein finaler Spieler-Cruiser mit Engine, Shield Impact, Broadside und Lance als Qualitätsreferenz.
-5. ✅ **Fleet Art:** die drei restlichen Schiffe mit klarer Klassen-/Fraktionssilhouette und vollständigen Hardpoints produzieren.
-6. 🚧 **Presentation:** Parallax-Environment, taktisches HUD, vollständige VFX-Choreografien und Audio-Busse auf Flottenniveau bringen.
-7. ✅ **Command-Beat-Pass:** offene Gegnerabsichten, deterministische Treffer, kürzere Time-to-Kill, Vorwärtsdrift, Nebel-Cover sowie Pinch-/HiDPI-Kamera integrieren.
-8. 🚧 **Validation:** neuen Kampfablauf auf echten Phones testen, danach gekrümmte Routen, Action Framing und Trefferchoreografie ausbauen.
+## 10. Nächste drei Produktionspakete
+
+1. **Onboarding + Telemetry:** Kontextschritte, lokale Session-Metriken und erster Fünf-Personen-Test.
+2. **Combat Feel:** VFX-Pooling, Lance/Broadside/Torpedo-Choreografie, Trefferzustände und Kamera.
+3. **Audio Foundation:** Busse, Mobile-Unlock, erste originale Weapon-/Impact-Sets und Mix.
+
+Erst nach diesen drei Paketen beginnt der vollständige Results-/Shipyard-Loop.

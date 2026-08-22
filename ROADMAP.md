@@ -1,8 +1,8 @@
 # Roadmap
 
-Diese Datei ist der aktuelle, nachvollziehbare Projektstatus. Erledigte Meilensteine bleiben sichtbar; Detailänderungen stehen chronologisch im [CHANGELOG](CHANGELOG.md).
+Diese Datei ist der aktuelle, überprüfbare Projektstatus. Erledigte Meilensteine bleiben sichtbar; einzelne Änderungen stehen chronologisch im [Changelog](CHANGELOG.md).
 
-Stand: 21. August 2026
+Stand: 22. August 2026
 
 ## Statuslegende
 
@@ -13,95 +13,101 @@ Stand: 21. August 2026
 
 ## M0 – Repository und Produktgrundlage ✅
 
-- Repository analysiert und geordnet
-- Vision, Audit, Produktionsplan und Art-/VFX-Richtung dokumentiert
-- Prototyp v2 als Interaction Spike eingeordnet, v1 archiviert
-- Risiken zu Architektur, Mobile UX, Assets und IP festgehalten
+- Repository analysiert, geordnet und von den isolierten HTML-Spikes getrennt
+- Vision, Audit, Produktionsplan, Art-/VFX-Richtung und Asset-Provenienz dokumentiert
+- GitHub Pages, CI, Unit- und Browser-Tests als verbindliche Qualitätsgates eingerichtet
 
 ## M1 – Mobile-first Produktionsfundament ✅
 
-- ✅ Phaser 4, TypeScript, Vite und Vitest pinnen
-- ✅ 390×844 Referenzviewport für reproduzierbare Mobile-QA
-- ✅ dynamische Vollbreiten-Shell mit Safe Areas statt fest eingeschlossener 390:844-Säule
-- ✅ Browser-Fullscreen, fullscreen-fähiges Web-App-Manifest und Plattform-Fallback
-- ✅ 80–180-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Gestenmittelpunkt
-- ✅ bis zu 2× HiDPI-Canvas-Backbuffer und 1024×1536-Environment-Export gegen unscharfen Mobile-Zoom
-- ✅ Boot- und Combat-Szene anlegen
-- ✅ Playwright-Konfiguration für Mobile und Desktop
-- ✅ CI und GitHub Pages Deployment live verifiziert
-- ✅ README um Live-Link, Spielanleitung und Entwickler-Workflow ergänzt
+- Phaser 4, TypeScript, Vite und Vitest reproduzierbar gepinnt
+- Vollbreiten-Shell mit Safe Areas statt einer fest eingeschlossenen Gerätesäule
+- Browser-Fullscreen, installierbares Web-App-Manifest und Plattform-Fallback
+- 80–180-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
+- bis zu 2× HiDPI-Canvas-Backbuffer und hochauflösende Environment-Runtime
+- automatisches GitHub-Pages-Deployment mit Typecheck, Unit-, Build- und Browser-Gate
 
-## M2 – Deterministischer Combat Core ✅
+## M2 – Deterministischer Echtzeit-Combat-Core ✅
 
-- ✅ feste 1000×1500 World Units unabhängig vom Viewport
-- ✅ Combat State, Commands, Events und reproduzierbarer State
-- ✅ Command-Beat-Flow, AP, Energy, Hull und Shield
-- ✅ gemeinsame Regeln für Preview, Spieler und KI
-- ✅ datengetriebene Definitionen für vier Schiffe und drei Waffen
-- ✅ Unit Tests für Winkel, Reichweite, Kosten, Schaden, Beats und KI
+- feste 1000×1500 World Units und deterministischer 30-Hz-Fixed-Step
+- kontinuierliche Position, Facing, Geschwindigkeit, Beschleunigung und begrenzte Drehrate
+- datengetriebene Definitionen für vier Schiffe und drei Waffenfamilien
+- Energie, Cooldowns, Hull, Shield, Armor, Shield-Boost und Nebelreduktion
+- direkte Flaggschiff-Kurse, Fokusziel und vier Eskorte-Direktiven
+- Auto-Breitseiten, aufladbare Lance und physische Homing-Torpedos
+- halbautonome Formation sowie gegnerische Approach-/Orbit-KI auf derselben Regelbasis
+- garantierte deterministische Treffer bei gültiger Lösung; keine Miss-/Intercept-Würfe
+- 14 Unit-Tests für Kinematik, Waffen, Telegraph, Projectile, Cover und Hardpoints
 
-## M3 – Spielbarer Mobile-Greybox-Slice ✅
+## M3 – Spielbarer 2-gegen-2-Echtzeit-Slice ✅
 
-- ✅ 2 Spieler- gegen 2 Gegnerschiffe
-- ✅ Auswahl, Movement Radius, Ghost Path und Facing
-- ✅ Broadside-, Lance- und Torpedo-Arcs
-- ✅ verständliche Action Bar, Target Preview und Beat-Ausführung
-- ✅ animierte gemeinsame Ausführungsphase und Sieg/Niederlage
-- ✅ Touch zuerst, Maus zusätzlich
-- ✅ Hilfe- und Ergebnisdialoge, Reduced Motion und große Touch-Ziele
-- ✅ Mobile-E2E-Tests für Shell, Hilfe, Bewegung und Beat-Ausführung
+- Cruiser-/Frigate-Auswahl mit spielwirksamer Flaggschiff-Doktrin
+- direkte geglättete Kurszeichnung auf Touch und Maus
+- Zielerfassung als gemeinsamer Fokus für Flaggschiff und Eskorte
+- jederzeit verfügbare taktische Pause, ¼-Tempo und Live
+- verständlicher Zwei-Reihen-HUD mit Status, Tempo, Energie, Cooldowns und Direktive
+- deutlich hellere Feindmarkierung mit roter Kontur und Formmarker
+- sichtbare Lance-Ladephase, physische Torpedos, Shield-Ripple und Hardpoint-Feuer
+- taktischer Nebel mit 25 % Schadensreduktion
+- Hilfe, Toasts, Ergebnisdialog, Restart und Reduced-Motion-Fallback
+- sieben E2E-Flows auf Mobile und Desktop: Shell, Pause, Kurs, Lance, Torpedo/Eskorte, Hilfe und Pinch
 
-## M3.5 – Command Beats, Tempo und Mobile-Kamera ✅
+## M3.5 – Design-Pivot von Command Beats zu Tactical Real-Time ✅
 
-- ✅ genau ein austauschbarer Befehl pro Schiff und Beat statt zäher Vollphasen
-- ✅ Gegnerabsichten vor der Planung als Label, Route und Zielvektor sichtbar
-- ✅ Manöver beider Seiten werden gemeinsam animiert; angekündigte Feuerlösungen können durch Bewegung brechen
-- ✅ deterministische Treffer und garantierte Torpedos ohne versteckten Miss-/Intercept-Wurf
-- ✅ rund 30–40 % weniger Effective Health, stärkere Waffen und keine passive Schildregeneration
-- ✅ permanente Vorwärtsdrift nach jedem Beat, damit Position und Facing relevant bleiben
-- ✅ erste regelrelevante Nebelzone mit 25 % Schadensreduktion und exakter Preview
-- ✅ hellerer Battlefield-Grade sowie dauerhafte rote Outline, Formmarker und Intent-Chips für Gegner
-- ✅ 15 Unit Tests und 10 Mobile-/Desktop-Browser-Szenarien einschließlich Multi-Touch und HiDPI
+- Command-Beat-, AP-, Turn- und Seed-RNG-System vollständig aus der Runtime entfernt
+- direkte Kontrolle auf das Flaggschiff konzentriert; Eskorte übernimmt Mikromanagement
+- Standardfeuer automatisiert und Entscheidungslast auf drei manuelle Systeme reduziert
+- Bewegung permanent wirksam gemacht: Kurs, Drehrate, Seitenbogen und Lade-Telegraph ändern Feuerlösungen laufend
+- Anfangsdistanzen für einen schnellen ersten Kontakt reduziert
+- Roadmap, Vision, Produktionsplan, README, Tests und Screenshots auf das neue Modell umgestellt
 
-## M4 – Originale Art und Combat Feel 🚧
+## M4 – Combat Feel und visuelle Produktionsreife 🚧
 
-- ✅ eigenständiger Spieler-Cruiser als Art-Proof samt Asset-Provenienz
-- ✅ vier lesbare Schiffssilhouetten und vollständige Hardpoint-Sets
-- ✅ grundlegende Hardpoint-basierte Engine-, Broadside-, Lance-, Torpedo- und Shield-VFX
-- 🚧 gestaffelte Waffen-Choreografien, Trefferreaktionen und VFX-Pooling
-- ⏳ originale Audio-Busse, Varianten und Mobile-Audio-Unlock
-- ✅ originaler Nebula-Base-Layer mit zwei deterministisch driftenden Sternlayern
-- ✅ hochauflösender Runtime-2-Export und heller Screen-Grade für gezoomte Mobile-Ansicht
-- 🚧 taktisches HUD-Polish und Asset-Loading-Feedback
-- ✅ erster HUD-System-Pass mit größeren Hierarchien, originalen Vektor-Icons und sichtbaren Aktionskosten
-- ✅ sichtbare Lance-, Torpedo- und Broadside-Mounts auf den Schiffen
-- ✅ drei reproduzierbare Mobile-Screenshots für README und visuelle Standabnahme
+- ✅ vier originale, gut unterscheidbare Schiffssilhouetten mit vollständigen Hardpoints
+- ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
+- ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
+- ✅ klare Ziele, Route, Feuerbögen, Formation und Telegraph-Zustände
+- ✅ drei reproduzierbare Mobile-Screenshots für README und Standabnahme
+- 🚧 gestaffelte Waffen-Choreografien, VFX-Pooling und klassenspezifische Trefferreaktionen
+- 🚧 Kamera-Fokus, kurzer Impact-Zoom und lesbares Action Framing
+- ⏳ originale Audio-Busse, Varianten, Ducking und Mobile-Audio-Unlock
+- ⏳ beschädigte Schiffszustände, Debris, Engine-Ausfall und bessere Zerstörungssequenz
+- ⏳ kontextuelles 60-Sekunden-Onboarding statt ausschließlich statischer Hilfe
+- ⏳ ein erster dokumentierter Fünf-Personen-Mobile-Playtest mit Zeit-/Fehlerdaten
 
-## M5 – Reward, Shipyard und Persistenz 🚧
+### Abnahme M4
 
-- ✅ Hauptmenü mit Cruiser-/Frigate-Startwahl und klarer Loadout-Darstellung
-- ✅ zwei spielwirksame Flaggschiff-Module: Bulwark-Schild und Vector Drive
-- ✅ Refit-Vorschau für Waffenbucht, Schildmatrix und Vector Drive
-- ⏳ Mission Results, Credits und Salvage
-- ⏳ drei tatsächlich kauf-/ausrüstbare Trade-off-Upgrades
-- ⏳ versioniertes LocalStorage-Save
-- ⏳ Replay-Loop und ein zweiter Schwierigkeitszustand
+- fünf Erstspieler verstehen Kurs, Ziel, Pause und ein Spezialsystem ohne externe Erklärung
+- erste bewusste Aktion in höchstens 20 Sekunden, erster Waffeneffekt in höchstens 35 Sekunden
+- ein Kampf dauert im Median 3–5 Minuten und erzeugt mindestens drei relevante Kursentscheidungen
+- stabile 60 FPS im Pixel-7-Profil, keine wachsenden VFX-Objektzahlen nach drei Restarts
+- alle zentralen Zustände bleiben bei 390×844 und 200 % Browser-Textzoom bedienbar
 
-## M6 – Qualität und Vertical-Slice-Release ⏳
+## M5 – Reward, Shipyard und Persistenz ⏳
 
-- kontextuelles Onboarding
+- Mission Results mit Credits, Salvage und klarer Leistungszusammenfassung
+- drei kauf- und ausrüstbare Trade-off-Upgrades mit sichtbaren Hardpoint-Änderungen
+- Waffenvarianten statt rein numerischer Upgrades
+- versioniertes LocalStorage-Save mit Migration und Reset
+- zweiter Encounter mit anderer taktischer Frage und ein Elite-Gegner
+- vollständiger Menu → Combat → Results → Refit → Replay-Loop
+
+## M6 – Vertical-Slice-Release ⏳
+
 - Responsive-, Accessibility- und Browser-Matrix
-- Visual Regression und Restart-/Memory-Soak
-- externe Verständlichkeits-Playtests
-- polierter öffentlicher Vertical Slice
+- Visual Regression, Performance-Budget und Restart-/Memory-Soak
+- externe Verständlichkeits- und Balance-Playtests
+- finale Audio-/VFX-Mischung, Credits, Datenschutz-/Lizenzhinweise
+- öffentlich markierter Vertical-Slice-Release
 
 ## Später / außerhalb des Slice ⛔
 
 - Boarding-Minispiel
 - Officers und detaillierte Crew
-- vollständige 10–15-Missionen-Kampagne
+- vollständige Kampagne mit 10–15 Missionen
 - Multiplayer, 3D, Open World und prozedurale Galaxie
 
-## Nächster überprüfbarer Meilenstein
+## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Der Command-Beat- und Mobile-Kamera-Pass aus direktem Spieltest-Feedback ist abgeschlossen: Pinch/HiDPI, sichtbare Gegnerpläne, deterministische Torpedos, kürzere Time-to-Kill, Vorwärtsdrift, Nebel-Cover und der neue Planungszustand sind integriert. Als nächstes muss ein echter Mobile-Playtest das neue Tempo validieren; danach folgen gekrümmte Movement-/Facing-Routen, der zweite HUD-Fidelity-Pass, tiefere Trefferchoreografien und Pan/Action-Framing. Die Reihenfolge steht in der aktualisierten [Top-20-Gap-Analyse](docs/planning/TOP_20_LEVERS.md).
+Wir stehen nach **M3.5** am Beginn von **M4**. Der neue Kern ist funktional, deterministisch und browsergetestet; zur Qualität der Mockups fehlen vor allem audiovisuelle Reaktion, Kamera-Choreografie, Onboarding, taktische Encounter-Variation und der spielbare Refit-Loop.
+
+Der nächste überprüfbare Meilenstein ist **M4.1 „Combat Feel + 60-Sekunden-Onboarding“**: Telegraph-Sprache vereinheitlichen, Weapon-/Impact-VFX vertiefen, Original-Audio integrieren, Kontext-Hinweise bauen und anschließend fünf echte Mobile-Erstspieler messen. Die genaue Reihenfolge und Abnahmekriterien stehen in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

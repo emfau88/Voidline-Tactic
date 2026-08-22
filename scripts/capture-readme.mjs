@@ -31,7 +31,7 @@ try {
   await page.waitForFunction(
     () => document.querySelector('#game-shell')?.getAttribute('data-game-ready') === 'true',
   );
-  await page.waitForTimeout(2_700);
+  await page.waitForTimeout(1_000);
 
   await page.screenshot({
     path: path.join(outputDirectory, 'mobile-combat-overview.png'),
@@ -42,15 +42,18 @@ try {
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Canvas has no layout box.');
 
-  await page.getByRole('button', { name: /BEWEGEN/ }).click();
-  await canvas.click({ position: { x: box.width * 0.5, y: box.height * 0.505 } });
-  await page.locator('#confirm-bar').waitFor({ state: 'visible', timeout: 5_000 });
-  await page.waitForTimeout(250);
-  await page.locator('#confirm-button').click();
-  await page.getByRole('button', { name: /TORPEDO/ }).click();
-  await canvas.click({ position: { x: box.width * 0.69, y: box.height * 0.253 } });
+  await page.getByRole('button', { name: 'Taktische Pause' }).click();
+  await page.getByRole('button', { name: /KURS/ }).click();
+  await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.58);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, { steps: 4 });
+  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.42, { steps: 5 });
+  await page.mouse.up();
+  await page.getByRole('button', { name: /ZIEL/ }).click();
+  await canvas.click({ position: { x: box.width * 0.4, y: box.height * 0.31 } });
   await page.locator('#target-card').waitFor({ state: 'visible', timeout: 5_000 });
-  await page.waitForTimeout(250);
+  await page.getByRole('button', { name: /LANZE/ }).click();
+  await page.waitForTimeout(180);
   await page.screenshot({
     path: path.join(outputDirectory, 'mobile-target-preview.png'),
     fullPage: true,

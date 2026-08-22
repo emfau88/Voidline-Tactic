@@ -21,19 +21,19 @@ Vor kommerzieller Nutzung ist eine dokumentierte IP-/Trademark-Prüfung erforder
 
 In dieser Reihenfolge muss der Spieler Informationen erfassen:
 
-1. ausgewähltes Schiff und aktuelle Phase
-2. Position, Facing, gültige Bewegung und Feuerwinkel
-3. gültiges Ziel und erwarteter Effekt
-4. Hull, Shield, AP und Energy
-5. laufender Treffer- oder Schadenszustand
+1. gefährlicher gegnerischer Telegraph und aktueller Zeitzustand
+2. Flaggschiff, Kurs, Facing und Feuerwinkel
+3. Fokusziel und erwarteter Fähigkeitseffekt
+4. Hull, Shield, Tempo, Energy und Cooldowns
+5. laufender Lade-, Treffer- oder Schadenszustand
 6. Atmosphäre und dekorative Details
 
 ## Farb- und Effektgrammatik
 
 | Bedeutung | Primärfarbe | Einsatz |
 |---|---|---|
-| Spieler / Navigation | kühles Cyan-Blau | Auswahl, Pfad, Movement Range |
-| Gültige Bestätigung | entsättigtes Grün | Facing-Griff, Confirm, positive Statusänderung |
+| Spieler / Navigation | kühles Cyan-Blau | Auswahl, Kurs, Zielvektor |
+| Positiver Zustand | entsättigtes Grün | Hull, aktive Formation, positive Statusänderung |
 | Gegner / Gefahr | tiefes Rot | Zielmarkierung, hostile arcs, kritische Warnung |
 | Lance / Energiepräzision | Violett-Magenta | Beam, Ladezustand, Schildpenetration |
 | Kinetik / Broadside | warmes Orange-Gold | Muzzle Flash, Tracer, Hull Impact |
@@ -81,18 +81,18 @@ Quellauflösung soll mindestens die doppelte maximal sichtbare Größe abdecken.
 ### UI
 
 - ein vollständiges Panel-/Frame-System mit Nine-Slice-Exports
-- konsistente Icons für alle sechs Slice-Aktionen, AP, Energy, Hull, Shield, Range und Status
-- Reticles, Arc-Ränder, Pfadsegmente, Facing-Griff und Auswahlring
+- konsistente Icons für Kurs, Ziel, Lance, Torpedo, Boost, Eskorte, Energy, Hull, Shield und Cooldown
+- Reticles, Arc-Ränder, Kurssegmente, Telegraph-Richtung und Auswahlring
 - Bitmap-/Webfont mit klarer Lizenz und einer separaten Display-Schrift nur für Überschriften
 
 ### VFX
 
 - Engine idle und Engine thrust
 - Selection pulse und Target lock
-- Movement trail und Destination ghost
+- Course trail, Wegpunkte und Destination marker
 - Broadside: gestaffelte Muzzle Flashes, Tracer, Impact-Varianten
 - Lance: charge, beam core, glow, shield/hull contact
-- Torpedo: launch flash, projectile, smoke/ion trail, interception und impact
+- Torpedo: launch flash, projectile, smoke/ion trail, sichtbare Zielwarnung und impact
 - Shield: lokale Impact-Welle, kurze Verzerrung, Break-Event
 - Hull: sparks, debris, scorch, smoke und critical fire
 - Destruction: Vorblitz, Hauptexplosion, Trümmer und ausklingendes Wrack
@@ -115,11 +115,11 @@ Der Mix soll Gewicht vermitteln, ohne den Weltraum realistisch still simulieren 
 
 Für den Slice werden mindestens benötigt:
 
-- UI: hover/focus, click, confirm, cancel, invalid, end turn
-- Schiff: select, move start, engine loop, low-hull warning
+- UI: hover/focus, click, invalid, pause, slow, live und cooldown ready
+- Schiff: select, course accepted, engine loop, low-hull warning
 - Broadside: 3–5 Muzzle-Varianten plus shield/hull impacts
 - Lance: charge, beam, shield contact, hull contact
-- Torpedo: launch, travel, interception, impact
+- Torpedo: launch, travel, target warning und impact
 - Zustände: shield break, critical hit, destruction, victory, defeat
 - Musik: ein ruhiger Tactical Loop und eine intensivere Combat-Schicht
 

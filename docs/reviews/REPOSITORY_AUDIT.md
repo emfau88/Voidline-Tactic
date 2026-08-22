@@ -3,6 +3,8 @@
 Stand: 21. August 2026  
 Analysierter Ausgangs-Commit: `f2571b3` (`Add files via upload`)
 
+> Historische Bestandsaufnahme des Ausgangsrepos. Die damaligen Empfehlungen zu Desktop, Rundenfluss und Prototypstruktur sind durch die aktuelle [Game Vision](../design/GAME_VISION.md), [Roadmap](../../ROADMAP.md) und den Tactical-Real-Time-Build ersetzt. Der Audit bleibt als nachvollziehbarer Vorher-Zustand erhalten.
+
 ## Kurzurteil
 
 Die Spielidee ist klar und als kleiner taktischer Browser-Titel grundsätzlich tragfähig. Der bessere HTML-Prototyp beweist bereits, dass Movement, Facing und unterschiedliche Feuerwinkel zusammen verständliche Entscheidungen erzeugen können. Das Repository ist dennoch noch kein Entwicklungsprojekt, sondern eine Sammlung aus Vision, drei Mockups und zwei Single-File-Spikes.
