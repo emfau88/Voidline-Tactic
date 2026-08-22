@@ -24,6 +24,7 @@ Stand: 22. August 2026
 - Browser-Fullscreen, installierbares Web-App-Manifest und Plattform-Fallback
 - 65–240-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
 - Landscape-first Combat mit Portrait-Drehaufforderung und gleichzeitiger Zwei-Finger-Kartenverschiebung
+- Mobile-Battlefield-first-Layout mit 69–72 % zusammenhängender freier Spielfeldhöhe
 - bis zu 2× HiDPI-Canvas-Backbuffer und hochauflösende Environment-Runtime
 - automatisches GitHub-Pages-Deployment mit Typecheck, Unit-, Build- und Browser-Gate
 
@@ -45,12 +46,13 @@ Stand: 22. August 2026
 - direkter persistenter Sollkurs per Touch-/Maus-Joystick; frühere Kurszeichnung bleibt dormant erhalten
 - Zielerfassung als gemeinsamer Fokus für Flaggschiff und Eskorte
 - jederzeit verfügbare taktische Pause, ¼-Tempo und Live
-- verständlicher Zwei-Reihen-HUD mit Status, Tempo, Energie, Cooldowns und Direktive
+- kompakter Fünf-Aktionen-Dock mit Status, Tempo, Energie, Cooldowns und Direktive; dormant Route belegt auf Phones keinen Platz
+- direkte Gegner-Taps mit mindestens 34 CSS-Pixeln tolerantem Trefferradius und ZIEL-Button zum Durchschalten
 - deutlich hellere Feindmarkierung mit roter Kontur und Formmarker
 - sichtbare Lance-Ladephase, physische Torpedos, Shield-Ripple und Hardpoint-Feuer
 - taktischer Nebel mit 25 % Schadensreduktion
 - Hilfe, Toasts, Ergebnisdialog, Restart und Reduced-Motion-Fallback
-- acht E2E-Flows auf Mobile und Desktop: Shell, Kampagne, Pause/Joystick, Lance, Torpedo/Eskorte, Hilfe und Pinch
+- acht E2E-Flows auf zwei Mobile-Landscape-Größen und Desktop: Shell, Kampagne, Pause/Joystick, Ziel/Lance, Torpedo/Eskorte, Hilfe und Pinch
 
 ## M3.5 – Design-Pivot von Command Beats zu Tactical Real-Time ✅
 
@@ -70,8 +72,19 @@ Stand: 22. August 2026
 - Nutzerfeedback bestätigt den Joystick klar als primäre Echtzeitsteuerung
 - 125-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
 - Kurszeichnung technisch erhalten, im HUD klar als inaktiv markiert und gegen Eingaben gesperrt
-- 18 Unit-Tests und 16 Mobile-/Desktop-E2E-Läufe grün
+- 18 Unit-Tests und 24 Mobile-/Desktop-E2E-Läufe grün
 - neue reproduzierbare README-Screenshots für Joystick, Zielwahl und Telegraph
+
+## M3.7 – Prolog und sichtbarer modularer Refit ⏳
+
+- zwei kleine Starterhüllen mit klarer Rolle statt sofortiger Cruiser-/Frigate-Flotte
+- genau zwei sichtbare Montageschritte vor dem ersten Kampf: Waffe plus Support
+- datengetriebene Hardpoint-, Engine- und Shield-Emitter-Sockets für Menü und Combat
+- 1-gegen-1-Kalibrierungsflug als Mission 1 mit schrittweise eingeblendeten Controls
+- Salvage, geborgenes Modul und erneuter Refit direkt nach dem ersten Sieg
+- Vorschau auf die nächsten zwei bis drei Hüllen; bestehende große Schiffe werden spätere Freischaltungen
+- Foozle „Void – Main Ship“ (CC0) als Struktur-/Animationsreferenz geprüft; Produktionskunst bleibt original und hochauflösend
+- verbindliches Detailkonzept: [Prolog und modulare Schiffe](docs/design/PROLOGUE_AND_MODULAR_SHIPS.md)
 
 ## M4 – Combat Feel und visuelle Produktionsreife 🚧
 
@@ -79,6 +92,8 @@ Stand: 22. August 2026
 - ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
 - ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
 - ✅ Landscape-HUD, klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
+- ✅ kompakter 34-px-Topbar, 78-px-Bottom-Dock und echte Kameraaussparung für den HUD-Bereich
+- ✅ zentrierter visueller Kamera-Overscan ohne schwarze Zoomflächen sowie Autoframing des nächsten Gegners
 - ✅ größere Arena, längere Waffenreichweiten, Zwei-Finger-Pan und sanftes Follow-Framing
 - ✅ erste gestaffelte Broadside-Produktionschoreografie von Hardpoint bis Impact
 - ✅ drei reproduzierbare Mobile-Screenshots für README und Standabnahme
@@ -106,6 +121,7 @@ Stand: 22. August 2026
 - ✅ vier persistente Flaggschiff-/Eskorte-Upgrades in versioniertem LocalStorage
 - 🚧 vollständige Leistungsmetriken und expliziter Save-Reset
 - ⏳ sichtbare Hardpoint-/Emitter-Änderungen sowie echte Waffenvarianten statt überwiegend numerischer Upgrades
+- ⏳ bestehende Missionen in die Prolog-Kurve 1v1 → 1v2 → erste Eskorte/Objective einordnen
 
 ## M6 – Vertical-Slice-Release ⏳
 
@@ -124,6 +140,6 @@ Stand: 22. August 2026
 
 ## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die Kurszeichnung bleibt als mögliche spätere Pausenfunktion dormant.
+Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Battlefield-first Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, kompakter HUD, tolerante Zielerfassung, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die Kurszeichnung bleibt als mögliche spätere Pausenfunktion dormant. Der gewünschte persönliche Einstieg mit kleiner Hülle, sichtbarer Montage und 1-gegen-1 ist konzipiert, aber noch nicht implementiert.
 
-Der nächste überprüfbare Meilenstein ist **M4.3 „First Three Missions Playtest“**: den gesamten neuen Flow auf echten Phones durchspielen, Zeiten und Fehlbedienungen messen und danach Onboarding, Broadside-Audio, Lance-/Torpedo-VFX sowie sichtbare Upgrade-Hardpoints priorisiert polieren. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).
+Der nächste überprüfbare Meilenstein ist **M3.7 „Prologue Loadout Slice“**: zwei kleine Hüllen, zwei visuell montierte Module, ein 1-gegen-1-Kampf sowie Reward und erneuter Refit als vollständig testbarer Mobile-Loop. Danach folgt der echte Drei-Missionen-Phone-Playtest. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

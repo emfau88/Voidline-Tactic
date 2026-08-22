@@ -4,6 +4,42 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Prologue-first Product Direction — 2026-08-22
+
+#### Designed
+
+- Einstieg als Wahl aus zwei kleinen Starterhüllen statt sofortiger großer Flotte
+- genau zwei sichtbare Montageschritte vor Mission 1: Waffe und Support-Modul
+- 1-gegen-1-Kalibrierungsflug, danach Salvage, Modulbelohnung und erneuter Refit
+- schrittweise Einführung von HUD, Eskorte und Objectives über die ersten drei Missionen
+- bestehende Cruiser-/Frigate-Schiffe als spätere sichtbare Freischaltungen eingeordnet
+- datengetriebenes Layer-/Socket-Modell für Hull, Damage, Weapons, Engines, Emissives und Shields festgelegt
+- Foozle „Void – Main Ship 1.0“ samt CC0-Readme und modularen 48×48-/Spritesheet-Assets als Struktur- und Animationsreferenz geprüft; Produktionsstil bleibt original
+- Roadmap, Game Vision, Production Plan und Top-20-Hebel auf den persönlichen Prolog-Loop ausgerichtet
+
+### Mobile Battlefield-first HUD — 2026-08-22
+
+Meilenstein-Commit:
+
+- `17218da` – kompakter Mobile-HUD, tolerante Zielerfassung und kamerareservierte Spielfläche
+
+#### Added
+
+- 667×375 als zweites verbindliches Mobile-Landscape-Profil neben 844×390
+- Layout-Gate für mindestens 68 % freie Spielfeldhöhe, 64-px-Joystick und 44-px-Aktionsziele
+- mindestens 34 CSS-Pixel großer Ziel-Trefferradius unabhängig von Weltzoom und Schiffsklasse
+- ZIEL-Button zum direkten Durchschalten aller lebenden Gegner zusätzlich zum Tap auf das Schiff
+- visueller Kamera-Overscan für zentrierten Überblick ohne schwarze Randflächen
+
+#### Changed
+
+- Mobile-Topbar auf 34 px und Bottom-Dock auf 78 px verdichtet
+- kontinuierlich freie Spielfeldhöhe von zuvor 43–47 % auf 69–72 % erhöht
+- dormant ROUTE auf kleinen Landscape-Geräten aus dem sichtbaren Dock entfernt, technisch aber erhalten
+- Kamera reserviert den HUD-Bereich und rahmt ohne markiertes Ziel automatisch den nächsten Gegner ein
+- Qualitätsgate von 16 auf 24 Mobile-/Desktop-E2E-Läufe erweitert
+- README-Screenshots vollständig mit dem Battlefield-first-HUD neu aufgenommen
+
 ### Landscape Campaign Slice — 2026-08-22
 
 Meilenstein-Commits:

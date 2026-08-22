@@ -8,20 +8,20 @@ Mobile-first 2D-Flottentaktik in langsamer Echtzeit mit taktischer Pause: Du ste
 
 Der aktuelle Stand ist ein spielbarer Drei-Missionen-Slice mit Startschiffwahl, direkter Joystick-Steuerung, eskalierenden Feindverbänden, einnehmbaren Kontrollpunkten, Werft-Drohnen, Salvage, vier persistenten Upgrades und Replay. Auto-Breitseiten, aufladbare Rift Lance, physische Void Torpedoes und Shield Boost treffen deterministisch. **Pause**, **¼-Tempo** und **Live** können jederzeit gewechselt werden. Die frühere Kurszeichnung bleibt im Code erhalten, ist aber bewusst inaktiv.
 
-Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
+Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Ein kompakter 34-px-Topbar und 78-px-Bottom-Dock lassen je nach Phone 69–72 % der Höhe als zusammenhängende Spielfläche frei. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
 
 ## Aktueller Mobile-Build
 
 | Flotten- und Missionsauswahl | Landscape-Flottengefecht | Pause, Ziel und Lance-Telegraph |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl von Startschiff und drei Kampagnenmissionen" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Landscape-Flottengefecht mit Joystick, großer Karte und Zwei-Daumen-HUD" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Taktische Pause mit Zielkarte, Sollkurs und Lance-Telegraph" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl von Startschiff und drei Kampagnenmissionen" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Landscape-Flottengefecht mit kompaktem Battlefield-first-HUD und vollständigem Flottenüberblick" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Kompakte taktische Pause mit direkter Zielerfassung, Sollkurs und Lance-Telegraph" width="260">](docs/screenshots/mobile-target-preview.png) |
 
 Die Galerie wird reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisiert.
 
 ## So funktioniert der Kampf
 
 1. **Steuern:** Den linken Stick in die gewünschte Richtung ziehen. Das Schiff dreht entsprechend Masse und Drehrate auf den angezeigten Sollkurs; beim Loslassen bleibt dieser Kurs aktiv.
-2. **Ziel:** Einen Gegner antippen. Verfügbare Breitseiten feuern automatisch, sobald Entfernung und Seitenbogen passen.
+2. **Ziel:** Einen Gegner direkt antippen oder mit **ZIEL** durch lebende Gegner wechseln. Vergrößerte unsichtbare Touch-Flächen helfen auch im Überblickzoom. Verfügbare Breitseiten feuern automatisch, sobald Entfernung und Seitenbogen passen.
 3. **Spezialsysteme:** Lanze, Torpedo und Schild-Boost selbst auslösen. Die Lanze braucht eine stabile Feuerlösung; Torpedos existieren sichtbar im Raum und besitzen keinen Miss-Wurf.
 4. **Zeit:** Mit PAUSE vollständig anhalten, in PLANEN auf ¼-Tempo beobachten oder mit LIVE normal weiterlaufen lassen. Alle Befehle bleiben in der Pause verfügbar.
 5. **Formation:** Die Eskorte zwischen Folgen, linker/rechter Flanke und Schutz wechseln lassen. Der cyanfarbene Nebel reduziert eingehenden Schaden um 25 %.
@@ -32,6 +32,7 @@ Die Kernidee ist bewusste Verantwortungsteilung: Der Spieler trifft wenige hochw
 ## Projektstatus
 
 - ✅ Landscape-first Combat-Shell, Safe Areas, Fullscreen-Fallback, HiDPI und 65–240-%-Pinch-Zoom samt Zwei-Finger-Pan
+- ✅ Battlefield-first Mobile-HUD mit 69–72 % freier Spielfeldhöhe, kompaktem Fünf-Aktionen-Dock und 44-px-Mindestbedienflächen
 - ✅ Startmenü mit Cruiser-/Frigate-Wahl, Loadouts und drei freischaltbaren Missionen
 - ✅ 2400×1400-Schlachtfeld mit längeren Waffenreichweiten und sanftem Formation-Follow
 - ✅ deterministische 30-Hz-Fixed-Step-Simulation ohne versteckte Treffer- oder Abfangwürfe
@@ -43,7 +44,7 @@ Die Kernidee ist bewusste Verantwortungsteilung: Der Spieler trifft wenige hochw
 - ✅ physische Homing-Torpedos, Lance-Telegraph, Hardpoint-VFX, Nebel-Cover und Sieg/Niederlage
 - ✅ Pause, ¼-Tempo und Live während jeder Kampfaktion
 - ✅ drei eskalierende Missionen, Relay-/Shipyard-Capture, begrenzte Drohnenproduktion, Salvage und vier persistente Upgrades
-- ✅ 18 Unit-Tests und 16 Mobile-/Desktop-Browser-Läufe einschließlich Missionszielen, Kampagnenpersistenz, Joystick, Multi-Touch und Pause
+- ✅ 18 Unit-Tests und 24 Browser-Läufe auf 844×390, 667×375 und Desktop einschließlich Ziel-Toleranz, Joystick, Multi-Touch und Kampagnenpersistenz
 - ✅ automatisches, CI-geprüftes GitHub-Pages-Deployment
 - 🚧 Combat-Feel-Pass: tiefere VFX, Trefferreaktionen, Kamera-Choreografie, Audio und Onboarding
 - 🚧 Upgrade-Darstellung an sichtbaren Hardpoints, vollständige Results-Metriken und zusätzliche Waffenvarianten
@@ -71,7 +72,7 @@ npm run test:e2e
 | `npm run dev` | lokaler Entwicklungsserver |
 | `npm run typecheck` | TypeScript-Prüfung |
 | `npm test` | deterministische Domänen- und Präsentationstests |
-| `npm run test:e2e` | acht Flows auf Mobile- und Desktop-Chromium |
+| `npm run test:e2e` | acht Flows auf zwei Mobile-Landscape-Größen und Desktop-Chromium |
 | `npm run capture:readme` | drei reproduzierbare Mobile-Screenshots |
 | `npm run build` | statischer Production Build in `dist/` |
 | `npm run check` | Typecheck, Unit Tests und Production Build |
@@ -81,6 +82,7 @@ npm run test:e2e
 - [Roadmap](ROADMAP.md) – aktueller, überprüfbarer Projektstatus
 - [Changelog](CHANGELOG.md) – chronologische Änderungshistorie
 - [Game Vision](docs/design/GAME_VISION.md) – verbindliche Echtzeit-Produktvision und Designleitplanken
+- [Prolog und modulare Schiffe](docs/design/PROLOGUE_AND_MODULAR_SHIPS.md) – geplanter Starter-, Montage-, 1v1- und Refit-Loop
 - [Art- und VFX-Richtung](docs/design/ART_AND_VFX_DIRECTION.md) – Bildsprache und Asset-Pipeline
 - [Asset Manifest](docs/assets/ASSET_MANIFEST.md) – Herkunft, Version, Rechte-/IP-Status und Runtime-Pfade
 - [Production Plan](docs/planning/PRODUCTION_PLAN.md) – phasenweiser Weg zum hochwertigen Vertical Slice

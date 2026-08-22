@@ -77,11 +77,13 @@ Die Bildsprache verbindet Navy-Instrumente, gotische Schiffskultur und klare hol
 ## 4. Kern-Loop
 
 ```text
-Startschiff / Loadout wählen
+eine von zwei kleinen Starterhüllen wählen
+        ↓
+eine Waffe und ein Support-Modul sichtbar montieren
         ↓
 kurzes Missionsbriefing
         ↓
-2–5 Minuten Echtzeitkampf
+2–5 Minuten Echtzeitkampf, beginnend mit einem 1-gegen-1
         ↓
 Resultat, Credits und Salvage
         ↓
@@ -90,7 +92,7 @@ sichtbares Trade-off-Upgrade wählen
 nächster Encounter oder Replay
 ```
 
-Der aktuelle Slice schließt diesen Loop für drei Missionen erstmals funktional: Resultat, einmaliges Salvage, eine Upgrade-Wahl und die nächste freigeschaltete Mission. Sichtbare Hardpoint-Varianten und eine vollständige Leistungsanalyse sind noch Produktionsarbeit.
+Der aktuelle Slice schließt Resultat, einmaliges Salvage, Upgrade-Wahl und Missionsfreischaltung bereits funktional. Der neue Prolog mit kleinen Hüllen, zwei sichtbaren Montageschritten und einem ersten 1-gegen-1 ist der nächste verbindliche Produktionsschritt. Details stehen in [Prolog und modulare Schiffe](PROLOGUE_AND_MODULAR_SHIPS.md).
 
 ## 5. Combat-Verantwortung
 
@@ -169,21 +171,23 @@ Der aktuelle Nebel reduziert eingehenden Schaden um 25 %. Weitere Terrain-Typen 
 
 ## 8. Encounter-Ziele
 
-Der erste Encounter ist ein 2-gegen-2-Lehrkampf. Er soll:
+Der erste Encounter wird ein 1-gegen-1-Kalibrierungsflug. Er soll:
 
 - innerhalb von 20–35 Sekunden einen ersten lesbaren Waffeneffekt zeigen
 - mindestens einen sinnvollen Kurswechsel nach Kontakt verlangen
-- die Rolle von Seitenbogen, Lance-Telegraph, Torpedo und Pause demonstrieren
-- in 3–5 Minuten enden
+- die gewählte Waffe und ein defensives Manöver demonstrieren
+- in 2–3 Minuten enden
 - ohne externe Erklärung lösbar sein
 
-Der zweite Encounter darf nicht nur mehr Lebenspunkte besitzen. Er braucht eine neue taktische Frage, beispielsweise Terrain-Zwang, schnelle Torpedoboote oder eine Eskorte, die geschützt werden muss.
+Der zweite Encounter führt einen zweiten Gegnertyp und ein einfaches Positionsziel ein. Das erste verbündete Schiff erscheint erst in Mission 3; damit wachsen HUD und Verantwortung gemeinsam mit dem Verständnis.
 
-Der aktuelle Drei-Missionen-Slice setzt diese Steigerung konkret um:
+Der aktuelle Drei-Missionen-Slice ist eine funktionale Content-Basis und wird in die neue Kurve eingeordnet:
 
-1. **Erster Kontakt:** lesbarer 2-gegen-2-Lehrkampf und erste Upgrade-Wahl.
-2. **Relaisknoten:** zusätzlicher Raider und zentraler Capture-Ring als Positionsziel.
-3. **Gebrochene Werft:** Elite-Cruiser, zwei Raider und eine eroberbare Werft, die für den Besitzer begrenzt Drohnen produziert.
+1. **Kalibrierungsflug:** neues 1-gegen-1, zwei vorher sichtbar montierte Module und erste Upgrade-Wahl.
+2. **Gebrochene Eskorte:** 1-gegen-2 und ein leichtes Positionsziel.
+3. **Erstes Kommando:** erste Eskorte sowie ein begrenzter Relais-/Werftmechanismus.
+
+Der bestehende 2-gegen-2-„Erste Kontakt“, Relaisknoten und die gebrochene Werft bleiben verwertbar, rücken aber nach hinten und werden neu balanciert.
 
 ## 9. Informationshierarchie
 
@@ -224,6 +228,8 @@ Effekte dürfen diese Reihenfolge kurzfristig verstärken, aber nicht verdecken.
 
 ## 11. Progression und sichtbare Ausrüstung
 
+Der Einstieg folgt einer festen Reihenfolge: kleine Hülle wählen, genau eine Waffe und ein Support-Modul montieren, 1-gegen-1 fliegen, Salvage erhalten und erneut umrüsten. Die derzeitigen großen Cruiser-/Frigate-Schiffe werden zu sichtbaren späteren Freischaltungen statt sofort verfügbarer Starter.
+
 Upgrades sollen Verhalten verändern und am Schiff sichtbar werden. Beispiele:
 
 - breite Mass-Driver-Batterie: langsamer, härter, größere Salve
@@ -238,8 +244,8 @@ Reine `+5 % Schaden`-Knoten sind nur als Nebenwert erlaubt. Der Spieler soll im 
 
 ### Enthalten
 
-- zwei wählbare Flaggschiffe
-- eine halbautonome Eskorte
+- zwei wählbare kleine Starterhüllen mit sichtbaren Modul-Sockets
+- ein 1-gegen-1-Prolog und danach eine halbautonome Eskorte
 - zwei normale Gegner und ein Elite-/zweiter Encounter
 - Broadside, Lance, Torpedo und Shield Boost
 - ein regelrelevantes Terrain-System

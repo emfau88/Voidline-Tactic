@@ -16,7 +16,7 @@ Die Reihenfolge ist bewusst:
 4. Inhalt verbreitern
 5. Release härten
 
-Mehr Waffen, Schiffe oder Meta-Systeme helfen nicht, solange der erste 2-gegen-2-Kampf nicht in den ersten 60 Sekunden überzeugt.
+Mehr Waffen, Schiffe oder Meta-Systeme helfen nicht, solange Auswahl, zwei sichtbare Montageschritte und der erste 1-gegen-1-Kampf nicht in den ersten sechs Minuten überzeugen.
 
 ## 2. Aktueller Architekturstand
 
@@ -39,6 +39,7 @@ Stärken:
 
 Aktuelle Produktionsrisiken:
 
+- der funktionale aktuelle Einstieg beginnt noch mit großen Schiffen und zu vielen gleichzeitig verfügbaren Systemen statt mit persönlicher Hüllenwahl, sichtbarer Montage und einem 1-gegen-1
 - Landscape-Joystick und Drei-Missionen-Flow sind technisch abgesichert, aber noch nicht als vollständige Kampagne extern playgetestet
 - `CombatScene` bündelt noch Eingabe, Kamera und VFX und sollte vor größerem Content modularisiert werden
 - VFX werden noch ad hoc erzeugt statt gepoolt
@@ -57,7 +58,7 @@ Ergebnis:
 - physische Torpedos und Lance-Telegraph
 - Pause, ¼-Tempo und Live
 - neuer Mobile-HUD und reproduzierbare Screenshots
-- 18 Unit- und 16 E2E-Läufe grün
+- 18 Unit- und 24 E2E-Läufe auf zwei Mobile-Landscape-Größen und Desktop grün
 
 Commit: `e0bc84a`
 
@@ -66,7 +67,7 @@ Commit: `e0bc84a`
 - absoluter Richtungs-Joystick mit persistentem Sollkurs
 - Zwei-Daumen-HUD, Kursvektor und 125-%-Kamera
 - frühere Kurszeichnung dormant und reversibel erhalten
-- 18 Unit- und 16 E2E-Läufe grün
+- 18 Unit- und 24 E2E-Läufe grün
 
 Commit: `06f9b51`
 
@@ -81,7 +82,36 @@ Commit: `06f9b51`
 
 Commits: `fb12d6e`, `60029d1`, `a5bb610`
 
+### A3. Mobile Battlefield-first HUD ✅
+
+- 34-px-Topbar und 78-px-Bottom-Dock statt übereinanderliegender großer HUD-Flächen
+- 69–72 % zusammenhängende freie Spielfeldhöhe auf 844×390, 740×360 und 667×375
+- kamerareservierter Spielbereich und visueller Overscan ohne schwarze Zoomränder
+- tolerante direkte Gegner-Taps sowie ZIEL-Durchschaltung
+- Mindestgrößen für Joystick/Aktionen als Browser-Regression
+
+Commit: `17218da`
+
 ## 4. Phase B — Combat Feel und Onboarding 🚧
+
+### B0. Prologue Loadout Slice
+
+- zwei kleine Starterhüllen mit unterschiedlichen Bewegungs-/Defensivrollen
+- datengetriebene Weapon-, Engine- und Shield-Emitter-Sockets
+- vor Mission 1 genau eine Waffe und ein Support-Modul sichtbar montieren
+- Menü-Preview und Kampfschiff verwenden dasselbe Loadout
+- 1-gegen-1-Kalibrierungsflug mit progressiver Freischaltung der HUD-Aktionen
+- Salvage, Modulbelohnung, erneuter Refit und Vorschau späterer Hüllen
+- bestehende Cruiser-/Frigate-Modelle als spätere Tier-2-/Tier-3-Ziele neu positionieren
+
+Abnahme:
+
+- vollständiger Wahl→Montage→1v1→Reward→Refit-Flow auf 667×375 und 844×390
+- zwei Module sind im Menü, im Combat und im Effektbild eindeutig wiederzuerkennen
+- Mission 1 startet in höchstens 90 Sekunden und endet in 2–3 Minuten
+- Unit-, Save- und E2E-Abdeckung für Loadout und Belohnung
+
+Konzept: [Prolog und modulare Schiffe](../design/PROLOGUE_AND_MODULAR_SHIPS.md)
 
 ### B1. Lesbarkeit und Kontext-Onboarding
 
@@ -213,8 +243,8 @@ Eine Änderung ist fertig, wenn:
 
 ## 10. Nächste drei Produktionspakete
 
-1. **Three-Mission Playtest:** vollständigen Landscape-Flow auf echten Phones messen und Steuer-/Balanceprobleme priorisieren.
-2. **Onboarding + Combat Feel:** Kontextschritte, VFX-Pooling, Lance/Torpedo-Choreografie und Damage States.
-3. **Audio Foundation:** Busse, Mobile-Unlock, Broadside/Lance/Torpedo-/Impact-Sets und Mix.
+1. **Prologue Loadout Slice:** zwei kleine Hüllen, zwei sichtbare Module, 1-gegen-1, Reward und erneuter Refit.
+2. **Three-Mission Phone Playtest:** den neu geordneten Landscape-Flow messen und Steuer-/Balanceprobleme priorisieren.
+3. **Combat Feel + Audio:** Kontextschritte, VFX-Pooling, Lance/Torpedo-Choreografie, Damage States, Busse und Mobile-Unlock.
 
-Parallel werden Upgrade-Hardpoints und vollständige Results-Metriken ergänzt; der grundlegende Loop ist bereits spielbar.
+Die modulare Schiffsarchitektur ist dabei kein Nebenfeature, sondern die gemeinsame Grundlage für sichtbare Upgrades, Damage States, Engine-VFX, Schildbögen und spätere Waffenvarianten.
