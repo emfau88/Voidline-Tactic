@@ -17,7 +17,11 @@ async function pauseBattle(page: import('@playwright/test').Page): Promise<void>
   await expect(page.locator('#game-shell')).toHaveAttribute('data-time-scale', '0');
 }
 
-async function clickShip(page: import('@playwright/test').Page, shipId: string): Promise<void> {
+async function clickShip(
+  page: import('@playwright/test').Page,
+  shipId: string,
+  offset: { x: number; y: number } = { x: 0, y: 0 },
+): Promise<void> {
   const canvas = page.locator('#game-root canvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Canvas has no layout box.');
@@ -25,7 +29,7 @@ async function clickShip(page: import('@playwright/test').Page, shipId: string):
   const screens = JSON.parse(serialized ?? '{}') as Record<string, { x: number; y: number }>;
   const position = screens[shipId];
   if (!position) throw new Error(`No screen position exposed for ${shipId}.`);
-  await canvas.click({ position: { x: box.width * position.x, y: box.height * position.y } });
+  await canvas.click({ position: { x: box.width * position.x + offset.x, y: box.height * position.y + offset.y } });
 }
 
 test('loads the sharp mobile-first real-time shell', async ({ page }) => {
@@ -39,7 +43,7 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   await expect(page.locator('#ship-name')).toHaveText('Aster Vale');
   await expect(page.locator('#ship-energy-text')).toHaveText('80/80');
   await expect(page.getByRole('button', { name: /Steuerjoystick/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /ROUTE/ })).toBeDisabled();
+  await expect(page.locator('[data-action="course"]')).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Taktische Pause' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Vollbild umschalten' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Zoom zurücksetzen' })).toHaveText('125%');
@@ -57,6 +61,25 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
   });
   const expectedDensity = await page.evaluate(() => Math.min(window.devicePixelRatio, 2));
   expect(Math.abs(density - expectedDensity)).toBeLessThan(0.08);
+
+  const compactLayout = await page.evaluate(() => window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches);
+  if (compactLayout) {
+    const layout = await page.evaluate(() => {
+      const rect = (id: string): DOMRect => document.getElementById(id)!.getBoundingClientRect();
+      const topEdge = Math.max(rect('topbar').bottom, rect('time-controls').bottom, rect('view-controls').bottom);
+      const bottomEdge = Math.min(rect('flight-control').top, rect('ship-card').top, rect('action-grid').top);
+      return {
+        freeRatio: (bottomEdge - topEdge) / window.innerHeight,
+        stick: { width: rect('flight-stick').width, height: rect('flight-stick').height },
+        targetAction: { width: rect('action-grid').width / 5, height: rect('action-grid').height },
+      };
+    });
+    expect(layout.freeRatio).toBeGreaterThanOrEqual(0.68);
+    expect(layout.stick.width).toBeGreaterThanOrEqual(64);
+    expect(layout.stick.height).toBeGreaterThanOrEqual(64);
+    expect(layout.targetAction.width).toBeGreaterThanOrEqual(44);
+    expect(layout.targetAction.height).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test('loads an unlocked relay mission with its persistent campaign setup', async ({ page }) => {
@@ -103,15 +126,18 @@ test('sets and holds a joystick heading while route drawing stays dormant', asyn
   await expect(page.locator('#game-shell')).toHaveAttribute('data-desired-heading', '-1.5708');
   await expect(page.locator('#game-shell')).toHaveAttribute('data-course-points', '0');
   await expect(page.locator('#flight-stick-readout')).toHaveText('SOLLKURS N');
-  await expect(page.getByRole('button', { name: /ROUTE/ })).toContainText('INAKTIV');
+  await expect(page.locator('[data-action="course"]')).toContainText('INAKTIV');
 });
 
 test('marks a focus target and arms the telegraphed lance', async ({ page }) => {
   await startBattle(page, 'p-cruiser');
   await pauseBattle(page);
-  await page.getByRole('button', { name: /ZIEL/ }).click();
-  await clickShip(page, 'e-cruiser');
+  await clickShip(page, 'e-cruiser', { x: 24, y: 0 });
   await expect(page.locator('#target-card')).toBeVisible();
+  await expect(page.locator('#target-name')).toHaveText('Ashen Crown');
+  await page.getByRole('button', { name: /ZIEL/ }).click();
+  await expect(page.locator('#target-name')).toHaveText('Red Wake');
+  await page.getByRole('button', { name: /ZIEL/ }).click();
   await expect(page.locator('#target-name')).toHaveText('Ashen Crown');
   await page.getByRole('button', { name: /LANZE/ }).click();
   await expect(page.locator('#ship-status')).toContainText('LANZE');

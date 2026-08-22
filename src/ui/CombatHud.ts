@@ -190,6 +190,7 @@ export class CombatHud {
       if (action === 'torpedo') small.textContent = `${formatCooldown(flagship.cooldowns.torpedo)} · 12 EN`;
       if (action === 'shield') small.textContent = `${formatCooldown(flagship.cooldowns.shield)} · ${SHIELD_BOOST_COST} EN`;
       if (action === 'escort') small.textContent = escort ? directiveLabel(state.escortDirective) : 'VERLOREN';
+      if (action === 'target') small.textContent = target ? 'WECHSELN' : 'TAP / WECHSEL';
       if (action === 'course') small.textContent = 'INAKTIV';
     }
 

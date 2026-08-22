@@ -46,6 +46,8 @@ interface ProjectileView {
 const ESCORT_DIRECTIVES: readonly EscortDirective[] = ['follow', 'flank-left', 'flank-right', 'protect'];
 const DEFAULT_CAMERA_ZOOM = 1.25;
 const COURSE_DRAWING_ENABLED = false;
+const CAMERA_OVERSCAN_X = 2_300;
+const CAMERA_OVERSCAN_Y = 500;
 
 export class CombatScene extends Phaser.Scene {
   private combatState!: CombatState;
@@ -90,7 +92,12 @@ export class CombatScene extends Phaser.Scene {
     this.createShipViews();
     const flagship = this.combatState.ships[this.combatState.flagshipId];
     this.cameraAnchor = this.add.zone(flagship.position.x, flagship.position.y, 1, 1).setVisible(false);
-    this.cameras.main.setBounds(0, 0, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT);
+    this.cameras.main.setBounds(
+      -CAMERA_OVERSCAN_X,
+      -CAMERA_OVERSCAN_Y,
+      BATTLEFIELD_WIDTH + CAMERA_OVERSCAN_X * 2,
+      BATTLEFIELD_HEIGHT + CAMERA_OVERSCAN_Y * 2,
+    );
     this.updateCameraAnchor(true);
     this.resumeCameraFollow();
     this.createTelegraphLabels();
@@ -149,31 +156,34 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createBattlefield(): void {
-    const backgroundWidth = BATTLEFIELD_WIDTH / 2 + 4;
-    for (let index = 0; index < 2; index += 1) {
+    const backgroundSpanWidth = BATTLEFIELD_WIDTH + CAMERA_OVERSCAN_X * 2;
+    const backgroundSpanHeight = BATTLEFIELD_HEIGHT + CAMERA_OVERSCAN_Y * 2;
+    const backgroundSegments = 7;
+    const backgroundWidth = backgroundSpanWidth / backgroundSegments + 4;
+    for (let index = 0; index < backgroundSegments; index += 1) {
       this.add
-        .image(backgroundWidth * (index + 0.5) - index * 4, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
-        .setDisplaySize(backgroundWidth, BATTLEFIELD_HEIGHT * 1.34)
-        .setFlipX(index === 1)
+        .image(-CAMERA_OVERSCAN_X + backgroundWidth * (index + 0.5) - index * 4, BATTLEFIELD_HEIGHT / 2, 'battlefield-nebula-v1')
+        .setDisplaySize(backgroundWidth, backgroundSpanHeight)
+        .setFlipX(index % 2 === 1)
         .setAlpha(0.92)
         .setDepth(-30);
     }
     this.add
-      .rectangle(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT, 0x204469, 0.13)
+      .rectangle(BATTLEFIELD_WIDTH / 2, BATTLEFIELD_HEIGHT / 2, backgroundSpanWidth, backgroundSpanHeight, 0x204469, 0.13)
       .setBlendMode(Phaser.BlendModes.SCREEN)
       .setDepth(-29);
 
     const farStars = this.add.graphics().setDepth(-22);
-    for (let index = 0; index < 72; index += 1) {
-      const x = (index * 347.13 + 71) % BATTLEFIELD_WIDTH;
-      const y = (index * 211.73 + 113) % BATTLEFIELD_HEIGHT;
+    for (let index = 0; index < 150; index += 1) {
+      const x = -CAMERA_OVERSCAN_X + ((index * 347.13 + 71) % backgroundSpanWidth);
+      const y = -CAMERA_OVERSCAN_Y + ((index * 211.73 + 113) % backgroundSpanHeight);
       farStars.fillStyle(index % 11 === 0 ? 0xbadfff : 0xffffff, index % 11 === 0 ? 0.45 : 0.2);
       farStars.fillCircle(x, y, index % 17 === 0 ? 2 : 0.9);
     }
     const nearStars = this.add.graphics().setDepth(-18);
-    for (let index = 0; index < 22; index += 1) {
-      const x = (index * 521.41 + 193) % BATTLEFIELD_WIDTH;
-      const y = (index * 389.17 + 271) % BATTLEFIELD_HEIGHT;
+    for (let index = 0; index < 48; index += 1) {
+      const x = -CAMERA_OVERSCAN_X + ((index * 521.41 + 193) % backgroundSpanWidth);
+      const y = -CAMERA_OVERSCAN_Y + ((index * 389.17 + 271) % backgroundSpanHeight);
       nearStars.fillStyle(index % 5 === 0 ? 0x9edcff : 0xfff6df, 0.48);
       nearStars.fillCircle(x, y, index % 7 === 0 ? 2.4 : 1.35);
     }
@@ -218,8 +228,13 @@ export class CombatScene extends Phaser.Scene {
     const width = this.scale.width || 844;
     const height = this.scale.height || 390;
     const landscape = width >= height;
-    const topInset = (landscape ? 48 : 62) * RENDER_DENSITY;
-    const hudHeight = landscape ? 0 : Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
+    const compactLandscape = landscape && height / RENDER_DENSITY <= 500;
+    const topInset = (compactLandscape ? 38 : landscape ? 48 : 62) * RENDER_DENSITY;
+    const hudHeight = compactLandscape
+      ? 80 * RENDER_DENSITY
+      : landscape
+        ? 0
+        : Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
     const viewportHeight = Math.max((landscape ? 220 : 300) * RENDER_DENSITY, height - topInset - hudHeight);
     this.cameras.main.setViewport(0, topInset, width, viewportHeight);
     this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);
@@ -265,12 +280,20 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     if (action === 'target') {
-      this.mode = this.mode === action ? undefined : action;
       this.pendingAbility = undefined;
       this.routeSamples = [];
       this.routeDrawing = false;
-      this.hud.toast('Gegner antippen, um ihn für Autofire und Spezialwaffen zu erfassen.');
-      this.refreshHud();
+      const flagship = this.combatState.ships[this.combatState.flagshipId];
+      const enemies = Object.values(this.combatState.ships)
+        .filter((ship) => ship.alive && ship.team === 'enemy')
+        .sort((a, b) => distance(flagship.position, a.position) - distance(flagship.position, b.position));
+      const currentIndex = enemies.findIndex((ship) => ship.id === flagship.targetId);
+      const next = enemies[(currentIndex + 1) % enemies.length];
+      if (!next) {
+        this.hud.toast('KEINE FEINDZIELE ERFASST');
+        return;
+      }
+      this.selectTarget(next.id);
       return;
     }
     if (action === 'escort') {
@@ -338,9 +361,15 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private findShipAt(point: Vector2): ShipState | undefined {
+    const canvasBounds = this.game.canvas.getBoundingClientRect();
+    const internalPixelsPerCssPixel = canvasBounds.width > 0 ? this.scale.width / canvasBounds.width : RENDER_DENSITY;
+    const minimumTouchRadius = (34 * internalPixelsPerCssPixel) / Math.max(0.001, this.cameras.main.zoom);
     return Object.values(this.combatState.ships)
       .filter((ship) => ship.alive)
-      .find((ship) => distance(point, ship.position) <= ship.radius * 2);
+      .map((ship) => ({ ship, hitRadius: Math.max(ship.radius * 2.15, minimumTouchRadius) }))
+      .filter(({ ship, hitRadius }) => distance(point, ship.position) <= hitRadius)
+      .sort((a, b) => distance(point, a.ship.position) / a.hitRadius - distance(point, b.ship.position) / b.hitRadius)
+      .at(0)?.ship;
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
@@ -887,10 +916,16 @@ export class CombatScene extends Phaser.Scene {
       x = Phaser.Math.Linear(x, escort.position.x, 0.18);
       y = Phaser.Math.Linear(y, escort.position.y, 0.18);
     }
-    const target = flagship.targetId ? this.combatState.ships[flagship.targetId] : undefined;
-    if (target?.alive) {
-      x = Phaser.Math.Linear(x, target.position.x, 0.2);
-      y = Phaser.Math.Linear(y, target.position.y, 0.2);
+    const designatedTarget = flagship.targetId ? this.combatState.ships[flagship.targetId] : undefined;
+    const nearestEnemy = Object.values(this.combatState.ships)
+      .filter((ship) => ship.alive && ship.team === 'enemy')
+      .sort((a, b) => distance(flagship.position, a.position) - distance(flagship.position, b.position))
+      .at(0);
+    const focusTarget = designatedTarget?.alive ? designatedTarget : nearestEnemy;
+    if (focusTarget) {
+      const focusWeight = designatedTarget?.alive ? 0.2 : 0.14;
+      x = Phaser.Math.Linear(x, focusTarget.position.x, focusWeight);
+      y = Phaser.Math.Linear(y, focusTarget.position.y, focusWeight);
     }
     this.cameraAnchor.setPosition(
       clamp(x, 0, BATTLEFIELD_WIDTH),

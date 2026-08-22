@@ -1436,6 +1436,284 @@ button:focus-visible {
   }
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  #topbar {
+    top: max(3px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+    left: max(5px, env(safe-area-inset-left));
+    height: 34px;
+    padding: 0 7px;
+    border-color: rgb(182 150 88 / 34%);
+    border-radius: 7px;
+    background: linear-gradient(180deg, rgb(8 12 19 / 90%), rgb(4 7 12 / 86%));
+    backdrop-filter: blur(7px);
+  }
+
+  .brand-block {
+    display: none;
+  }
+
+  .turn-block {
+    position: absolute;
+    left: 8px;
+    width: 88px;
+    text-align: left;
+  }
+
+  .turn-block strong {
+    font-size: 9px;
+    letter-spacing: 0.05em;
+  }
+
+  .turn-block small {
+    margin-top: 0;
+    font-size: 5.5px;
+  }
+
+  .objective-block {
+    position: absolute;
+    left: 100px;
+    width: min(20vw, 165px);
+    text-align: left;
+  }
+
+  .objective-block small {
+    display: none;
+  }
+
+  .objective-block strong {
+    font-size: 7px;
+    letter-spacing: 0.02em;
+  }
+
+  #time-controls,
+  #view-controls {
+    top: max(5px, calc(env(safe-area-inset-top) + 2px));
+    gap: 2px;
+    padding: 2px;
+    border: 0;
+    border-radius: 6px;
+    background: rgb(5 9 15 / 76%);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  #time-controls {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  #view-controls {
+    right: max(7px, env(safe-area-inset-right));
+  }
+
+  #time-controls button,
+  #view-controls button {
+    min-width: 27px;
+    height: 26px;
+    padding: 0 5px;
+    border-radius: 5px;
+  }
+
+  #time-controls button {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 32px;
+  }
+
+  #time-controls button span {
+    font-size: 10px;
+  }
+
+  #time-controls button small {
+    display: none;
+  }
+
+  #view-controls button {
+    font-size: 12px;
+  }
+
+  #zoom-reset-button {
+    min-width: 36px !important;
+    font-size: 6px !important;
+  }
+
+  #toast {
+    top: max(42px, calc(env(safe-area-inset-top) + 39px));
+    max-width: 58%;
+    padding: 5px 8px;
+    font-size: 7px;
+  }
+
+  #target-card {
+    top: max(42px, calc(env(safe-area-inset-top) + 39px));
+    right: max(6px, env(safe-area-inset-right));
+    width: min(32%, 190px);
+    padding: 5px 7px;
+    border-radius: 7px;
+  }
+
+  #target-card .card-heading strong {
+    font-size: 10px;
+  }
+
+  #target-card .card-heading small,
+  #target-card #hit-chance {
+    font-size: 6.5px;
+  }
+
+  #target-card .compact-bars {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 5px;
+    margin-top: 3px;
+  }
+
+  #target-card .compact-bars label {
+    margin: 0;
+    font-size: 5px;
+  }
+
+  #target-card .meter {
+    height: 3px;
+  }
+
+  #target-card #preview-damage {
+    margin-top: 3px;
+    overflow: hidden;
+    font-size: 6.5px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #combat-hud {
+    height: 78px;
+    min-height: 78px;
+    background: linear-gradient(180deg, transparent, rgb(2 5 9 / 72%) 34%, rgb(2 5 9 / 94%));
+    filter: drop-shadow(0 -7px 14px rgb(0 0 0 / 26%));
+  }
+
+  #ship-card {
+    right: calc(max(6px, env(safe-area-inset-right)) + clamp(236px, 38vw, 292px) + 6px);
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: calc(max(6px, env(safe-area-inset-left)) + 94px);
+    height: 70px;
+    min-height: 70px;
+    padding: 5px 7px;
+    border-radius: 8px;
+  }
+
+  #ship-card .card-heading strong {
+    font-size: clamp(9px, 1.6vw, 12px);
+  }
+
+  #ship-card .card-heading small,
+  #ship-status {
+    font-size: 6px;
+  }
+
+  #ship-status {
+    padding: 2px 4px;
+  }
+
+  #ship-card .ship-meters {
+    gap: 4px;
+    margin-top: 2px;
+  }
+
+  #ship-card .ship-meters label {
+    margin: 1px 0;
+    font-size: 6px;
+  }
+
+  #ship-card .meter {
+    height: 3px;
+  }
+
+  #ship-card .resource-row {
+    gap: 8px;
+    margin-top: 3px;
+    font-size: 6.5px;
+  }
+
+  #flight-control {
+    bottom: max(4px, env(safe-area-inset-bottom));
+    left: max(6px, env(safe-area-inset-left));
+    width: 88px;
+    height: 70px;
+    min-height: 70px;
+    padding: 2px;
+    border-radius: 9px;
+    background: radial-gradient(circle at 50% 48%, rgb(65 177 233 / 15%), transparent 58%), rgb(5 11 18 / 90%);
+  }
+
+  #flight-stick {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+  }
+
+  #flight-stick-knob {
+    width: 25px;
+    height: 25px;
+  }
+
+  #flight-control > strong {
+    display: none;
+  }
+
+  #flight-control > small {
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+    padding: 2px 0;
+    border-radius: 4px;
+    background: rgb(3 8 14 / 82%);
+    font-size: 5px;
+  }
+
+  #action-grid {
+    right: max(6px, env(safe-area-inset-right));
+    bottom: max(4px, env(safe-area-inset-bottom));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: clamp(236px, 38vw, 292px);
+    height: 70px;
+    gap: 3px;
+  }
+
+  #action-grid [data-action='course'] {
+    display: none;
+  }
+
+  #action-grid button {
+    min-width: 0;
+    min-height: 0;
+    padding: 4px 2px 3px;
+    border-radius: 7px;
+  }
+
+  #action-grid .action-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  #action-grid button > strong {
+    margin-top: 2px;
+    font-size: 7px;
+  }
+
+  #action-grid button > small {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 5.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 @media (orientation: portrait) and (max-width: 759px) {
   #game-shell[data-screen='battle'] #rotate-device {
     position: absolute;
