@@ -2,14 +2,14 @@
 
 Stand: 22. August 2026
 
-Bewertungsbasis: aktueller Battlefield-first-Landscape-Build auf 844×390 und 667×375, drei reproduzierbare Screenshots, 19 Unit-Tests, 24 automatisierte Mobile-/Desktop-Browser-Läufe und die Konzeptbilder unter `docs/reference/mockups/`. Ein vollständiger externer Drei-Missionen-Playtest auf realen Phones steht noch aus.
+Bewertungsbasis: aktueller Full-field-Landscape-Build auf 844×390 und 667×375, drei reproduzierbare Screenshots, 19 Unit-Tests, 24 automatisierte Mobile-/Desktop-Browser-Läufe und die Konzeptbilder unter `docs/reference/mockups/`. Ein vollständiger externer Drei-Missionen-Playtest auf realen Phones steht noch aus.
 
 ## Ehrliche Standortbestimmung
 
 | Bereich | Nähe zum Zielniveau | Einordnung |
 |---|---:|---|
-| Mobile Layout und Bedienbarkeit | 94 % | 69–72 % freie Spielfeldhöhe, 64-px-Joystick, mindestens 44-px-Aktionen, tolerante Ziel-Taps, Pinch/Pan und Fullscreen-Fallback sind browsergeprüft; reale Geräte-/Safe-Area-Abnahme fehlt. |
-| Informationshierarchie und HUD | 82 % | eine einzige Kommandozeile, kompakter Fünf-Aktionen-Dock und reduzierte Zielkarte priorisieren das Gefecht; Materialtiefe, Micro-Motion und kontextuelles Onboarding fehlen. |
+| Mobile Layout und Bedienbarkeit | 96 % | volle Weltkamera ohne Bottom-Streifen, 64-px-Joystick, getrennte 46–68-px-Aktionen, tolerante Ziel-Taps, Pinch/Pan und Fullscreen-Fallback sind browsergeprüft; reale Geräte-/Safe-Area-Abnahme fehlt. |
+| Informationshierarchie und HUD | 88 % | 48-px-Telemetrie oben links, getrennte Daumen-Buttons mit Kosten und radialem Cooldown sowie reduzierte Zielkarte priorisieren das Gefecht; Materialtiefe, Micro-Motion und kontextuelles Onboarding fehlen. |
 | Schiffssilhouetten und Hardpoints | 72 % | vier originale, lesbare Schiffe und definierte Feuerpunkte; Damage States und sichtbar montierte Upgrade-/Waffenvarianten fehlen. |
 | Battlefield und Atmosphäre | 75 % | große 2400×1400-Arena, zentrierter Overscan, Parallax und gleichzeitiger Flottenüberblick; Terrainvielfalt und räumliche Tiefe sind noch dünn. |
 | Combat-Regeln und Flow | 81 % | Joystick-Echtzeit, längere Reichweiten, drei eskalierende Missionen, siegrelevante Capture-Ziele und Werft-Drohnen bilden einen echten Slice; Balance ist noch nicht extern validiert. |

@@ -82,11 +82,13 @@ Commit: `06f9b51`
 
 Commits: `fb12d6e`, `60029d1`, `a5bb610`
 
-### A3. Mobile Battlefield-first HUD ✅
+### A3. Mobile Full-field HUD ✅
 
-- 34-px-Topbar und 78-px-Bottom-Dock statt übereinanderliegender großer HUD-Flächen
-- 69–72 % zusammenhängende freie Spielfeldhöhe auf 844×390, 740×360 und 667×375
-- kamerareservierter Spielbereich und visueller Overscan ohne schwarze Zoomränder
+- 34-px-Topbar; keine reservierte Bottom-Leiste und keine Verkleinerung der Weltkamera für das HUD
+- rund 90 % Kamerahöhe unterhalb der Topbar auf 844×390, 740×360 und 667×375
+- 48-px-Telemetrie oben links, freier Joystick unten links und getrennte 46–68-px-Ability-Buttons unten rechts
+- radiale Cooldownanzeige, sichtbare Kosten und Browser-Gate gegen überlappende Touchflächen
+- visueller Overscan ohne schwarze Zoomränder
 - tolerante direkte Gegner-Taps sowie ZIEL-Durchschaltung
 - Mindestgrößen für Joystick/Aktionen als Browser-Regression
 

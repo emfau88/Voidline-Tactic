@@ -24,7 +24,7 @@ Stand: 22. August 2026
 - Browser-Fullscreen, installierbares Web-App-Manifest und Plattform-Fallback
 - 65–240-%-Zoom über Buttons, Mausrad und echte Zwei-Finger-Geste um den Mittelpunkt
 - Landscape-first Combat mit Portrait-Drehaufforderung und gleichzeitiger Zwei-Finger-Kartenverschiebung
-- Mobile-Battlefield-first-Layout mit 69–72 % zusammenhängender freier Spielfeldhöhe
+- Mobile-Full-field-Layout mit rund 90 % Kamerahöhe unter der Topbar und ohne reservierten Bottom-HUD-Streifen
 - bis zu 2× HiDPI-Canvas-Backbuffer und hochauflösende Environment-Runtime
 - automatisches GitHub-Pages-Deployment mit Typecheck, Unit-, Build- und Browser-Gate
 
@@ -95,7 +95,10 @@ Stand: 22. August 2026
 - ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
 - ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
 - ✅ Landscape-HUD, klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
-- ✅ kompakter 34-px-Topbar, 78-px-Bottom-Dock und echte Kameraaussparung für den HUD-Bereich
+- ✅ kompakter 34-px-Topbar und Full-field-Kamera ohne reservierte Bottom-Aussparung
+- ✅ 48-px-Telemetrie oben links und organisch schwebende Ecksteuerung
+- ✅ vier getrennte 46–68-px-Ability-Buttons mit klarer Priorität, Energiekosten und radialer Cooldownanzeige
+- ✅ automatisches Browser-Gate verhindert überlappende Ability-Touchflächen auf dem kleinen 667×375-Profil
 - ✅ zentrierter visueller Kamera-Overscan ohne schwarze Zoomflächen sowie Autoframing des nächsten Gegners
 - ✅ größere Arena, längere Waffenreichweiten, Zwei-Finger-Pan und sanftes Follow-Framing
 - ✅ erste gestaffelte Broadside-Produktionschoreografie von Hardpoint bis Impact
@@ -143,6 +146,6 @@ Stand: 22. August 2026
 
 ## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Battlefield-first Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, kompakter HUD, tolerante Zielerfassung, große Arena, Kamera, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die erste M3.7-Stufe ist jetzt ebenfalls spielbar: sichtbares Startmodul vor dem Kampf und ein echtes 1v1. Kleine eigene Starterhüllen, Waffenmontage und erneuter sichtbarer Refit fehlen noch.
+Wir stehen nach der bestätigten **Joystick-Control-Decision**, dem **Full-field Mobile-UX-Pass**, dem ersten **M4-Combat-Feel-Pass** und einem funktionalen **M5-Drei-Missionen-Loop**. Landscape, vollflächige Kamera, kompakte Telemetrie oben links, getrennte Ability-Buttons mit Cooldown-Ringen, tolerante Zielerfassung, große Arena, Missionen, Capture, Werft-Drohnen, Salvage und persistente Upgrades sind implementiert. Die erste M3.7-Stufe ist ebenfalls spielbar: sichtbares Startmodul vor dem Kampf und ein echtes 1v1. Kleine eigene Starterhüllen, Waffenmontage und erneuter sichtbarer Refit fehlen noch.
 
 Der nächste überprüfbare Teilmeilenstein von **M3.7 „Prologue Loadout Slice“** ist die sichtbare Waffenmontage plus Reward→Refit nach dem gewonnenen 1v1. Danach werden die aktuellen großen Übergangsschiffe durch zwei kleine Starterhüllen ersetzt und Mission 2 neu geordnet. Die genaue Reihenfolge steht in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

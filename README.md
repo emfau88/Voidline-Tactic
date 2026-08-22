@@ -8,13 +8,13 @@ Mobile-first 2D-Flottentaktik in langsamer Echtzeit mit taktischer Pause: Du ste
 
 Der aktuelle Stand ist ein spielbarer Drei-Missionen-Slice mit Startschiffwahl, einem verpflichtenden **sichtbaren Startmodul vor dem ersten Kampf**, direkter Joystick-Steuerung, eskalierenden Feindverbänden, einnehmbaren Kontrollpunkten, Werft-Drohnen, Salvage, vier persistenten Upgrades und Replay. Mission 1 ist ein echtes 1v1; Eskorte und größere Verbände beginnen erst danach. Auto-Breitseiten, aufladbare Rift Lance, physische Void Torpedoes und Shield Boost treffen deterministisch. **Pause**, **¼-Tempo** und **Live** können jederzeit gewechselt werden. Die frühere Kurszeichnung bleibt im Code erhalten, ist aber bewusst inaktiv.
 
-Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Ein kompakter 34-px-Topbar und 78-px-Bottom-Dock lassen je nach Phone 69–72 % der Höhe als zusammenhängende Spielfläche frei. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
+Der Kampf ist für Mobile-Querformat ausgelegt und nutzt ein 2400×1400-World-Space-Schlachtfeld. Die Weltkamera läuft unter dem schwebenden HUD bis zum unteren Displayrand und belegt rund 90 % der Höhe unterhalb der 34-px-Topbar; es gibt keinen reservierten schwarzen Bottom-Streifen. Hülle, Schild und Energie stehen kompakt oben links, der Joystick frei unten links und vier getrennte, cooldownfähige Ability-Buttons unten rechts. Pinch zoomt stufenlos von 65–240 %, gleichzeitiges Zwei-Finger-Ziehen verschiebt die Karte und die Kamera kehrt danach sanft zur Formation zurück. Portrait zeigt eine klare Drehaufforderung. Browser-Vollbild wird verwendet, wenn die Plattform es erlaubt; das installierbare Web-App-Manifest bevorzugt Landscape-Fullscreen.
 
 ## Aktueller Mobile-Build
 
 | Schiff und sichtbares Startmodul | Echtes 1v1-Kalibrierungsgefecht | Pause, Ziel und Lance-Telegraph |
 |---|---|---|
-| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl mit sichtbar montiertem Aegis-Emitter vor Mission 1" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Echtes 1v1 gegen den Cinder Scout mit kompaktem Solo-HUD" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Kompakte taktische Pause im 1v1 mit direkter Zielerfassung und Lance-Telegraph" width="260">](docs/screenshots/mobile-target-preview.png) |
+| [<img src="docs/screenshots/mobile-fleet-selection.png" alt="Landscape-Auswahl mit sichtbar montiertem Aegis-Emitter vor Mission 1" width="260">](docs/screenshots/mobile-fleet-selection.png) | [<img src="docs/screenshots/mobile-combat-overview.png" alt="Echtes 1v1 mit vollflächiger Karte, Telemetrie oben links und getrennten Ability-Buttons" width="260">](docs/screenshots/mobile-combat-overview.png) | [<img src="docs/screenshots/mobile-target-preview.png" alt="Taktische Pause im 1v1 mit Zielerfassung, Lance-Telegraph und sichtbarem Cooldown" width="260">](docs/screenshots/mobile-target-preview.png) |
 
 Die Galerie wird reproduzierbar mit `npm run capture:readme` gegen den lokalen Server oder über `CAPTURE_BASE_URL` gegen einen anderen Build aktualisiert.
 
@@ -32,7 +32,7 @@ Die Kernidee ist bewusste Verantwortungsteilung: Der Spieler trifft wenige hochw
 ## Projektstatus
 
 - ✅ Landscape-first Combat-Shell, Safe Areas, Fullscreen-Fallback, HiDPI und 65–240-%-Pinch-Zoom samt Zwei-Finger-Pan
-- ✅ Battlefield-first Mobile-HUD mit 69–72 % freier Spielfeldhöhe, kompaktem Fünf-Aktionen-Dock und 44-px-Mindestbedienflächen
+- ✅ Full-field Mobile-HUD ohne reservierten Bottom-Streifen: 48-px-Telemetrie oben links, 64-px-Joystick und getrennte 46–68-px-Ability-Buttons mit Cooldown-Ringen
 - ✅ Startmenü mit Cruiser-/Frigate-Wahl, verpflichtender sichtbarer Aegis-/Vector-Montage und drei freischaltbaren Missionen
 - ✅ Mission 1 als echtes 1v1; Eskorte ist im Combat und HUD erst ab späteren Missionen aktiv
 - ✅ 2400×1400-Schlachtfeld mit längeren Waffenreichweiten und sanftem Formation-Follow

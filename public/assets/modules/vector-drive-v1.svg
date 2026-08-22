@@ -21,8 +21,8 @@
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <path d="M83 41h54l14 22-16 24h-50L69 63z" fill="#d6c9ab" stroke="#ae7d35" stroke-width="4"/>
-  <path d="M91 49h38l10 14-10 16H91L81 63z" fill="#102333" stroke="#57c8f2" stroke-width="2"/>
+  <path d="M81 49h18l11-12v36L99 62H81zM139 49h-18l-11-12v36l11-11h18z" fill="#d6c9ab" stroke="#ae7d35" stroke-width="3"/>
+  <path d="M84 53h13l7-7v18l-7-6H84zM136 53h-13l-7-7v18l7-6h13z" fill="#17364a" stroke="#57c8f2" stroke-width="2"/>
   <g transform="translate(55 74)">
     <path d="M-29-42-13-56h26l16 14v77L17 48h-34L-29 35z" fill="url(#hull)" stroke="#b68945" stroke-width="4"/>
     <path d="M-39-10-62 5l-7 26 32-14zM39-10 62 5l7 26-32-14z" fill="#1c3346" stroke="#b68945" stroke-width="4"/>

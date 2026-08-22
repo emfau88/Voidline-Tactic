@@ -167,35 +167,35 @@
           <p id="preview-damage"></p>
         </aside>
 
-        <footer id="combat-hud" class="battle-ui">
-          <section id="ship-card" class="panel" aria-label="Ausgewähltes Schiff">
-            <div class="card-heading">
-              <div>
-                <strong id="ship-name">–</strong>
-                <small id="ship-class">–</small>
-              </div>
-              <span id="ship-status">BEREIT</span>
+        <section id="ship-card" class="panel battle-ui" aria-label="Ausgewähltes Schiff">
+          <div class="card-heading">
+            <div>
+              <strong id="ship-name">–</strong>
+              <small id="ship-class">–</small>
             </div>
-            <div class="ship-meters">
-              <div>
-                <label>HÜLLE <span id="ship-hull-text"></span></label>
-                <div class="meter"><span id="ship-hull-bar" class="hull-fill"></span></div>
-              </div>
-              <div>
-                <label>SCHILD <span id="ship-shield-text"></span></label>
-                <div class="meter"><span id="ship-shield-bar" class="shield-fill"></span></div>
-              </div>
-              <div>
-                <label>ENERGIE <span id="ship-energy-text"></span></label>
-                <div class="meter"><span id="ship-energy-bar" class="energy-fill"></span></div>
-              </div>
+            <span id="ship-status">BEREIT</span>
+          </div>
+          <div class="ship-meters">
+            <div>
+              <label>HÜLLE <span id="ship-hull-text"></span></label>
+              <div class="meter"><span id="ship-hull-bar" class="hull-fill"></span></div>
             </div>
-            <div class="resource-row">
-              <span>TEMPO <strong id="ship-ap">–</strong></span>
-              <span>KURS <strong id="ship-facing">–</strong></span>
+            <div>
+              <label>SCHILD <span id="ship-shield-text"></span></label>
+              <div class="meter"><span id="ship-shield-bar" class="shield-fill"></span></div>
             </div>
-          </section>
+            <div>
+              <label>ENERGIE <span id="ship-energy-text"></span></label>
+              <div class="meter"><span id="ship-energy-bar" class="energy-fill"></span></div>
+            </div>
+          </div>
+          <div class="resource-row">
+            <span>TEMPO <strong id="ship-ap">–</strong></span>
+            <span>KURS <strong id="ship-facing">–</strong></span>
+          </div>
+        </section>
 
+        <footer id="combat-hud" class="battle-ui">
           <div id="control-deck">
             <section id="flight-control" aria-label="Direkte Flugsteuerung">
               <button id="flight-stick" type="button" aria-label="Steuerjoystick für den Sollkurs" disabled>

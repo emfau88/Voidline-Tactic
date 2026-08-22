@@ -4,6 +4,21 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Full-field Mobile Combat HUD — 2026-08-22
+
+#### Added
+
+- getrennte runde Ability-Buttons mit klarer Größenhierarchie, dauerhaft sichtbaren Kosten/Cooldowns und radialem Cooldown-Fortschritt
+- Layout-Regression gegen überlappende Ability-Touchflächen sowie für die maximal 50 px hohe Telemetrie
+
+#### Changed
+
+- die Weltkamera nutzt im Landscape die volle Höhe bis zum unteren Rand; es gibt keinen reservierten schwarzen Bottom-HUD-Streifen mehr
+- Hülle, Schild und Energie aus der großen unteren Schiffskachel in ein 48-px-Telemetriepanel oben links verschoben
+- Joystick und Kampfsysteme schweben getrennt über der Welt, ohne das Schlachtfeld zu verkleinern oder sich gegenseitig zu überdecken
+- Aegis- und Vector-Layer ohne massive dunkle Verbindungsplatte neu gezeichnet; die Schiffshülle bleibt unter den getrennten Modulbauteilen sichtbar
+- alle drei README-Screenshots erneut aus dem geprüften Mobile-Build erzeugt
+
 ### Visible Preflight Module and True 1v1 — 2026-08-22
 
 #### Added
@@ -17,7 +32,7 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 #### Changed
 
 - „Erster Kontakt“ von 2v2 auf echtes 1v1 reduziert: nur gewähltes Schiff gegen den schwächeren Cinder Scout
-- Eskorte samt fünfter HUD-Aktion aus Mission 1 entfernt; das Solo-Dock nutzt vier größere Aktionen
+- Eskorte samt fünfter HUD-Aktion aus Mission 1 entfernt; das Solo-Layout nutzt vier getrennte Kampfsysteme
 - Missionsbriefing, Startstatus, Hilfe, Screenshots, README und Roadmap an den echten Prologstand angepasst
 - Unit-Suite von 18 auf 19 Tests erweitert; weiterhin 24 Browserläufe auf zwei Mobilegrößen und Desktop
 

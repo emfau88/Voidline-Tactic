@@ -1,4 +1,4 @@
-import { SHIELD_BOOST_COST } from '../domain/combat/constants';
+import { SHIELD_BOOST_COOLDOWN_MS, SHIELD_BOOST_COST } from '../domain/combat/constants';
 import { WEAPONS } from '../domain/combat/content';
 import { distance, normalizeAngle } from '../domain/combat/math';
 import { UPGRADES } from '../domain/combat/missions';
@@ -179,6 +179,23 @@ export class CombatHud {
     for (const button of this.actionButtons) {
       const action = button.dataset.action as HudAction;
       button.hidden = action === 'escort' && !escort?.alive;
+      const cooldown = action === 'lance'
+        ? flagship.cooldowns.lance
+        : action === 'torpedo'
+          ? flagship.cooldowns.torpedo
+          : action === 'shield'
+            ? flagship.cooldowns.shield
+            : 0;
+      const cooldownMaximum = action === 'lance'
+        ? WEAPONS.lance.cooldownMs
+        : action === 'torpedo'
+          ? WEAPONS.torpedo.cooldownMs
+          : action === 'shield'
+            ? SHIELD_BOOST_COOLDOWN_MS
+            : 0;
+      const readyRatio = cooldownMaximum > 0 ? 1 - Math.min(1, cooldown / cooldownMaximum) : 1;
+      button.style.setProperty('--ability-ready', `${Math.round(readyRatio * 360)}deg`);
+      button.dataset.cooling = String(cooldown > 0);
       const lanceUnavailable = !flagship.weapons.includes('lance') || flagship.cooldowns.lance > 0 || flagship.energy < WEAPONS.lance.energyCost;
       const torpedoUnavailable = !flagship.weapons.includes('torpedo') || flagship.cooldowns.torpedo > 0 || flagship.energy < WEAPONS.torpedo.energyCost;
       const disabled = state.status !== 'active' || !flagship.alive ||

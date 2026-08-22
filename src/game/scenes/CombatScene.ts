@@ -230,11 +230,9 @@ export class CombatScene extends Phaser.Scene {
     const landscape = width >= height;
     const compactLandscape = landscape && height / RENDER_DENSITY <= 500;
     const topInset = (compactLandscape ? 38 : landscape ? 48 : 62) * RENDER_DENSITY;
-    const hudHeight = compactLandscape
-      ? 80 * RENDER_DENSITY
-      : landscape
-        ? 0
-        : Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
+    const hudHeight = landscape
+      ? 0
+      : Math.max(214 * RENDER_DENSITY, Math.min(260 * RENDER_DENSITY, height * 0.26));
     const viewportHeight = Math.max((landscape ? 220 : 300) * RENDER_DENSITY, height - topInset - hudHeight);
     this.cameras.main.setViewport(0, topInset, width, viewportHeight);
     this.baseCameraZoom = Math.min(width / BATTLEFIELD_WIDTH, viewportHeight / BATTLEFIELD_HEIGHT);

@@ -81,20 +81,37 @@ test('loads the sharp mobile-first real-time shell', async ({ page }) => {
     const layout = await page.evaluate(() => {
       const rect = (id: string): DOMRect => document.getElementById(id)!.getBoundingClientRect();
       const topEdge = Math.max(rect('topbar').bottom, rect('time-controls').bottom, rect('view-controls').bottom);
-      const bottomEdge = Math.min(rect('flight-control').top, rect('ship-card').top, rect('action-grid').top);
+      const bottomEdge = Math.min(rect('flight-control').top, rect('action-grid').top);
+      const actionRects = [...document.querySelectorAll<HTMLElement>('#action-grid button:not([hidden])')]
+        .map((button) => button.getBoundingClientRect())
+        .filter((button) => button.width > 0 && button.height > 0)
+        .sort((left, right) => left.left - right.left);
       return {
         freeRatio: (bottomEdge - topEdge) / window.innerHeight,
+        telemetryHeight: rect('ship-card').height,
+        telemetryTop: rect('ship-card').top,
         stick: { width: rect('flight-stick').width, height: rect('flight-stick').height },
-        actions: [...document.querySelectorAll<HTMLElement>('#action-grid button:not([hidden])')]
-          .map((button) => ({ width: button.getBoundingClientRect().width, height: button.getBoundingClientRect().height }))
-          .filter((button) => button.width > 0 && button.height > 0),
+        primaryAbility: {
+          width: document.querySelector<HTMLElement>('[data-action="torpedo"]')!.getBoundingClientRect().width,
+          height: document.querySelector<HTMLElement>('[data-action="torpedo"]')!.getBoundingClientRect().height,
+          radius: Number.parseFloat(getComputedStyle(document.querySelector<HTMLElement>('[data-action="torpedo"]')!).borderRadius),
+        },
+        actions: actionRects.map((button) => ({ left: button.left, right: button.right, width: button.width, height: button.height })),
       };
     });
     expect(layout.freeRatio).toBeGreaterThanOrEqual(0.68);
+    expect(layout.telemetryHeight).toBeLessThanOrEqual(50);
+    expect(layout.telemetryTop).toBeLessThanOrEqual(48);
     expect(layout.stick.width).toBeGreaterThanOrEqual(64);
     expect(layout.stick.height).toBeGreaterThanOrEqual(64);
+    expect(layout.primaryAbility.width).toBeGreaterThanOrEqual(64);
+    expect(layout.primaryAbility.height).toBeGreaterThanOrEqual(64);
+    expect(layout.primaryAbility.radius).toBeGreaterThanOrEqual(30);
     expect(Math.min(...layout.actions.map((action) => action.width))).toBeGreaterThanOrEqual(44);
     expect(Math.min(...layout.actions.map((action) => action.height))).toBeGreaterThanOrEqual(44);
+    for (let index = 1; index < layout.actions.length; index += 1) {
+      expect(layout.actions[index].left - layout.actions[index - 1].right).toBeGreaterThanOrEqual(4);
+    }
   }
 });
 

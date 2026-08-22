@@ -21,18 +21,18 @@
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <path d="M69 39h28l13-15 13 15h28v26h-28l-13 15-13-15H69z" fill="url(#ivory)" stroke="#ad7e35" stroke-width="4"/>
-  <path d="M78 45h24l8-9 8 9h24v14h-24l-8 9-8-9H78z" fill="#0c1b29" stroke="#5ecdf5" stroke-width="2"/>
+  <path d="M76 42h17l10-10v40L93 62H76zM144 42h-17l-10-10v40l10-10h17z" fill="url(#ivory)" stroke="#ad7e35" stroke-width="3"/>
+  <path d="M79 48h12l6-6v20l-6-6H79zM141 48h-12l-6-6v20l6-6h12z" fill="#17354a" stroke="#5ecdf5" stroke-width="2"/>
   <g transform="translate(48 52)">
-    <path d="M-30-22-18-34h36l12 12v44L18 34h-36L-30 22z" fill="url(#armor)" stroke="#b58a49" stroke-width="4"/>
-    <circle r="23" fill="#050b12" stroke="#4d7187" stroke-width="5"/>
+    <path d="M-27-20-17-30h34l10 10v40L17 30h-34L-27 20z" fill="url(#armor)" stroke="#b58a49" stroke-width="3"/>
+    <circle r="21" fill="#091722" stroke="#4d7187" stroke-width="4"/>
     <circle r="15" fill="url(#core)" stroke="#cba45b" stroke-width="3"/>
     <circle r="8" fill="#c9fbff" filter="url(#glow)"/>
     <path d="M-17-27v10M17-27v10M-17 27V17M17 27V17" stroke="#6ee8ff" stroke-width="3"/>
   </g>
   <g transform="translate(172 52)">
-    <path d="M-30-22-18-34h36l12 12v44L18 34h-36L-30 22z" fill="url(#armor)" stroke="#b58a49" stroke-width="4"/>
-    <circle r="23" fill="#050b12" stroke="#4d7187" stroke-width="5"/>
+    <path d="M-27-20-17-30h34l10 10v40L17 30h-34L-27 20z" fill="url(#armor)" stroke="#b58a49" stroke-width="3"/>
+    <circle r="21" fill="#091722" stroke="#4d7187" stroke-width="4"/>
     <circle r="15" fill="url(#core)" stroke="#cba45b" stroke-width="3"/>
     <circle r="8" fill="#c9fbff" filter="url(#glow)"/>
     <path d="M-17-27v10M17-27v10M-17 27V17M17 27V17" stroke="#6ee8ff" stroke-width="3"/>
