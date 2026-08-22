@@ -22,7 +22,7 @@ Vor kommerzieller Nutzung ist eine dokumentierte IP-/Trademark-Prüfung erforder
 In dieser Reihenfolge muss der Spieler Informationen erfassen:
 
 1. gefährlicher gegnerischer Telegraph und aktueller Zeitzustand
-2. Flaggschiff, Kurs, Facing und Feuerwinkel
+2. Flaggschiff, Sollkurs, Facing und Feuerwinkel
 3. Fokusziel und erwarteter Fähigkeitseffekt
 4. Hull, Shield, Tempo, Energy und Cooldowns
 5. laufender Lade-, Treffer- oder Schadenszustand
@@ -81,15 +81,15 @@ Quellauflösung soll mindestens die doppelte maximal sichtbare Größe abdecken.
 ### UI
 
 - ein vollständiges Panel-/Frame-System mit Nine-Slice-Exports
-- konsistente Icons für Kurs, Ziel, Lance, Torpedo, Boost, Eskorte, Energy, Hull, Shield und Cooldown
-- Reticles, Arc-Ränder, Kurssegmente, Telegraph-Richtung und Auswahlring
+- konsistente Icons für Joystick/Sollkurs, optionale Route, Ziel, Lance, Torpedo, Boost, Eskorte, Energy, Hull, Shield und Cooldown
+- Reticles, Arc-Ränder, Sollkurs-Vektor, optionale Kurssegmente, Telegraph-Richtung und Auswahlring
 - Bitmap-/Webfont mit klarer Lizenz und einer separaten Display-Schrift nur für Überschriften
 
 ### VFX
 
 - Engine idle und Engine thrust
 - Selection pulse und Target lock
-- Course trail, Wegpunkte und Destination marker
+- Sollkurs-Vektor sowie optionaler Course Trail, Wegpunkte und Destination Marker für eine spätere Pausenroute
 - Broadside: gestaffelte Muzzle Flashes, Tracer, Impact-Varianten
 - Lance: charge, beam core, glow, shield/hull contact
 - Torpedo: launch flash, projectile, smoke/ion trail, sichtbare Zielwarnung und impact

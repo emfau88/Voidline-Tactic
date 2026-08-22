@@ -4,6 +4,33 @@ Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch
 
 ## [Unreleased]
 
+### Mobile Joystick Experiment — 2026-08-22
+
+Meilenstein-Commit:
+
+- `06f9b51` – mobile Flaggschiff-Steuerung per persistentem Richtungs-Joystick
+
+#### Added
+
+- absoluter Touch-/Pointer-Joystick für den gewünschten Flaggschiff-Kurs
+- persistenter Sollkurs, der nach dem Loslassen des Sticks aktiv bleibt
+- Zwei-Daumen-Control-Deck mit Navigation links und Kampfsystemen rechts
+- sichtbarer Sollkurs-Vektor und Anzeige von aktueller zu gewünschter Ausrichtung
+- sanfte Vorhalte-Kamera mit näherem 135-%-Startzoom
+- Diagnosekoordinaten für kameraunabhängige Mobile-/Desktop-Browsertests
+- Unit-Test für Kurswechsel, Kursablösung und kontinuierliches Eindrehen nach dem Loslassen
+
+#### Changed
+
+- Mobile-HUD, Hilfe und Einstiegshinweis auf die experimentelle Joystick-Steuerung umgestellt
+- README-Kampfscreenshots mit dem neuen Control-Deck, näherer Kamera und Zielzustand aktualisiert
+- Qualitätsgate auf 15 Unit-Tests und 14 Mobile-/Desktop-E2E-Läufe erweitert
+
+#### Dormant
+
+- geglättete Kurszeichnung, Routendaten und Resolver bleiben im Projekt erhalten
+- direkte Kurszeichnung ist im aktuellen Build gegen Eingaben gesperrt; der Routenbutton kennzeichnet den A/B-Test sichtbar als inaktiv
+
 ### Tactical Real-Time Pivot — 2026-08-22
 
 Meilenstein-Commit:

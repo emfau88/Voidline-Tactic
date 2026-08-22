@@ -39,6 +39,7 @@ Stärken:
 
 Aktuelle Produktionsrisiken:
 
+- die neue Joystick-Steuerung ist technisch abgesichert, aber noch nicht durch echte Mobile-Spieler validiert
 - `CombatScene` bündelt noch Eingabe, Kamera und VFX und sollte vor größerem Content modularisiert werden
 - VFX werden noch ad hoc erzeugt statt gepoolt
 - Audio-Layer fehlt vollständig
@@ -56,17 +57,26 @@ Ergebnis:
 - physische Torpedos und Lance-Telegraph
 - Pause, ¼-Tempo und Live
 - neuer Mobile-HUD und reproduzierbare Screenshots
-- 14 Unit- und 14 E2E-Läufe grün
+- 15 Unit- und 14 E2E-Läufe grün
 
 Commit: `e0bc84a`
+
+### A1. Mobile Joystick Experiment ✅
+
+- absoluter Richtungs-Joystick mit persistentem Sollkurs
+- Zwei-Daumen-HUD, Kursvektor und nähere 135-%-Kamera
+- frühere Kurszeichnung dormant und reversibel erhalten
+- 15 Unit- und 14 E2E-Läufe grün
+
+Commit: `06f9b51`
 
 ## 4. Phase B — Combat Feel und Onboarding 🚧
 
 ### B1. Lesbarkeit und Kontext-Onboarding
 
-- Intro-Hinweis zeigt Flaggschiff und fordert eine erste Route
+- Intro-Hinweis zeigt Flaggschiff und fordert einen ersten Joystick-Sollkurs
 - erster Gegnerkontakt erklärt Fokus und Auto-Broadside im Kontext
-- erste gegnerische Lance erklärt Pause und Kursreaktion
+- erste gegnerische Lance erklärt Pause und Joystick-Kursreaktion
 - erster Hull-Treffer erklärt Shield Boost
 - Hinweise verschwinden dauerhaft nach erfolgreicher Handlung
 - Hilfe bleibt als kurze Referenz erhalten
@@ -74,7 +84,7 @@ Commit: `e0bc84a`
 Abnahme:
 
 - fünf Erstspieler starten ohne mündliche Erklärung
-- vier verstehen Kurs, Ziel und Pause innerhalb von 60 Sekunden
+- vier verstehen Joystick-Sollkurs, Ziel und Pause innerhalb von 60 Sekunden
 - Fehl-Taps, Zeit bis Erstaktion und Zeit bis Ersttreffer werden protokolliert
 
 ### B2. Weapon-/Impact-Choreografie
@@ -169,7 +179,7 @@ Abnahme:
 |---|---|
 | Unit | Kinematik, Arcs, Energie, Cooldowns, Damage, Cover, Projectiles, AI-Direktiven, Save-Migration |
 | Integration | Fixed-Step über komplette Gefechte, Ergebnis und Upgrade-Auswirkung |
-| E2E Mobile | Startwahl, Pause, Kurs, Ziel, jedes manuelle System, Eskorte, Zoom, Results, Refit |
+| E2E Mobile | Startwahl, Pause, Joystick-Sollkurs, Ziel, jedes manuelle System, Eskorte, Zoom, Results, Refit |
 | E2E Desktop | identische Kernflows plus Maus/Mausrad |
 | Visual | Menü, Live, Telegraph-Pause, Explosion, Results, Shipyard |
 | Performance | 60 FPS Profil, Objektzahlen, drei Restarts, Hintergrund/Resume |
@@ -189,8 +199,8 @@ Eine Änderung ist fertig, wenn:
 
 ## 10. Nächste drei Produktionspakete
 
-1. **Onboarding + Telemetry:** Kontextschritte, lokale Session-Metriken und erster Fünf-Personen-Test.
-2. **Combat Feel:** VFX-Pooling, Lance/Broadside/Torpedo-Choreografie, Trefferzustände und Kamera.
+1. **Control Decision:** drei kurze Mobile-Runs, Joystick-Verständnis messen und zwischen Joystick, Schubergänzung oder Pause-Route entscheiden.
+2. **Onboarding + Combat Feel:** Kontextschritte, VFX-Pooling, Lance/Broadside/Torpedo-Choreografie, Trefferzustände und Kamera.
 3. **Audio Foundation:** Busse, Mobile-Unlock, erste originale Weapon-/Impact-Sets und Mix.
 
 Erst nach diesen drei Paketen beginnt der vollständige Results-/Shipyard-Loop.

@@ -12,7 +12,7 @@ Combat-Modell: langsame Echtzeit mit taktischer Pause
 
 **Voidline Tactics ist ein lesbares, optisch hochwertiges 2D-Flottentaktikspiel, in dem der Spieler ein Flaggschiff direkt steuert, einer kleinen Eskorte Absichten vorgibt und wenige entscheidende Schiffssysteme im richtigen Moment auslöst.**
 
-Der Spieler soll sich wie ein Captain fühlen, nicht wie ein Buchhalter für vier Aktionsleisten. Die Flotte bewegt und verteidigt sich kontinuierlich; der Spieler zeichnet den Kurs, setzt den Fokus und übernimmt die dramatischen Entscheidungen.
+Der Spieler soll sich wie ein Captain fühlen, nicht wie ein Buchhalter für vier Aktionsleisten. Die Flotte bewegt und verteidigt sich kontinuierlich; der Spieler setzt den gewünschten Kurs, den Fokus und übernimmt die dramatischen Entscheidungen.
 
 Die taktische Pause ist kein Ausnahmezustand, sondern ein gleichwertiges Werkzeug. Sie lässt das Gefecht vollständig ruhen, ohne Aktionen zu sperren. ¼-Tempo erlaubt Beobachtung und Korrektur; Live sorgt für Fluss und Wirkung.
 
@@ -21,7 +21,7 @@ Die taktische Pause ist kein Ausnahmezustand, sondern ein gleichwertiges Werkzeu
 Ein neuer Spieler soll innerhalb der ersten Minute verstehen:
 
 1. Ich steuere das hervorgehobene Flaggschiff.
-2. Eine gezeichnete Route verändert Kurs und Feuerwinkel, aber nicht sofort die Position.
+2. Der Joystick setzt einen dauerhaften Sollkurs; das Schiff dreht und beschleunigt träge dorthin.
 3. Standardbatterien arbeiten automatisch.
 4. Lanze, Torpedo und Schild-Boost sind meine bewussten Entscheidungen.
 5. Pause ist jederzeit erlaubt und kostet nichts.
@@ -96,7 +96,7 @@ Der aktuelle Vertical Slice endet noch nach dem Kampf. Der vollständige Slice m
 
 | System | Spieler | Automation |
 |---|---|---|
-| Flaggschiff-Kurs | zeichnet Route | folgt träge der Route |
+| Flaggschiff-Kurs | setzt Sollrichtung per Joystick | dreht und beschleunigt träge auf den Sollkurs |
 | Fokusziel | markiert Gegner | Standardbatterien priorisieren ihn |
 | Eskorte | wählt Folgen/Flanke/Schutz | navigiert, hält Formation, nutzt Standardwaffen |
 | Broadside | stellt Kurs und Seitenbogen her | feuert bei gültiger Lösung |
@@ -111,7 +111,7 @@ Diese Trennung ist verbindlich. Weitere Systeme dürfen nur dann einen eigenen B
 
 ### Touch
 
-- Drag vom Flaggschiff oder KURS + Drag: Route zeichnen
+- linken Richtungs-Joystick ziehen: Sollkurs setzen; Loslassen hält die Richtung
 - Tap auf Gegner: Fokusziel setzen
 - Tap auf Fähigkeit: sofort auslösen oder Zielauswahl anfordern
 - Tap auf Eskorte: Direktive zyklisch wechseln
@@ -122,11 +122,15 @@ Diese Trennung ist verbindlich. Weitere Systeme dürfen nur dann einen eigenen B
 
 Die gleichen Regeln gelten für Maus. Mausrad und Zoom-Buttons ergänzen Pinch. Tastaturkürzel sind optional und dürfen kein exklusives Feature sein.
 
+### Offene Control-Entscheidung
+
+Der Joystick ist der aktive Primärprototyp. Die frühere geglättete Kurszeichnung bleibt technisch erhalten, ist im aktuellen Build jedoch inaktiv. Sie wird erst entfernt, wenn Mobile-Tests bestätigt haben, dass Richtungswahl, persistenter Kurs und Kameraführung ohne Erklärung funktionieren. Mögliche Ergebnisse sind: Joystick allein, Joystick plus Schubregelung oder Route ausschließlich während der taktischen Pause.
+
 ## 7. Combat-Systeme
 
 ### 7.1 Kinematik
 
-Jedes Schiff besitzt maximale Geschwindigkeit, Beschleunigung, Drehrate und Radius. Eine Route ist ein Zielpfad, kein Teleport. Große Schiffe wenden sichtbar langsamer als kleine.
+Jedes Schiff besitzt maximale Geschwindigkeit, Beschleunigung, Drehrate und Radius. Ein Sollkurs ist eine gewünschte Ausrichtung, kein Teleport oder Sofortdrehen. Große Schiffe wenden sichtbar langsamer als kleine. Eine spätere Pausenroute muss dieselben kinematischen Regeln verwenden.
 
 ### 7.2 Energie und Cooldowns
 

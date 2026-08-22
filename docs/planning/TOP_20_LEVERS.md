@@ -8,31 +8,31 @@ Bewertungsbasis: aktueller 390×844-Build, drei reproduzierbare Screenshots, aut
 
 | Bereich | Nähe zum Zielniveau | Einordnung |
 |---|---:|---|
-| Mobile Layout und Bedienbarkeit | 82 % | volle Breite, Safe Areas, Pause/Slow/Live, Pinch und große Touch-Ziele funktionieren |
+| Mobile Layout und Bedienbarkeit | 83 % | volle Breite, Safe Areas, Zwei-Daumen-HUD, Pause/Slow/Live und Pinch funktionieren; Joystick noch nicht extern validiert |
 | Informationshierarchie und HUD | 68 % | deutlich strukturierter und eigenständig; Materialtiefe, Micro-Motion und Onboarding fehlen |
 | Schiffssilhouetten und Hardpoints | 72 % | vier originale, lesbare Schiffe; Damage States und modulare Varianten fehlen |
 | Battlefield und Atmosphäre | 62 % | hochwertige Basis und gute Kontraste; räumliche Tiefe und taktische Vielfalt fehlen |
-| Combat-Regeln und Flow | 70 % | Echtzeit-Pivot löst Statik; Balance und Verständlichkeit sind noch nicht extern validiert |
+| Combat-Regeln und Flow | 72 % | Echtzeit-Pivot und persistenter Sollkurs lösen Statik; Steuergefühl, Tempo und Verständlichkeit sind noch nicht extern validiert |
 | VFX und Treffergefühl | 38 % | klare Prototyp-Effekte vorhanden, aber noch keine Produktionschoreografie |
 | Audio | 0 % | größter vollständig fehlender Qualitätsmultiplikator |
 | Meta-Loop und Progression | 22 % | Auswahl/Preview vorhanden, Results, echte Upgrades, Save und Replay fehlen |
-| Gesamtprodukt | **ca. 57 %** | optisch schon klar über Greybox, aber noch kein veröffentlichungsreifer Vertical Slice |
+| Gesamtprodukt | **ca. 58 %** | optisch schon klar über Greybox, aber Steuerung, Audio, Combat Feel und Produktloop sind noch nicht release-reif |
 
-Die 57 % sind keine Zeitschätzung. Sie beschreiben die wahrnehmbare Produktreife gegenüber dem Zielbild. Audio, Reaktion, Onboarding und ein geschlossener Loop wiegen stärker als zusätzliche statische Assets.
+Die 58 % sind keine Zeitschätzung. Sie beschreiben die wahrnehmbare Produktreife gegenüber dem Zielbild. Audio, Reaktion, Onboarding und ein geschlossener Loop wiegen stärker als zusätzliche statische Assets.
 
 ## Die nächsten 20 Hebel in Prioritätsreihenfolge
 
 | # | Hebel | Warum jetzt | Messbare Abnahme |
 |---:|---|---|---|
-| 1 | 60-Sekunden-Kontext-Onboarding | Der neue Flow ist grundlegend anders; Verständlichkeit darf nicht von der Hilfeseite abhängen. | 4/5 Erstspieler setzen Kurs, Ziel und Pause ohne Erklärung; Erstaktion ≤20 s. |
-| 2 | Echter Mobile-Playtest plus Session-Telemetrie | Der Pivot ist technisch validiert, aber Tempo und Entscheidungsdichte noch nicht menschlich. | Fünf Runs mit Erstaktion, Ersttreffer, Kampfzeit, Fehl-Taps, Kurswechseln und Kurzinterview dokumentiert. |
+| 1 | Joystick-Test und Control Decision | Der neue Stick ist bewusst ein Experiment; weitere Systeme sollten nicht auf ungeprüfter Eingabe aufbauen. | Drei kurze Mobile-Runs klären Richtungswahl, Kurs-Halten, Kamera und Wunsch nach Schub; Entscheidung für Joystick, Joystick + Schub oder Pause-Route dokumentiert. |
+| 2 | 60-Sekunden-Kontext-Onboarding plus Session-Telemetrie | Verständlichkeit darf nicht von der Hilfeseite abhängen und braucht reale Daten. | 4/5 Erstspieler setzen Sollkurs, Ziel und Pause ohne Erklärung; Erstaktion ≤20 s; Fehl-Taps und Kurskorrekturen protokolliert. |
 | 3 | Lance-Telegraph als audiovisuelle Referenzqualität | Er ist die zentrale Reaktionsentscheidung und definiert die Qualität aller späteren Telegraphs. | Warm-up, Richtungsanzeige, Riser, Release und Impact sind ohne HUD verständlich; Reaktionsfenster messbar. |
 | 4 | Broadside-Salvenchoreografie | Auto-Feuer muss Gewicht geben, ohne Aufmerksamkeit zu stehlen. | Hardpoints feuern gestaffelt, Recoil/Travel/Impact sind klassenspezifisch und gepoolt. |
 | 5 | Torpedo-Readability und Zielwarnung | Physische Torpedos sind ein Kernversprechen und brauchen eine klare Reise statt nur einen Marker. | Trail, Turn, Warnung, ETA und Explosion sind bei 100–180 % Zoom durchgängig verfolgbar. |
 | 6 | Original-Audio-Foundation | Audio ist der größte noch fehlende Qualitätsmultiplikator. | Vier Busse, Mobile-Unlock, Suspend/Resume, Mute/Volume und erste originale UI-/Weapon-/Impact-Sets. |
 | 7 | Trefferreaktionen und Damage States | Treffer verändern aktuell Zahlen stärker als das sichtbare Schiff. | Shield deformation, Hull flash, Debris und intakt/beschädigt/kritisch pro Schiff lesbar. |
 | 8 | Kamera-Follow und Action Framing | Die starre Gesamtansicht begrenzt Dynamik, zu viel Autofokus würde Touch-Kontrolle stören. | Sanftes Flaggschiff-/Ziel-Framing, kurzer begrenzter Impact-Impuls, Pinch hat immer Vorrang. |
-| 9 | Route/Pan-Gesten sauber trennen | Mit mehr Zoom darf Kurszeichnen nicht mit Kameranavigation kollidieren. | Ein-Finger-Kurs nur im Modus/ab Schiff, klarer Cancel, Zwei-Finger-Pan/Pinch ohne Fehlroute. |
+| 9 | Joystick-Ergonomie und reversible Route | Dead Zone, Reichweite und Halteverhalten müssen auf kleinen Phones sitzen; die Route bleibt bis zur Entscheidung verfügbar. | Keine Fehlsteuerung neben dem Stick, Pinch bleibt konfliktfrei; optionaler Schub und Pause-Route werden gegen dieselben Testkriterien bewertet. |
 | 10 | Escort-Direktiven taktisch differenzieren | Vier Labels reichen nicht; jede Direktive muss eine echte Positionsentscheidung erzeugen. | Folgen, beide Flanken und Schutz haben messbar andere Abstände, Ziele, Risiko und VFX-Feedback. |
 | 11 | Gegnerrollen und Telegraph-Grammatik | Gegner unterscheiden sich optisch, aber noch nicht deutlich genug im Verhalten. | Cruiser und Destroyer werden nach 30 s korrekt beschrieben; Symbole/Formen ergänzen Farbe. |
 | 12 | Encounter-Geometrie und zweites Terrain | Ein Kreis mit Schadensreduktion trägt keine dauerhafte Positionierung. | Zweites Element erzwingt mindestens zwei alternative Routen und verändert Waffen-/Formationstiming. |
@@ -49,7 +49,7 @@ Die 57 % sind keine Zeitschätzung. Sie beschreiben die wahrnehmbare Produktreif
 
 ### Paket 1 — Verständlichkeit und Messung
 
-Hebel 1, 2, 9, 15. Erst damit wissen wir, ob der neue Kern tatsächlich die richtige Dynamik erzeugt.
+Hebel 1, 2, 9, 15. Erst damit wissen wir, ob Joystick und Echtzeitkern tatsächlich die richtige Dynamik erzeugen.
 
 ### Paket 2 — Wahrnehmbares Combat Feel
 

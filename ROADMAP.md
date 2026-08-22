@@ -32,16 +32,16 @@ Stand: 22. August 2026
 - kontinuierliche Position, Facing, Geschwindigkeit, Beschleunigung und begrenzte Drehrate
 - datengetriebene Definitionen für vier Schiffe und drei Waffenfamilien
 - Energie, Cooldowns, Hull, Shield, Armor, Shield-Boost und Nebelreduktion
-- direkte Flaggschiff-Kurse, Fokusziel und vier Eskorte-Direktiven
+- persistenter Flaggschiff-Sollkurs, Routendaten, Fokusziel und vier Eskorte-Direktiven
 - Auto-Breitseiten, aufladbare Lance und physische Homing-Torpedos
 - halbautonome Formation sowie gegnerische Approach-/Orbit-KI auf derselben Regelbasis
 - garantierte deterministische Treffer bei gültiger Lösung; keine Miss-/Intercept-Würfe
-- 14 Unit-Tests für Kinematik, Waffen, Telegraph, Projectile, Cover und Hardpoints
+- 15 Unit-Tests für Kinematik, Joystick-Sollkurs, Waffen, Telegraph, Projectile, Cover und Hardpoints
 
 ## M3 – Spielbarer 2-gegen-2-Echtzeit-Slice ✅
 
 - Cruiser-/Frigate-Auswahl mit spielwirksamer Flaggschiff-Doktrin
-- direkte geglättete Kurszeichnung auf Touch und Maus
+- direkter persistenter Sollkurs per Touch-/Maus-Joystick; frühere Kurszeichnung bleibt dormant erhalten
 - Zielerfassung als gemeinsamer Fokus für Flaggschiff und Eskorte
 - jederzeit verfügbare taktische Pause, ¼-Tempo und Live
 - verständlicher Zwei-Reihen-HUD mit Status, Tempo, Energie, Cooldowns und Direktive
@@ -49,7 +49,7 @@ Stand: 22. August 2026
 - sichtbare Lance-Ladephase, physische Torpedos, Shield-Ripple und Hardpoint-Feuer
 - taktischer Nebel mit 25 % Schadensreduktion
 - Hilfe, Toasts, Ergebnisdialog, Restart und Reduced-Motion-Fallback
-- sieben E2E-Flows auf Mobile und Desktop: Shell, Pause, Kurs, Lance, Torpedo/Eskorte, Hilfe und Pinch
+- sieben E2E-Flows auf Mobile und Desktop: Shell, Pause/Joystick, Lance, Torpedo/Eskorte, Hilfe und Pinch
 
 ## M3.5 – Design-Pivot von Command Beats zu Tactical Real-Time ✅
 
@@ -60,12 +60,23 @@ Stand: 22. August 2026
 - Anfangsdistanzen für einen schnellen ersten Kontakt reduziert
 - Roadmap, Vision, Produktionsplan, README, Tests und Screenshots auf das neue Modell umgestellt
 
+## M3.6 – Experimentelle Joystick-Steuerung ✅
+
+- absoluter Richtungs-Joystick setzt einen persistenten Sollkurs statt einer kurzen Bewegungsaktion
+- Loslassen hält den Sollkurs; Masse, Beschleunigung und Drehrate bleiben spielwirksam
+- Zwei-Daumen-HUD mit Steuerung links und Kampfsystemen rechts
+- aktuelle und gewünschte Ausrichtung sowie ein heller Richtungsvektor im Spielfeld
+- nähere 135-%-Startkamera mit sanftem Vorhaltepunkt in Fahrtrichtung
+- Kurszeichnung technisch erhalten, im HUD klar als inaktiv markiert und gegen Eingaben gesperrt
+- 15 Unit-Tests und 14 Mobile-/Desktop-E2E-Läufe grün
+- neue reproduzierbare README-Screenshots für Joystick, Zielwahl und Telegraph
+
 ## M4 – Combat Feel und visuelle Produktionsreife 🚧
 
 - ✅ vier originale, gut unterscheidbare Schiffssilhouetten mit vollständigen Hardpoints
 - ✅ originales Nebula-Schlachtfeld und zwei subtile Sternlayer
 - ✅ erster hochwertiger HUD-System-Pass mit eigenständigen Vektoricons
-- ✅ klare Ziele, Route, Feuerbögen, Formation und Telegraph-Zustände
+- ✅ klare Ziele, Sollkurs, Feuerbögen, Formation und Telegraph-Zustände
 - ✅ drei reproduzierbare Mobile-Screenshots für README und Standabnahme
 - 🚧 gestaffelte Waffen-Choreografien, VFX-Pooling und klassenspezifische Trefferreaktionen
 - 🚧 Kamera-Fokus, kurzer Impact-Zoom und lesbares Action Framing
@@ -76,7 +87,7 @@ Stand: 22. August 2026
 
 ### Abnahme M4
 
-- fünf Erstspieler verstehen Kurs, Ziel, Pause und ein Spezialsystem ohne externe Erklärung
+- fünf Erstspieler verstehen Joystick-Sollkurs, Ziel, Pause und ein Spezialsystem ohne externe Erklärung
 - erste bewusste Aktion in höchstens 20 Sekunden, erster Waffeneffekt in höchstens 35 Sekunden
 - ein Kampf dauert im Median 3–5 Minuten und erzeugt mindestens drei relevante Kursentscheidungen
 - stabile 60 FPS im Pixel-7-Profil, keine wachsenden VFX-Objektzahlen nach drei Restarts
@@ -108,6 +119,6 @@ Stand: 22. August 2026
 
 ## Aktuelle Position und nächster überprüfbarer Meilenstein
 
-Wir stehen nach **M3.5** am Beginn von **M4**. Der neue Kern ist funktional, deterministisch und browsergetestet; zur Qualität der Mockups fehlen vor allem audiovisuelle Reaktion, Kamera-Choreografie, Onboarding, taktische Encounter-Variation und der spielbare Refit-Loop.
+Wir stehen nach **M3.6** am Beginn von **M4**. Der Joystick-Build ist funktional, deterministisch und browsergetestet; die endgültige Eingabeentscheidung ist bewusst noch offen. Die Kurszeichnung bleibt erhalten, bis ein echter Mobile-Test geklärt hat, ob der Joystick primär bleibt, um eine Geschwindigkeitsregelung ergänzt wird oder die Route als Pause-Werkzeug zurückkehrt.
 
-Der nächste überprüfbare Meilenstein ist **M4.1 „Combat Feel + 60-Sekunden-Onboarding“**: Telegraph-Sprache vereinheitlichen, Weapon-/Impact-VFX vertiefen, Original-Audio integrieren, Kontext-Hinweise bauen und anschließend fünf echte Mobile-Erstspieler messen. Die genaue Reihenfolge und Abnahmekriterien stehen in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).
+Der nächste überprüfbare Meilenstein ist **M4.0 „Control Decision“**: drei kurze Mobile-Runs mit dem Joystick durchführen und erfassen, ob Richtungswahl, dauerhaftes Weiterfliegen, Kamera und Gegnerlesbarkeit ohne Erklärung verstanden werden. Danach wird zwischen Joystick als Primärsteuerung, Joystick plus Schubregelung oder Route nur in der Pause entschieden. Anschließend folgt **M4.1 „Combat Feel + 60-Sekunden-Onboarding“**. Die genaue Reihenfolge und Abnahmekriterien stehen in den [Top-20-Hebeln](docs/planning/TOP_20_LEVERS.md).

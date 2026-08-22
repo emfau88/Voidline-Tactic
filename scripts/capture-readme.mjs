@@ -43,14 +43,17 @@ try {
   if (!box) throw new Error('Canvas has no layout box.');
 
   await page.getByRole('button', { name: 'Taktische Pause' }).click();
-  await page.getByRole('button', { name: /KURS/ }).click();
-  await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.58);
+  const stick = page.getByRole('button', { name: /Steuerjoystick/ });
+  const stickBox = await stick.boundingBox();
+  if (!stickBox) throw new Error('Flight stick has no layout box.');
+  await page.mouse.move(stickBox.x + stickBox.width * 0.68, stickBox.y + stickBox.height * 0.18);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, { steps: 4 });
-  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.42, { steps: 5 });
   await page.mouse.up();
   await page.getByRole('button', { name: /ZIEL/ }).click();
-  await canvas.click({ position: { x: box.width * 0.4, y: box.height * 0.31 } });
+  const screens = JSON.parse(await page.locator('#game-shell').getAttribute('data-ship-screens') ?? '{}');
+  const target = screens['e-cruiser'];
+  if (!target) throw new Error('Enemy cruiser has no exposed screen position.');
+  await canvas.click({ position: { x: box.width * target.x, y: box.height * target.y } });
   await page.locator('#target-card').waitFor({ state: 'visible', timeout: 5_000 });
   await page.getByRole('button', { name: /LANZE/ }).click();
   await page.waitForTimeout(180);
