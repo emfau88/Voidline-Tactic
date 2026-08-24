@@ -37,10 +37,16 @@ export interface ShipUpgradeDefinition {
 }
 
 export const FIRST_FIELD_UPGRADE_ID = 'cargo-spine' as const satisfies ShipUpgradeId;
+export const SECOND_FIELD_UPGRADE_ID = 'mining-lasers' as const satisfies ShipUpgradeId;
 
 export const FIELD_UPGRADE_COSTS: Readonly<Partial<Record<ShipUpgradeId, Readonly<Partial<Record<'alloys' | 'data' | 'relics', number>>>>>> = {
   [FIRST_FIELD_UPGRADE_ID]: { alloys: 1 },
+  [SECOND_FIELD_UPGRADE_ID]: { data: 2, relics: 1 },
 };
+
+export function isFieldUpgrade(upgradeId: ShipUpgradeId): boolean {
+  return Boolean(FIELD_UPGRADE_COSTS[upgradeId]);
+}
 
 export const SHIP_VARIANTS: Record<ShipVariantId, ShipVariantDefinition> = {
   'aster-vale': {
@@ -64,7 +70,7 @@ export const SHIP_UPGRADES: readonly ShipUpgradeDefinition[] = [
   { id: 'torpedo-rack', name: 'Torpedorack', shortName: 'TORPEDO', description: 'Zwei versiegelte Schachtröhren für gezielte Ordnanz.', slot: 'flank', accent: '#72dce9' },
   { id: 'side-turrets', name: 'Seitengeschütze', shortName: 'TÜRME', description: 'Zwei kompakte Flankentürme.', slot: 'flank', accent: '#ea966f' },
   { id: 'salvage-claws', name: 'Bergungsgreifer', shortName: 'GREIFER', description: 'Goldene Gelenkarme für Wracks.', slot: 'flank', accent: '#e1b267' },
-  { id: 'mining-lasers', name: 'Minenlaser', shortName: 'LASER', description: 'Amberfarbene Abbauausleger.', slot: 'nose', accent: '#f0bf6d' },
+  { id: 'mining-lasers', name: 'Minenlaser', shortName: 'LASER', description: 'Echter Hangar-Einbau: Schwarze Adern werden zu Legierungen.', slot: 'nose', accent: '#f0bf6d' },
   { id: 'relic-shrine', name: 'Reliktschrein', shortName: 'RELIKT', description: 'Ein kleines gotisches Reliquiar.', slot: 'dorsal', accent: '#d5b7f6' },
   { id: 'core-reactor', name: 'Kernreaktor', shortName: 'KERN', description: 'Ein violetter Kern für Sonderlasten.', slot: 'core', accent: '#c37cf0' },
 ];

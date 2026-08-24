@@ -7,8 +7,9 @@ Mobile-first 2D-Space-Explorer im Browser: Mit einem eigenen Schiff erkundest du
 ## Aktueller spielbarer Kern
 
 ```text
-Rumpfwahl → Aschsaum I → Scannen → Bergen → Rückkehr → Hangar → Frachtrücken
-                           └→ Xenogate → Veloria Rift (Kartensonde)
+Rumpfwahl → erstes Wrack → Hangar → Frachtrücken → Zweite Schicht
+                                                  ├→ Notsignal (sicher) / Anomalie (riskant)
+                                                  └→ Minenlaser → Schwarze Ader → Xenogate
 ```
 
 Der aktuelle spielbare Prototyp enthält:
@@ -16,13 +17,16 @@ Der aktuelle spielbare Prototyp enthält:
 - direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
-- ein sichtbares, sanft pulsierendes Xenogate: freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
-- ein geführter erster Loop: nahes Wrack scannen, drei Legierungen bergen, Fracht sichtbar sichern, Hangar errichten und den ersten echten Frachtrücken kaufen
+- ein sichtbares, sanft pulsierendes Xenogate: Nach drei sicheren Rückkehren und dem Minenlaser freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
+- einen geführten ersten 10-Minuten-Loop: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
+- eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
+- Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
-- drei passive Übungsdummies für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
+- drei passive Übungsdummies und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
 - einen modularen Außenposten mit Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
 - drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
-- eine Schiffswahl mit kleinen Startvorteilen sowie eine Werkstatt: Frachtrücken ist der erste erspielbare Einbau, weitere Komponenten bleiben klar als Prototypen markiert
+- eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; weitere Komponenten liegen als einklappbare Prototypen-Vorschau dahinter
+- getrennte, mobile Raumansichten für die Farhaven-Bereiche: Übersicht, kurzer Raumstatus, eine Hauptaktion
 - persistente Ausbauten und Schiffsdaten über `localStorage` mit dem Save-Key `voidline-farhaven-save-v2`
 - einen bestätigten **TEST**-Reset in der Kopfzeile, der den lokalen Entwicklerstand vollständig auf die Rumpfwahl zurücksetzt
 - Touch-freundliche Querformat-PWA und taktische Pause

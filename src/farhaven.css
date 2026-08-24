@@ -56,14 +56,15 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #objective-tracker small { display: block; color: #91ddea; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
 #objective-tracker strong { display: block; margin-top: 2px; color: #f0deba; font-family: Georgia, serif; font-size: 15px; letter-spacing: .04em; }
 #objective-tracker p { margin: 2px 0 0; color: #b8cbd0; font-size: 8px; line-height: 1.25; }
+#game-shell[data-outpost-view='room'] #game-root { filter: brightness(.5) saturate(.72) blur(1px); transform: scale(1.012); transition: filter .18s ease, transform .18s ease; }
 #outpost-nav { position: fixed; z-index: 11; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; width: min(410px, calc(100vw - 32px)); }
 #outpost-nav button { display: grid; min-height: 60px; place-items: center; gap: 3px; border: 1px solid rgb(122 207 235 / 38%); border-radius: 13px; background: rgb(5 15 25 / 82%); color: #93ddee; font-size: 19px; backdrop-filter: blur(9px); }
 #outpost-nav span { color: #e3edf0; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
-#facility-panel { position: fixed; z-index: 30; top: 50%; left: 50%; width: min(440px, calc(100vw - 32px)); padding: 25px; border: 1px solid rgb(137 219 239 / 48%); border-radius: 22px; background: linear-gradient(145deg, rgb(7 22 35 / 97%), rgb(13 16 25 / 96%)); box-shadow: 0 26px 90px rgb(0 0 0 / 60%); transform: translate(-50%, -50%); }
+#facility-panel { position: fixed; z-index: 30; top: 50%; left: 50%; width: min(370px, calc(100vw - 32px)); padding: 22px; border: 1px solid rgb(137 219 239 / 48%); border-radius: 22px; background: linear-gradient(145deg, rgb(7 22 35 / 98%), rgb(13 16 25 / 98%)); box-shadow: 0 26px 90px rgb(0 0 0 / 60%), inset 0 0 26px rgb(99 213 236 / 5%); transform: translate(-50%, -50%); }
 #facility-panel small { color: #8ddbeb; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
-#facility-panel h2 { margin: 6px 0; color: #f3e2bb; font-family: Georgia, serif; font-size: 35px; }
-#facility-panel p { margin: 0 0 16px; color: #c1d0d3; font-size: 13px; line-height: 1.45; }
-#facility-level { margin: 0 0 16px; padding: 10px; border: 1px solid rgb(143 187 202 / 26%); border-radius: 12px; color: #a2dccc; font-size: 10px; }
+#facility-panel h2 { margin: 5px 0 8px; color: #f3e2bb; font-family: Georgia, serif; font-size: 32px; }
+#facility-panel p { margin: 0 0 13px; color: #c1d0d3; font-size: 12px; line-height: 1.4; }
+#facility-level { margin: 0 0 13px; padding: 9px 10px; border: 1px solid rgb(143 187 202 / 26%); border-radius: 11px; background: rgb(5 18 28 / 56%); color: #a2dccc; font-size: 9px; font-weight: 800; letter-spacing: .055em; }
 #close-facility-button { position: absolute; top: 11px; right: 11px; width: 34px; height: 34px; border: 1px solid rgb(139 206 227 / 37%); border-radius: 50%; background: rgb(7 17 28 / 85%); color: #d4f3fa; font-size: 19px; }
 #facility-panel { max-height: calc(100dvh - 28px); overflow-y: auto; }
 #facility-stage { position: relative; min-height: 145px; margin: 12px 0 15px; overflow: hidden; border: 1px solid rgb(151 218 233 / 35%); border-radius: 15px; background: #080d15; box-shadow: inset 0 0 30px rgb(87 205 234 / 8%); }
@@ -87,7 +88,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #return-moment button { min-height: 38px; padding: 6px 16px; border: 1px solid rgb(144 226 213 / 63%); border-radius: 10px; background: rgb(9 46 48 / 88%); color: #d9fff5; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 @keyframes construction-arrive { from { opacity: 0; transform: translate(-50%, -46%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @keyframes construction-pulse { 50% { background: #eec87e; box-shadow: 0 0 12px rgb(239 200 126 / 60%); } }
-#open-shipyard-button { width: 100%; min-height: 44px; margin: -2px 0 10px; border: 1px solid rgb(204 166 238 / 58%); border-radius: 11px; background: linear-gradient(110deg, rgb(39 27 57 / 88%), rgb(10 28 40 / 88%)); color: #e5cffa; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+#open-shipyard-button { width: 100%; min-height: 52px; border: 1px solid rgb(204 166 238 / 58%); border-radius: 12px; background: linear-gradient(110deg, rgb(39 27 57 / 88%), rgb(10 28 40 / 88%)); color: #e5cffa; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
 #shipyard-panel { position: fixed; z-index: 34; top: 50%; left: 50%; width: min(825px, calc(100vw - 32px)); max-height: calc(100dvh - 28px); overflow-y: auto; padding: clamp(20px, 3vw, 30px); border: 1px solid rgb(191 148 237 / 54%); border-radius: 23px; background: linear-gradient(145deg, rgb(16 14 31 / 98%), rgb(5 18 29 / 98%)); box-shadow: 0 26px 90px rgb(0 0 0 / 66%), inset 0 0 42px rgb(158 101 222 / 10%); transform: translate(-50%, -50%); }
 #shipyard-panel > small { color: #c8a5ee; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
 #shipyard-panel h2 { margin: 5px 0; color: #f2dfbc; font-family: Georgia, serif; font-size: clamp(28px, 4vw, 39px); }
@@ -117,7 +118,20 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .part-mining-lasers { top: 24%; left: 18%; width: 64%; height: 40px; border-top: 4px solid #f0bf6d; border-radius: 50%; color: #f0bf6d; }
 .part-relic-shrine { top: 35%; left: 44%; width: 12%; height: 18%; border: 3px solid #d5b7f6; border-radius: 50% 50% 8px 8px; color: #d5b7f6; }
 .part-core-reactor { top: 46%; left: 42%; width: 16%; height: 12%; border: 4px solid #c37cf0; border-radius: 50%; background: rgb(195 124 240 / 40%); color: #c37cf0; }
-#shipyard-module-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+#shipyard-module-list { display: grid; align-content: start; gap: 10px; }
+.shipyard-module-section { display: grid; gap: 7px; }
+.shipyard-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 0 2px; }
+.shipyard-section-heading span { color: #d8bded; font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.shipyard-section-heading small { color: #98aeb6; font-size: 8px; }
+.shipyard-field-grid, .prototype-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.prototype-drawer { overflow: hidden; border: 1px solid rgb(130 165 189 / 24%); border-radius: 12px; background: rgb(4 15 24 / 42%); }
+.prototype-drawer summary { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-height: 42px; padding: 11px 12px; color: #cddce0; cursor: pointer; list-style: none; }
+.prototype-drawer summary::-webkit-details-marker { display: none; }
+.prototype-drawer summary::before { color: #aa85d9; content: '+'; font-size: 16px; line-height: .8; }
+.prototype-drawer[open] summary::before { content: '−'; }
+.prototype-drawer summary span { margin-right: auto; color: #d2c2de; font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.prototype-drawer summary small { color: #91a5ad; font-size: 8px; }
+.prototype-grid { padding: 0 9px 9px; }
 .ship-module { display: grid; min-height: 92px; padding: 9px; border: 1px solid rgb(130 165 189 / 30%); border-left: 3px solid var(--module-accent); border-radius: 11px; background: rgb(10 25 36 / 78%); color: #dde9ea; text-align: left; }
 .ship-module.active { border-color: var(--module-accent); background: linear-gradient(135deg, color-mix(in srgb, var(--module-accent) 16%, #0b1d2c), rgb(13 21 32 / 88%)); box-shadow: inset 0 0 18px color-mix(in srgb, var(--module-accent) 16%, transparent); }
 .ship-module span { color: var(--module-accent); font-size: 7px; font-weight: 800; letter-spacing: .11em; }
@@ -160,10 +174,9 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 @media (max-height: 430px) and (orientation: landscape) {
   .screen-panel { bottom: max(8px, env(safe-area-inset-bottom)); left: max(8px, env(safe-area-inset-left)); width: min(332px, calc(100vw - 16px)); padding: 10px; border-radius: 14px; }
   .outpost-copy p { display: none; }.outpost-copy h1 { font-size: 28px; }.facility-list { gap: 5px; margin: 8px 0; }.facility { min-height: 50px; padding: 6px; }.facility span { display: none; }.primary-button { min-height: 48px; padding: 7px 10px; }.primary-button strong { font-size: 15px; }.primary-button small { display: none; }
-  #expedition-hud { width: 285px; padding: 9px; }.signal-list { max-height: 55px; }.expedition-log { min-height: 22px; margin: 5px 0; font-size: 8px; }.expedition-actions button { min-height: 43px; }.resource { min-width: 49px; padding: 3px 6px; }.resource b { font-size: 11px; }
-  #outpost-nav { right: 8px; bottom: 8px; width: 280px; gap: 4px; } #outpost-nav button { min-height: 45px; font-size: 14px; } #facility-panel { padding: 18px; } #facility-panel h2 { font-size: 26px; } #flight-control { right: 10px; bottom: 10px; } #flight-stick { width: 86px; height: 86px; } #flight-stick i { width: 32px; height: 32px; }
-  #facility-stage { min-height: 112px; margin: 8px 0 10px; } #facility-stage img { height: 120px; } #facility-discovery { margin-bottom: 8px; padding: 6px 8px; } #facility-panel p { margin-bottom: 9px; } #facility-level { margin-bottom: 9px; }
-  #ship-selection, #shipyard-panel { width: min(690px, calc(100vw - 20px)); padding: 14px 18px; border-radius: 16px; } #ship-selection h1 { margin: 5px auto; font-size: 23px; } #ship-selection > p { margin-bottom: 8px; font-size: 10px; } .ship-choice { min-height: 185px; padding: 7px; border-radius: 12px; } .ship-choice img { height: 96px; } .ship-choice strong { font-size: 17px; }.ship-choice small { font-size: 8px; } #shipyard-panel h2 { margin: 2px 0; font-size: 25px; } #shipyard-panel > p { margin-bottom: 7px; font-size: 9px; } .shipyard-layout { grid-template-columns: 175px 1fr; gap: 9px; } #shipyard-preview { min-height: 250px; } #shipyard-preview img { height: 220px; } #shipyard-module-list { gap: 5px; } .ship-module { min-height: 53px; padding: 5px 6px; } .ship-module strong { margin-top: 1px; font-size: 11px; }.ship-module small { display: none; }
+  #expedition-hud { width: 285px; padding: 9px; }.signal-list { max-height: 55px; }.expedition-log { min-height: 22px; margin: 5px 0; font-size: 8px; }.expedition-actions button { min-height: 43px; }.resource { min-width: 43px; padding: 3px 5px; }.resource b { font-size: 11px; } #reset-button { width: 30px; min-height: 30px; padding: 4px; justify-content: center; } #reset-button span { display: none; } #fullscreen-button { width: 34px; height: 34px; font-size: 16px; }
+  #outpost-nav { right: 8px; bottom: 8px; width: 280px; gap: 4px; } #outpost-nav button { min-height: 45px; font-size: 14px; } #facility-panel { width: min(350px, calc(100vw - 22px)); padding: 15px 17px; border-radius: 17px; } #facility-panel h2 { margin: 3px 0 5px; font-size: 24px; } #facility-panel p { margin-bottom: 8px; font-size: 10px; } #facility-level { margin-bottom: 8px; padding: 7px 8px; font-size: 8px; } #open-shipyard-button { min-height: 43px; font-size: 9px; } #facility-upgrade-button { min-height: 43px; } #flight-control { right: 10px; bottom: 10px; } #flight-stick { width: 86px; height: 86px; } #flight-stick i { width: 32px; height: 32px; }
+  #ship-selection, #shipyard-panel { width: min(690px, calc(100vw - 20px)); padding: 14px 18px; border-radius: 16px; } #ship-selection h1 { margin: 5px auto; font-size: 23px; } #ship-selection > p { margin-bottom: 8px; font-size: 10px; } .ship-choice { min-height: 185px; padding: 7px; border-radius: 12px; } .ship-choice img { height: 96px; } .ship-choice strong { font-size: 17px; }.ship-choice small { font-size: 8px; } #shipyard-panel h2 { margin: 2px 0; font-size: 25px; } #shipyard-panel > p { margin-bottom: 7px; font-size: 9px; } .shipyard-layout { grid-template-columns: 175px 1fr; gap: 9px; } #shipyard-preview { min-height: 250px; } #shipyard-preview img { height: 220px; } #shipyard-module-list { gap: 5px; } .shipyard-field-grid, .prototype-grid { gap: 5px; } .ship-module { min-height: 53px; padding: 5px 6px; } .ship-module strong { margin-top: 1px; font-size: 11px; }.ship-module small { display: none; } .shipyard-section-heading small { display: none; } .prototype-drawer summary { min-height: 32px; padding: 8px; }.prototype-drawer summary small { font-size: 7px; }
   #shipyard-hull-switch { margin-bottom: 7px; } #shipyard-hull-switch button { min-height: 26px; padding: 4px 7px; font-size: 8px; }
 }
 

@@ -1,8 +1,8 @@
 import { createExpedition, enterWormhole, finishExpedition, fireWeapon, investigate, isHome, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition } from '../domain/exploration/expeditionEngine';
-import type { Cargo, ExpeditionState, Vector2, WeaponMode } from '../domain/exploration/types';
+import type { Cargo, ExpeditionScenario, ExpeditionState, Vector2, WeaponMode } from '../domain/exploration/types';
 import { canPurchaseShipUpgrade, canUpgrade, purchaseShipUpgrade, secureCargo, upgradeFacility } from '../domain/outpost/outpostEngine';
 import type { FacilityId, FarhavenProfile } from '../domain/outpost/types';
-import { FIRST_FIELD_UPGRADE_ID, isShipUpgrade, newShip, type ShipUpgradeId, type ShipVariantId } from '../domain/ship/types';
+import { FIRST_FIELD_UPGRADE_ID, isFieldUpgrade, isShipUpgrade, newShip, SECOND_FIELD_UPGRADE_ID, type ShipUpgradeId, type ShipVariantId } from '../domain/ship/types';
 import { clearProfile, loadProfile, saveProfile } from './saveGame';
 
 type Listener = () => void;
@@ -32,13 +32,41 @@ export interface PrologueObjective {
   readonly copy: string;
 }
 
+function scenarioForProfile(): ExpeditionScenario {
+  const upgrades = profile.ship?.upgrades ?? [];
+  if (profile.expeditionCount === 0 || !upgrades.includes(FIRST_FIELD_UPGRADE_ID)) return 'first-wreck';
+  if (!upgrades.includes(SECOND_FIELD_UPGRADE_ID)) return 'second-shift';
+  return 'mining-run';
+}
+
+export function isXenogateUnlocked(): boolean {
+  return profile.expeditionCount >= 3 && (profile.ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID) ?? false);
+}
+
 export function getPrologueObjective(): PrologueObjective {
   if (!profile.ship) return { kicker: 'ERSTE SCHICHT', title: 'RUMPF WÄHLEN', copy: 'Rufe die Aster Vale oder die Bramble nach Farhaven.' };
   if (expedition) {
-    const firstWreck = expedition.signals.find((signal) => signal.id === 'echo-wreck');
-    if (firstWreck?.knowledge === 'echo') return { kicker: 'ERSTE EXPEDITION · 1/4', title: 'DAS NAHE ECHO SCANNEN', copy: 'Der Scanner erreicht ein unbekanntes Signal direkt nordöstlich von Farhaven.' };
-    if (firstWreck?.knowledge === 'classified') return { kicker: 'ERSTE EXPEDITION · 2/4', title: 'ZUR GEBROCHENEN RELIQUIE', copy: 'Tippe das Signal auf der Karte an, fliege heran und sichere die Bergung.' };
-    if (firstWreck?.knowledge === 'resolved') return { kicker: 'ERSTE EXPEDITION · 3/4', title: 'FRACHT HEIMBRINGEN', copy: 'Die Legierungen sind im Frachtraum. Kehre jetzt nach Farhaven zurück.' };
+    if (expedition.scenario === 'first-wreck') {
+      const firstWreck = expedition.signals.find((signal) => signal.id === 'echo-wreck');
+      if (firstWreck?.knowledge === 'echo') return { kicker: 'ERSTE EXPEDITION · 1/4', title: 'DAS NAHE ECHO SCANNEN', copy: 'Der Scanner erreicht ein unbekanntes Signal direkt nordöstlich von Farhaven.' };
+      if (firstWreck?.knowledge === 'classified') return { kicker: 'ERSTE EXPEDITION · 2/4', title: 'ZUR GEBROCHENEN RELIQUIE', copy: 'Tippe das Signal auf der Karte an, fliege heran und sichere die Bergung.' };
+      return { kicker: 'ERSTE EXPEDITION · 3/4', title: 'FRACHT HEIMBRINGEN', copy: 'Die Legierungen sind im Frachtraum. Kehre jetzt nach Farhaven zurück.' };
+    }
+    if (expedition.scenario === 'second-shift') {
+      const lantern = expedition.signals.find((signal) => signal.id === 'monk-lantern');
+      const liturgy = expedition.signals.find((signal) => signal.id === 'cutting-liturgy');
+      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo') return { kicker: 'ZWEITE SCHICHT · 1/4', title: 'ZWEI ECHOS SCANNEN', copy: 'Eine sichere Mönchslaterne und eine riskante Schneideliturgie liegen in Scannerreichweite.' };
+      if (lantern?.knowledge !== 'resolved' || liturgy?.knowledge !== 'resolved') return { kicker: 'ZWEITE SCHICHT · 2/4', title: 'SICHER ODER RISKANT', copy: 'Berge die Mönchslaterne für ein Relikt und deute die Schneideliturgie für Minenlaser-Daten. Die Liturgie kostet 6 Hülle.' };
+      return { kicker: 'ZWEITE SCHICHT · 3/4', title: 'BAUPLAN HEIMBRINGEN', copy: 'Reliktkern und Datensätze liegen in der Fracht. Kehre für den Minenlaser nach Farhaven zurück.' };
+    }
+    if (expedition.scenario === 'mining-run') {
+      const vein = expedition.signals.find((signal) => signal.id === 'black-vein');
+      const cache = expedition.signals.find((signal) => signal.id === 'raider-cache');
+      if (vein?.knowledge === 'echo') return { kicker: 'DRITTE SCHICHT · 1/3', title: 'SCHWARZE ADER SCANNEN', copy: 'Der neue Minenlaser kann eine nahe Legierungsader erschließen.' };
+      if (vein?.knowledge !== 'resolved') return { kicker: 'DRITTE SCHICHT · 2/3', title: 'DIE ADER ABBAUEN', copy: 'Fliege an die Schwarze Ader heran und setze den Minenlaser ein.' };
+      if (cache?.knowledge !== 'resolved') return { kicker: 'OPTIONALE GEFAHR', title: 'PLÜNDERER ODER RÜCKKEHR', copy: 'Die Ader ist gesichert. Eine Plündererkiste wartet hinter dem Aschenplünderer – du darfst kämpfen oder jetzt heimkehren.' };
+      return { kicker: 'DRITTE SCHICHT · 3/3', title: 'MIT BONUSBEUTE HEIMKEHREN', copy: 'Die Ader und die Plündererkiste sind gesichert. Farhaven wartet.' };
+    }
     return { kicker: 'EXPEDITION', title: 'EIN SIGNAL UNTERSUCHEN', copy: 'Scanne, positioniere dich und sichere einen Fund.' };
   }
   if (!profile.facilities.hangar) {
@@ -51,7 +79,13 @@ export function getPrologueObjective(): PrologueObjective {
       ? { kicker: 'ERSTER SCHIFFSBAUTEIL', title: 'FRACHTRÜCKEN EINBAUEN', copy: 'Im Hangar wartet ein verfügbarer Frachtrücken. Er erweitert jede Expedition um zwei Frachtplätze.' }
       : { kicker: 'HANGAR ONLINE', title: 'WERKSTATT PRÜFEN', copy: 'Öffne die Testwerft im Hangar, um den nächsten verfügbaren Bauteil zu sehen.' };
   }
-  return { kicker: 'ERSTE SCHICHT ABGESCHLOSSEN', title: 'WEITER HINAUS', copy: 'Dein Schiff trägt nun einen echten Ausbau. Die nächste Expedition darf riskanter werden.' };
+  if (!profile.ship.upgrades.includes(SECOND_FIELD_UPGRADE_ID)) {
+    return canPurchaseShipUpgrade(profile, SECOND_FIELD_UPGRADE_ID)
+      ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Testwerft im Hangar und rüste den echten Minenlaser aus.' }
+      : { kicker: 'ZWEITE SCHICHT', title: 'BAUPLAN FINDEN', copy: 'Mönchslaterne und Schneideliturgie liefern zusammen genau das Material für einen Minenlaser.' };
+  }
+  if (!isXenogateUnlocked()) return { kicker: 'DRITTE SCHICHT', title: 'EINE ADER ERSCHLIESSEN', copy: 'Der Minenlaser ist bereit. Kehre in den Aschsaum zurück und sichere deine erste Schwarze Ader.' };
+  return { kicker: 'XENOGATE BEREIT', title: 'VELORIA RIFT DURCHQUEREN', copy: 'Drei Rückkehrer und der Minenlaser haben das Tor synchronisiert. Fliege zum Xenogate.' };
 }
 
 export function beginExpedition(): ExpeditionState {
@@ -60,7 +94,7 @@ export function beginExpedition(): ExpeditionState {
   const cargoBonus = (profile.facilities.hangar ? 2 : 0)
     + (variant === 'bramble' ? 1 : 0)
     + (profile.ship?.upgrades.includes('cargo-spine') ? 2 : 0);
-  expedition = createExpedition(scanBonus, cargoBonus);
+  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile());
   // A soft lock makes the first combat contact legible on mouse and touch alike.
   // It never fires for the player and can be overridden by tapping another ship.
   selectedTargetId = expedition.hostiles
@@ -96,6 +130,10 @@ export function scanNearby(): void {
 
 export function enterAlienRift(): boolean {
   if (!expedition) return false;
+  if (!isXenogateUnlocked()) {
+    emit();
+    return false;
+  }
   const previousSector = expedition.sectorId;
   expedition = enterWormhole(expedition);
   if (expedition.sectorId === previousSector) {
@@ -196,7 +234,7 @@ export function changeShipVariantForTest(variant: ShipVariantId): boolean {
 }
 
 export function toggleShipTestUpgrade(upgradeId: ShipUpgradeId): boolean {
-  if (upgradeId === FIRST_FIELD_UPGRADE_ID) return false;
+  if (isFieldUpgrade(upgradeId)) return false;
   if (!profile.ship || !isShipUpgrade(upgradeId)) return false;
   const installed = new Set(profile.ship.upgrades);
   if (installed.has(upgradeId)) installed.delete(upgradeId); else installed.add(upgradeId);

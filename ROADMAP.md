@@ -30,6 +30,11 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - ✅ einmalige Startwahl zwischen Erkundungskutter und Bergungsschlepper
 - ✅ Hangar-Testwerft mit zehn dauerhaft sichtbaren Komponenten-Prototypen
 - ✅ erster geschlossener Prolog: Wrack scannen und bergen → Fracht sichern → Hangar → echter Frachtrücken
+- ✅ zweite Prologschicht: sichere Mönchslaterne oder riskante Schneideliturgie → Daten/Relikt → echter Minenlaser
+- ✅ erste aktive Ressourcenschleife: Minenlaser → Schwarze Ader → Legierungen
+- ✅ optionaler Aschenplünderer bewacht einen Bergungs-Cache; er ist kein Pflichtkampf
+- ✅ Xenogate erst nach drei Rückkehren und aktivem Minenlaser freigeschaltet
+- ✅ mobile Farhaven-Navigation in getrennte Raumansicht mit genau einer Hauptaktion pro Bereich überführt
 - ✅ Flug ohne Reichweiten-/Treibstoffdruck; regenerierende Systemladung nur für aktive Systeme
 - ✅ bestätigter lokaler Entwickler-Reset zurück zur Rumpfwahl
 - ⏳ mehrteilige Signalentscheidungen und reproduzierbare Sektor-Seeds
@@ -37,7 +42,7 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 
 ## F2 – Vollständiger Exploration-Loop ⏳
 
-- zweiter Sektor und acht Signalereignisse
+- zweiter vollwertiger Sektor und acht weitere Signalereignisse
 - Wracks, Rohstoffe, Anomalien und Notsignale mit unterschiedlichen Resultaten
 - sichtbare, modulare Außenposten-Ausbaustufen und atmosphärische Detailräume
 - Progression für 30–45 Minuten

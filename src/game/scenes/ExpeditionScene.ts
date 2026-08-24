@@ -173,6 +173,12 @@ export class ExpeditionScene extends Phaser.Scene {
         bracket.strokeRect(hostile.position.x - radius + 7, hostile.position.y - radius + 7, (radius - 7) * 2, (radius - 7) * 2);
         this.signalLayer?.add(bracket);
       }
+      if (!hostile.passive && hostile.status === 'alert') {
+        const warning = this.add.graphics();
+        warning.lineStyle(2, 0xf1796c, 0.78); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 71 : 58);
+        warning.lineStyle(1, 0xffd3b5, 0.46); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 82 : 69);
+        this.signalLayer?.add(warning);
+      }
       const state = hostile.passive ? 'ÜBUNGSDUMMY · KEINE GEGENWEHR' : hostile.status === 'alert' ? 'ALARM' : 'PATROUILLE';
       const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);
@@ -192,8 +198,9 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   private addSignalMarker(signal: ExpeditionState['signals'][number]): void {
-    const color = signal.kind === 'anomaly' ? 0xca84ec : signal.kind === 'distress' ? 0xf0bd74 : signal.kind === 'vein' ? 0xdfa85b : 0x71dbe4;
-    const action = signal.kind === 'wreck' ? 'BERGEN' : signal.kind === 'vein' ? 'ABBAU' : signal.kind === 'anomaly' ? 'DEUTEN' : 'ANTWORTEN';
+    const guarded = Boolean(signal.guardedBy);
+    const color = guarded ? 0xef7869 : signal.kind === 'anomaly' ? 0xca84ec : signal.kind === 'distress' ? 0xf0bd74 : signal.kind === 'vein' ? 0xdfa85b : 0x71dbe4;
+    const action = guarded ? 'BEUTE GESCHÜTZT' : signal.kind === 'wreck' ? 'BERGEN' : signal.kind === 'vein' ? 'ABBAU' : signal.kind === 'anomaly' ? 'DEUTEN' : 'ANTWORTEN';
     const marker = this.add.container(signal.position.x, signal.position.y).setSize(120, 120).setInteractive({ useHandCursor: true });
     const art = this.add.graphics();
     art.fillStyle(0x07121c, 0.9); art.fillRoundedRect(-26, -30, 52, 52, 9);

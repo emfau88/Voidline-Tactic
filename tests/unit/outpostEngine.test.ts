@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { canPurchaseShipUpgrade, canUpgrade, purchaseShipUpgrade, secureCargo, upgradeFacility } from '../../src/domain/outpost/outpostEngine';
 import { DEFAULT_PROFILE } from '../../src/domain/outpost/types';
-import { FIRST_FIELD_UPGRADE_ID, newShip } from '../../src/domain/ship/types';
+import { FIRST_FIELD_UPGRADE_ID, newShip, SECOND_FIELD_UPGRADE_ID } from '../../src/domain/ship/types';
 
 describe('outpost progression', () => {
   it('secures expedition cargo before it can fund an upgrade', () => {
@@ -28,5 +28,18 @@ describe('outpost progression', () => {
     const upgraded = purchaseShipUpgrade(hangar, FIRST_FIELD_UPGRADE_ID);
     expect(upgraded.resources.alloys).toBe(0);
     expect(upgraded.ship?.upgrades).toContain(FIRST_FIELD_UPGRADE_ID);
+  });
+
+  it('turns second-shift relics and data into the real mining laser', () => {
+    const prepared = {
+      ...DEFAULT_PROFILE,
+      resources: { alloys: 0, data: 2, relics: 1 },
+      facilities: { ...DEFAULT_PROFILE.facilities, hangar: 1 },
+      ship: { ...newShip('bramble'), upgrades: [FIRST_FIELD_UPGRADE_ID] },
+    };
+    expect(canPurchaseShipUpgrade(prepared, SECOND_FIELD_UPGRADE_ID)).toBe(true);
+    const upgraded = purchaseShipUpgrade(prepared, SECOND_FIELD_UPGRADE_ID);
+    expect(upgraded.resources).toEqual({ alloys: 0, data: 0, relics: 0 });
+    expect(upgraded.ship?.upgrades).toContain(SECOND_FIELD_UPGRADE_ID);
   });
 });

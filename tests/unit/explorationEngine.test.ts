@@ -41,6 +41,20 @@ describe('exploration engine', () => {
     expect(salvaged.signals.find((signal) => signal.id === 'echo-wreck')?.knowledge).toBe('resolved');
   });
 
+  it('offers the second-shift choice and makes the risky data source cost hull instead of fuel', () => {
+    const scanned = scan(createExpedition(0, 4, 'second-shift'));
+    const lantern = scanned.signals.find((signal) => signal.id === 'monk-lantern')!;
+    const liturgy = scanned.signals.find((signal) => signal.id === 'cutting-liturgy')!;
+    expect(lantern.knowledge).toBe('classified');
+    expect(liturgy.knowledge).toBe('classified');
+    const safe = investigate({ ...scanned, position: lantern.position }, lantern.id);
+    expect(safe.cargo.relics).toBe(1);
+    expect(safe.hull).toBe(100);
+    const risky = investigate({ ...safe, position: liturgy.position }, liturgy.id);
+    expect(risky.cargo.data).toBe(2);
+    expect(risky.hull).toBe(94);
+  });
+
   it('sets a return route to Farhaven', () => {
     const outbound = { ...createExpedition(), position: { x: 2_520, y: 1_230 } };
     const returning = returnToFarhaven(outbound);
@@ -74,6 +88,37 @@ describe('exploration engine', () => {
     expect(mined.cargo.alloys).toBe(3);
     expect(mined.energy).toBe(82);
     expect(mined.signals.find((signal) => signal.id === 'echo-vein')?.knowledge).toBe('resolved');
+  });
+
+  it('keeps a guarded bonus cache optional until the real raider is defeated', () => {
+    const scanned = scan(createExpedition(0, 4, 'mining-run'));
+    const vein = scanned.signals.find((signal) => signal.id === 'black-vein')!;
+    const cache = scanned.signals.find((signal) => signal.id === 'raider-cache')!;
+    const mined = mineVein({ ...scanned, position: vein.position }, vein.id);
+    expect(mined.cargo.alloys).toBe(3);
+    const cacheScanned = scan({ ...mined, position: cache.position });
+    const blocked = investigate({ ...cacheScanned, position: cache.position }, cache.id);
+    expect(blocked.cargo.alloys).toBe(3);
+    expect(blocked.log[0]).toContain('bewacht');
+    const raider = blocked.hostiles[0]!;
+    const sideOn = {
+      ...blocked,
+      position: { x: raider.position.x - 300, y: raider.position.y },
+      heading: 0,
+      hostiles: [{ ...raider, hull: 1 }],
+    };
+    const cleared = fireWeapon(sideOn, raider.id, 'broadside');
+    expect(cleared.hostiles).toHaveLength(0);
+    const looted = investigate({ ...cleared, position: cache.position }, cache.id);
+    expect(looted.cargo.alloys).toBe(6);
+  });
+
+  it('lets the telegraphed raider fire only after the player enters its guarded space', () => {
+    const run = createExpedition(0, 4, 'mining-run');
+    const threatened = stepExpedition({ ...run, position: { x: 2_570, y: 1_470 } }, 40);
+    expect(threatened.hostiles[0]?.status).toBe('alert');
+    expect(threatened.hull).toBeLessThan(run.hull);
+    expect(threatened.log[0]).toContain('feuert');
   });
 
   it('fires only when a hostile contact is in range', () => {

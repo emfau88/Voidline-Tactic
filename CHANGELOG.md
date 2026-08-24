@@ -19,6 +19,11 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - direkter Flugstick links, Beschleunigung, Ausrollen und Triebwerks-VFX
 - mehrbildschirmiger Sektor mit Follow-Kamera und erster Aschenpatrouille
 - erster Feuerbutton mit Breitseitensalve in Reichweite
+- zweite Expeditionsschicht nach dem Frachtrücken: Mönchslaterne als sicheres Relikt-Signal und Schneideliturgie als riskante Daten-Anomalie
+- echter Minenlaser-Einbau, Schwarze Adern zum Abbauen und optionaler, bewachter Plünderer-Cache
+- aktiver Aschenplünderer mit telegraphiertem Nahbereichsfeuer; alle bisherigen Dummies bleiben passiv
+- Xenogate-Freischaltung nach drei Rückkehren und installiertem Minenlaser
+- getrennte, kompakte Raumansichten für Farhaven-Bereiche und eine einklappbare Prototypen-Schublade in der Hangarwerkstatt
 
 #### Changed
 
@@ -30,6 +35,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - frühere Fleet-Corridors-Version lokal als `fleet-corridors-poc-2026-08-24` getaggt
 - README, Roadmap und Game Vision auf den neuen Produktpfad ausgerichtet
 - Expeditions-HUD auf eine schmale Kartenanzeige oben reduziert; Aktionen liegen im rechten Daumenbereich
+- Farhaven-Raumdialoge auf Status plus eine Hauptaktion reduziert; das große Hangarbild ist aus dem Baufluss entfernt
+- Werkstatt von `TESTWERFT` zu `WERKSTATT` umbenannt; echte Einbauten stehen vor rein visuellen Prototypen
 
 #### Deferred
 

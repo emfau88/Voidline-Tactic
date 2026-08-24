@@ -1,10 +1,10 @@
 import './farhaven.css';
 import { createGame } from './app/createGame';
-import { beginExpedition, canPurchaseFieldUpgrade, changeShipVariantForTest, chooseStartingShip, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
+import { beginExpedition, canPurchaseFieldUpgrade, changeShipVariantForTest, chooseStartingShip, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
 import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, WeaponMode } from './domain/exploration/types';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
-import { FIRST_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
+import { FIELD_UPGRADE_COSTS, FIRST_FIELD_UPGRADE_ID, isFieldUpgrade, SECOND_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
 
 const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
   'broadband-array': '/assets/ships/aster-vale/broadband-array-v1.png',
@@ -89,53 +89,35 @@ function openFacility(facilityId: FacilityId): void {
   selectedFacility = facilityId;
   renderFacilityPanel();
   facilityPanel.hidden = false;
+  updateOutpostChrome();
 }
 
 function renderFacilityPanel(): void {
   if (!selectedFacility) return;
   const facility = FACILITIES[selectedFacility];
-  const level = getProfile().facilities[selectedFacility];
+  const level = Boolean(getProfile().facilities[selectedFacility]);
   required<HTMLElement>('facility-kicker').textContent = facility.subtitle.toUpperCase();
   required<HTMLElement>('facility-title').textContent = facility.name;
-  const stage = required<HTMLElement>('facility-stage');
   const isHangar = selectedFacility === 'hangar';
-  stage.hidden = !isHangar;
-  if (isHangar) {
-    const image = required<HTMLImageElement>('facility-art-image');
-    image.src = '/assets/backgrounds/farhaven-hangar-detail-v1.png';
-    image.alt = 'Die Aster Vale in Farhavens warmem Hangar';
-    required<HTMLElement>('facility-stage-badge').textContent = level ? 'HANGARDECK · ONLINE' : 'BAUPLATZ · VORBEREITET';
-  }
   required<HTMLElement>('facility-copy').textContent = selectedFacility === 'hangar'
     ? level
-      ? 'Die Aster Vale liegt zwischen warmen Reparaturlampen. Hier siehst du ihre nächste Verbesserung, bevor du wieder in die Voidline fliegst.'
-      : 'Unter dieser Schleuse wartet der freie Dockanschluss. Sichere Legierungen, dann wird daraus der erste echte Heimathafen der Aster Vale.'
+      ? 'Die Aster Vale ist sicher angedockt. Verwalte hier ihre echten Einbauten.'
+      : 'Ein freier Dockplatz für dein Schiff. Baue ihn mit gesicherten Legierungen.'
     : selectedFacility === 'scanner'
-      ? 'Die Scannerkapelle hört auf Echos hinter dem sichtbaren Raum. Ihr Ausbau macht unbekannte Signale früher lesbar.'
+      ? level ? 'Die Kapelle lauscht auf ferne Echos.' : 'Dein nächster Ausbau für besser lesbare Signale.'
       : selectedFacility === 'labor'
-        ? 'Im Reliktlabor werden fremde Fundstücke entschlüsselt. Seltene Technologien werden hier später zu Systemen.'
-        : 'Das Sternenwerk hält die Routen nach draußen fest. Mit ihm werden die weiter entfernten Sektoren zugänglich.';
+        ? level ? 'Relikte können hier künftig zu neuen Systemen werden.' : 'Ein Platz, um seltene Relikte später zu verstehen.'
+        : level ? 'Die Routen nach draußen sind verzeichnet.' : 'Ein Ausbau für die späteren äußeren Sektoren.';
   required<HTMLElement>('facility-level').textContent = level
-    ? `STUFE I · ${facility.effect}`
-    : `STUFE 0 · ${facility.effect}`;
-  const discovery = required<HTMLElement>('facility-discovery');
-  discovery.hidden = !isHangar;
-  discovery.textContent = level
-    ? getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
-      ? 'ENTDECKT · Der Frachtrücken sitzt fest am Rumpf. Zwei Wartungsdrohnen halten den Dockring warm.'
-      : 'WERKSTATT BEREIT · Ein Frachtrücken kann hier mit einer verbleibenden Legierung eingebaut werden.'
-    : 'VORBEREITET · Die Schleuse kennt bereits die Signatur der Aster Vale. Nur die Legierungen fehlen noch.';
-  const inspect = required<HTMLButtonElement>('facility-inspect-button');
-  inspect.hidden = !isHangar || !level;
-  inspect.textContent = '⌁  ASTER VALE ANSEHEN';
+    ? `ONLINE · ${facility.effect}`
+    : `FÜR DEN BAU · ${upgradeCost(selectedFacility)}`;
   const openShipyard = required<HTMLButtonElement>('open-shipyard-button');
-  openShipyard.hidden = !isHangar || !getProfile().ship;
-  openShipyard.textContent = level ? '✧  TESTWERFT ÖFFNEN' : '✧  RUMPF- UND MODULVORSCHAU';
+  openShipyard.hidden = !isHangar || !level || !getProfile().ship;
+  openShipyard.textContent = '✧  WERKSTATT ÖFFNEN';
   const upgrade = required<HTMLButtonElement>('facility-upgrade-button');
-  upgrade.disabled = Boolean(level);
-  upgrade.innerHTML = level
-    ? '<span>BEREITS ERREICHT</span><strong>AUSBAU ABGESCHLOSSEN</strong><small>Weitere Stufen folgen mit dem Content-Ausbau.</small>'
-    : `<span>NÄCHSTER AUSBAU</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong><small>${upgradeCost(selectedFacility)}</small>`;
+  upgrade.hidden = level;
+  upgrade.disabled = level;
+  upgrade.innerHTML = `<span>NÄCHSTER SCHRITT</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong><small>${upgradeCost(selectedFacility)}</small>`;
 }
 
 function shipAssetPath(variant: ShipVariantId): string {
@@ -154,18 +136,33 @@ function renderShipyard(): void {
     const path = ship.variant === 'aster-vale' ? ASTER_MODULE_PATHS[id] : undefined;
     return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${path}" alt="" />` : `<i class="part-${id}"></i>`;
   }).join('');
-  required<HTMLElement>('shipyard-module-list').innerHTML = SHIP_UPGRADES.map((upgrade) => {
+  const moduleCard = (upgrade: (typeof SHIP_UPGRADES)[number]) => {
     const active = ship.upgrades.includes(upgrade.id);
-    const isFieldUpgrade = upgrade.id === FIRST_FIELD_UPGRADE_ID;
-    const available = isFieldUpgrade && canPurchaseFieldUpgrade(upgrade.id);
+    const fieldUpgrade = isFieldUpgrade(upgrade.id);
+    const available = fieldUpgrade && canPurchaseFieldUpgrade(upgrade.id);
+    const cost = FIELD_UPGRADE_COSTS[upgrade.id];
+    const costLabel = cost
+      ? Object.entries(cost).map(([kind, amount]) => `${amount} ${kind === 'alloys' ? 'LEG' : kind === 'data' ? 'DAT' : 'REL'}`).join(' · ')
+      : '';
     const status = active
       ? 'ECHTER EINBAU · ONLINE'
-      : isFieldUpgrade
-        ? available ? '1 LEGIERUNG · EINBAUEN' : 'HANGAR + 1 LEGIERUNG NÖTIG'
+      : fieldUpgrade
+        ? available ? `${costLabel} · EINBAUEN` : `HANGAR + ${costLabel} NÖTIG`
         : 'KOSTENLOSER PROTOTYP';
-    const disabled = isFieldUpgrade && !available;
+    const disabled = fieldUpgrade && !available;
     return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></button>`;
-  }).join('');
+  };
+  const fieldUpgrades = SHIP_UPGRADES.filter((upgrade) => isFieldUpgrade(upgrade.id));
+  const prototypes = SHIP_UPGRADES.filter((upgrade) => !isFieldUpgrade(upgrade.id));
+  required<HTMLElement>('shipyard-module-list').innerHTML = `
+    <section class="shipyard-module-section" aria-label="Echte Einbauten">
+      <div class="shipyard-section-heading"><span>ECHTE EINBAUTEN</span><small>Sie verändern deinen nächsten Flug.</small></div>
+      <div class="shipyard-field-grid">${fieldUpgrades.map(moduleCard).join('')}</div>
+    </section>
+    <details class="prototype-drawer">
+      <summary><span>RUMPFIDEEN ANSEHEN</span><small>${prototypes.length} visuelle Prototypen</small></summary>
+      <div class="prototype-grid">${prototypes.map(moduleCard).join('')}</div>
+    </details>`;
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
     const active = button.dataset.shipSwitch === ship.variant;
     button.classList.toggle('active', active);
@@ -221,6 +218,15 @@ function renderOutpost(): void {
   renderFacilityPanel();
 }
 
+function updateOutpostChrome(): void {
+  const hasShip = Boolean(getProfile().ship);
+  const isInspecting = !facilityPanel.hidden || !shipyardPanel.hidden;
+  if (isInspecting) shell.dataset.outpostView = 'room'; else delete shell.dataset.outpostView;
+  outpostHud.hidden = !hasShip || isInspecting;
+  required<HTMLElement>('outpost-nav').hidden = !hasShip || isInspecting;
+  required<HTMLElement>('objective-tracker').hidden = !hasShip || isInspecting;
+}
+
 function renderExpedition(): void {
   const expedition = getExpedition();
   if (!expedition) return;
@@ -238,13 +244,23 @@ function renderExpedition(): void {
   required<HTMLElement>('expedition-log').textContent = expedition.log[0] ?? '';
   const nearby = expedition.signals.find((signal) => signal.knowledge === 'classified' && Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) <= 112);
   const atWormhole = canEnterWormhole(expedition);
+  const xenogateUnlocked = isXenogateUnlocked();
   const interact = required<HTMLButtonElement>('interact-button');
   const interactLabel = interact.querySelector('span')!;
   const hasMiningLasers = getProfile().ship?.upgrades.includes('mining-lasers') ?? false;
-  if (atWormhole) {
+  const nearbyGuard = nearby?.guardedBy && expedition.hostiles.some((hostile) => hostile.id === nearby.guardedBy);
+  if (atWormhole && xenogateUnlocked) {
     interactLabel.textContent = 'DURCHQUEREN';
     interact.querySelector('small')!.textContent = 'Xenogate · Veloria Rift';
     interact.disabled = false;
+  } else if (atWormhole) {
+    interactLabel.textContent = 'VERSIEGELT';
+    interact.querySelector('small')!.textContent = 'Noch 3 Rückkehrer + Minenlaser';
+    interact.disabled = true;
+  } else if (nearbyGuard) {
+    interactLabel.textContent = 'BEUTE GESCHÜTZT';
+    interact.querySelector('small')!.textContent = 'Plünderer vertreiben oder umkehren';
+    interact.disabled = true;
   } else if (nearby?.kind === 'vein') {
     interactLabel.textContent = 'ABBAUEN';
     interact.querySelector('small')!.textContent = hasMiningLasers ? 'Minenlaser · 10 Systeme' : 'Minenlaser fehlt';
@@ -315,14 +331,13 @@ function render(): void {
     renderExpedition();
   } else {
     shell.dataset.screen = 'outpost';
-    outpostHud.hidden = false;
     expeditionHud.hidden = true;
     flightControl.hidden = true;
     expeditionActions.hidden = true;
     required<HTMLElement>('combat-prompt').hidden = true;
-    required<HTMLElement>('outpost-nav').hidden = false;
     renderOutpost();
     renderShipSelection();
+    updateOutpostChrome();
     if (!shipyardPanel.hidden) renderShipyard();
   }
   renderObjective();
@@ -368,6 +383,10 @@ function enterRiftIfReady(): void {
 game.events.on('farhaven:wormhole-selected', () => {
   const expedition = getExpedition();
   if (!expedition || expedition.sectorId !== 'ashenscar') return;
+  if (!isXenogateUnlocked()) {
+    toast('XENOGATE VERSIEGELT · Minenlaser einbauen und drei Expeditionen sicher zurückbringen.');
+    return;
+  }
   if (canEnterWormhole(expedition)) {
     enterRiftIfReady();
     return;
@@ -375,7 +394,11 @@ game.events.on('farhaven:wormhole-selected', () => {
   courseTo(WORMHOLE_POSITION);
   toast('KURS ZUM XENOGATE GESETZT · Am Tor „DURCHQUEREN“ wählen.');
 });
-required<HTMLButtonElement>('close-facility-button').addEventListener('click', () => { facilityPanel.hidden = true; selectedFacility = undefined; });
+required<HTMLButtonElement>('close-facility-button').addEventListener('click', () => {
+  facilityPanel.hidden = true;
+  selectedFacility = undefined;
+  updateOutpostChrome();
+});
 required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click', () => {
   if (!selectedFacility) return;
   if (improveFacility(selectedFacility)) {
@@ -385,15 +408,17 @@ required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click',
   else toast('Dafür fehlen gesicherte Ressourcen.');
   renderFacilityPanel();
 });
-required<HTMLButtonElement>('facility-inspect-button').addEventListener('click', () => {
-  toast('ASTER VALE · Hülle versiegelt · Bergungsschacht um +2 erweitert.');
-});
 required<HTMLButtonElement>('open-shipyard-button').addEventListener('click', () => {
   facilityPanel.hidden = true;
+  selectedFacility = undefined;
   shipyardPanel.hidden = false;
+  updateOutpostChrome();
   renderShipyard();
 });
-required<HTMLButtonElement>('close-shipyard-button').addEventListener('click', () => { shipyardPanel.hidden = true; });
+required<HTMLButtonElement>('close-shipyard-button').addEventListener('click', () => {
+  shipyardPanel.hidden = true;
+  updateOutpostChrome();
+});
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
   button.addEventListener('click', () => {
     const variant = button.dataset.shipSwitch as ShipVariantId;
@@ -405,9 +430,9 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-ship-upgrade]');
   if (!button) return;
   const upgradeId = button.dataset.shipUpgrade as ShipUpgradeId;
-  if (upgradeId === FIRST_FIELD_UPGRADE_ID) {
-    if (purchaseFieldUpgrade(upgradeId)) toast('FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE');
-    else toast('Der Frachtrücken braucht einen aktiven Hangar und 1 Legierung.');
+  if (isFieldUpgrade(upgradeId)) {
+    if (purchaseFieldUpgrade(upgradeId)) toast(upgradeId === FIRST_FIELD_UPGRADE_ID ? 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE' : 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN');
+    else toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
   } else {
     toggleShipTestUpgrade(upgradeId);
   }

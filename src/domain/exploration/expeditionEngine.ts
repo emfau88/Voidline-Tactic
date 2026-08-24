@@ -1,4 +1,4 @@
-import type { Cargo, ExpeditionResult, ExpeditionState, HostileState, ResourceKind, SignalKind, SignalState, Vector2, WeaponMode } from './types';
+import type { Cargo, ExpeditionResult, ExpeditionScenario, ExpeditionState, HostileState, ResourceKind, SignalKind, SignalState, Vector2, WeaponMode } from './types';
 
 const ORIGIN: Vector2 = { x: 2_100, y: 1_500 };
 const WORLD_WIDTH = 4_200;
@@ -14,6 +14,12 @@ const TRAINING_DUMMIES: readonly HostileState[] = [
   { id: 'cinder-escort', name: 'Glut-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 2_510, y: 1_400 }, patrolCenter: { x: 2_510, y: 1_400 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI / 2, hull: 3, maxHull: 3 },
   { id: 'wreck-eater', name: 'Schrott-Attrappe', kind: 'raider', passive: true, status: 'patrol', position: { x: 2_400, y: 1_790 }, patrolCenter: { x: 2_400, y: 1_790 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 6, maxHull: 6 },
 ];
+
+const ASH_REAVER: HostileState = {
+  id: 'ash-reaver', name: 'Aschenplünderer', kind: 'raider', passive: false, status: 'patrol',
+  position: { x: 2_980, y: 1_470 }, patrolCenter: { x: 2_980, y: 1_470 }, patrolRadius: 76,
+  patrolPhase: 0, heading: Math.PI / 2, hull: 4, maxHull: 4, attackCooldownMs: 0,
+};
 
 const SIGNAL_DETAILS: Record<SignalKind, Pick<SignalState, 'name' | 'risk' | 'description'>> = {
   wreck: { name: 'Gebrochene Reliquie', risk: 'low', description: 'Ein kleines Ordenswrack. Die Hülle ist offen, aber stabil.' },
@@ -54,39 +60,78 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
   const respawned = TRAINING_DUMMIES
     .filter((dummy) => respawnedIds.includes(dummy.id))
     .map((dummy) => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } }));
-  const hostiles = [...state.hostiles, ...respawned].map((hostile) => {
+  const attackLogs: string[] = [];
+  let playerHull = state.hull;
+  const hostiles: HostileState[] = [...state.hostiles, ...respawned].map((hostile): HostileState => {
     if (hostile.passive) return hostile;
-    if (hostile.status === 'patrol') {
+    const dx = state.position.x - hostile.position.x;
+    const dy = state.position.y - hostile.position.y;
+    const remaining = Math.hypot(dx, dy);
+    const attackCooldownMs = Math.max(0, (hostile.attackCooldownMs ?? 0) - deltaMs);
+    const alerted = hostile.status === 'alert' || remaining < 420;
+    if (!alerted || remaining > 780) {
       const patrolPhase = hostile.patrolPhase + deltaMs * 0.00034;
       const position = {
         x: hostile.patrolCenter.x + Math.cos(patrolPhase) * hostile.patrolRadius,
         y: hostile.patrolCenter.y + Math.sin(patrolPhase) * hostile.patrolRadius,
       };
-      return { ...hostile, position, patrolPhase, heading: patrolPhase + Math.PI };
+      return { ...hostile, status: 'patrol', position, patrolPhase, heading: patrolPhase + Math.PI, attackCooldownMs };
     }
-    const dx = state.position.x - hostile.position.x;
-    const dy = state.position.y - hostile.position.y;
-    const remaining = Math.hypot(dx, dy);
-    if (remaining < 210) return { ...hostile, heading: Math.atan2(dy, dx) + Math.PI / 2 };
-    const travel = Math.min(remaining - 210, deltaMs * (hostile.kind === 'raider' ? 0.052 : 0.038));
+    if (remaining <= 430 && attackCooldownMs <= 0) {
+      playerHull = Math.max(0, playerHull - 4);
+      attackLogs.push(`${hostile.name} feuert eine kurze Salve. Hülle -4.`);
+      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: 2_900 };
+    }
+    if (remaining < 330) return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs };
+    const travel = Math.min(remaining - 330, deltaMs * (hostile.kind === 'raider' ? 0.052 : 0.038));
     return {
       ...hostile,
+      status: 'alert',
       position: { x: hostile.position.x + dx / remaining * travel, y: hostile.position.y + dy / remaining * travel },
       heading: Math.atan2(dy, dx) + Math.PI / 2,
+      attackCooldownMs,
     };
   });
   return {
     ...state,
     hostiles,
+    hull: playerHull,
     dummyRespawns: nextRespawns.filter((entry) => entry.remainingMs > 0),
-    log: respawned.length > 0 ? [`${respawned.map((dummy) => dummy.name).join(' und ')} erneut signalisiert.`, ...state.log].slice(0, MAX_LOG_ENTRIES) : state.log,
+    log: [...attackLogs, ...(respawned.length > 0 ? [`${respawned.map((dummy) => dummy.name).join(' und ')} erneut signalisiert.`] : []), ...state.log].slice(0, MAX_LOG_ENTRIES),
   };
 }
 
-export function createExpedition(scanBonus = 0, cargoBonus = 0): ExpeditionState {
+function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
+  const firstWreck: SignalState = { id: 'echo-wreck', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Gebrochene Reliquie', classifiedDescription: 'Ein kleines Ordenswrack. Die Hülle ist offen, aber stabil.', position: { x: 2_520, y: 1_230 }, knowledge: 'echo', risk: 'low' };
+  const blackVein: SignalState = { id: 'black-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Schwarze Ader', classifiedDescription: 'Verdichtete Legierungen liegen knapp unter einer ruhigen Staubwolke.', position: { x: 2_520, y: 1_830 }, knowledge: 'echo', risk: 'low' };
+  if (scenario === 'first-wreck') return [firstWreck];
+  if (scenario === 'second-shift') return [
+    { id: 'monk-lantern', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Mönchslaterne', classifiedDescription: 'Ein sanftes Notsignal. Seine kleine Reliquie liegt offen und wirkt sicher.', position: { x: 2_510, y: 1_235 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne wird geborgen. Ein Reliktkern ist gesichert.' } },
+    { id: 'cutting-liturgy', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Schneideliturgie', classifiedDescription: 'Fremde Routinen zeichnen eine Bauanleitung für präzise Abbauausleger. Ihre Nähe zerrt an der Hülle.', position: { x: 1_720, y: 1_240 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 6, text: 'Die Schneideliturgie wird entschlüsselt. Zwei Datensätze für einen Minenlaser sind gesichert. Hülle -6.' } },
+    blackVein,
+  ];
+  if (scenario === 'mining-run') return [
+    blackVein,
+    { id: 'raider-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Versiegelte Plündererkiste', classifiedDescription: 'Eine schwere Kiste mit Daten und Legierungen. Der Aschenplünderer patrouilliert direkt daneben.', position: { x: 2_920, y: 1_540 }, knowledge: 'echo', risk: 'high', guardedBy: 'ash-reaver', reward: { kind: 'alloys', amount: 3, text: 'Die Plündererkiste fällt auf. Drei Legierungen sind als Bonusbeute gesichert.' } },
+  ];
+  return [
+    firstWreck,
+    { id: 'echo-vein', kind: 'vein', name: 'Unbekanntes Echo', position: { x: 3_340, y: 680 }, knowledge: 'echo', risk: 'low' },
+    { id: 'echo-anomaly', kind: 'anomaly', name: 'Unbekanntes Echo', position: { x: 1_180, y: 540 }, knowledge: 'echo', risk: 'high' },
+    { id: 'echo-distress', kind: 'distress', name: 'Unbekanntes Echo', position: { x: 1_360, y: 2_120 }, knowledge: 'echo', risk: 'medium' },
+  ];
+}
+
+function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[] {
+  if (scenario === 'mining-run') return [{ ...ASH_REAVER, position: { ...ASH_REAVER.position }, patrolCenter: { ...ASH_REAVER.patrolCenter } }];
+  return TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } }));
+}
+
+export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free'): ExpeditionState {
   return {
     sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
+    scenario,
     status: 'active',
     position: ORIGIN,
     heading: 0,
@@ -100,13 +145,8 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0): ExpeditionState
     cargo: { alloys: 0, data: 0, relics: 0 },
     cargoCapacity: 6 + cargoBonus,
     scanRadius: 560 + scanBonus,
-    signals: [
-      { id: 'echo-wreck', kind: 'wreck', name: 'Unbekanntes Echo', position: { x: 2_520, y: 1_230 }, knowledge: 'echo', risk: 'low' },
-      { id: 'echo-vein', kind: 'vein', name: 'Unbekanntes Echo', position: { x: 3_340, y: 680 }, knowledge: 'echo', risk: 'low' },
-      { id: 'echo-anomaly', kind: 'anomaly', name: 'Unbekanntes Echo', position: { x: 1_180, y: 540 }, knowledge: 'echo', risk: 'high' },
-      { id: 'echo-distress', kind: 'distress', name: 'Unbekanntes Echo', position: { x: 1_360, y: 2_120 }, knowledge: 'echo', risk: 'medium' },
-    ],
-    hostiles: TRAINING_DUMMIES.map((dummy) => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })),
+    signals: scenarioSignals(scenario),
+    hostiles: scenarioHostiles(scenario),
     dummyRespawns: [],
     log: ['Die Schleuse von Farhaven schließt sich hinter dir.'],
   };
@@ -124,6 +164,7 @@ export function enterWormhole(state: ExpeditionState): ExpeditionState {
     ...state,
     sectorId: 'veloria-rift',
     sectorName: 'Veloria Rift',
+    scenario: 'free',
     position: { x: 2_100, y: 1_500 },
     origin: { x: 2_100, y: 1_500 },
     flightInput: { x: 0, y: 0 },
@@ -229,19 +270,22 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
   const signal = state.signals.find((candidate) => candidate.id === signalId);
   if (!signal || signal.knowledge !== 'classified') return appendLog(state, 'Dieses Signal kann noch nicht untersucht werden.');
   if (distance(state.position, signal.position) > 112) return appendLog(state, 'Für eine Untersuchung musst du näher heranfliegen.');
+  const guard = signal.guardedBy ? state.hostiles.find((hostile) => hostile.id === signal.guardedBy) : undefined;
+  if (guard) return appendLog(state, `${signal.name} ist durch ${guard.name} bewacht. Du kannst umkehren oder den Plünderer vertreiben.`);
   if (cargoTotal(state.cargo) >= state.cargoCapacity) return appendLog(state, 'Der Frachtraum ist voll. Sichere die Fracht in Farhaven.');
 
-  const rewards: Record<SignalKind, { kind: ResourceKind; amount: number; text: string }> = {
+  const rewards: Record<SignalKind, { kind: ResourceKind; amount: number; hullCost?: number; text: string }> = {
     wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
     vein: { kind: 'alloys', amount: 2, text: 'Die Greifer lösen dunkle Legierungen aus der Ader.' },
     anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in verwertbare Sternendaten.' },
     distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
   };
-  const reward = rewards[signal.kind];
+  const reward = signal.reward ?? rewards[signal.kind];
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
   return appendLog({
     ...state,
     signals,
+    hull: Math.max(0, state.hull - (reward.hullCost ?? 0)),
     cargo: addCargo(state.cargo, reward.kind, reward.amount),
   }, reward.text);
 }

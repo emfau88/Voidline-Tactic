@@ -36,6 +36,16 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
 });
 
+test('keeps a Farhaven room focused on one readable mobile decision', async ({ page }) => {
+  await page.getByRole('button', { name: /hangar/i }).click();
+  await expect(page.locator('#outpost-hud')).toBeHidden();
+  await expect(page.locator('#outpost-nav')).toBeHidden();
+  await expect(page.locator('#facility-upgrade-button')).toBeVisible();
+  await expect(page.locator('#open-shipyard-button')).toBeHidden();
+  const compactRoom = await page.locator('#facility-panel').evaluate((panel) => panel.getBoundingClientRect().height <= innerHeight * .62);
+  expect(compactRoom).toBe(true);
+});
+
 test('turns the hangar build into a visible Farhaven moment', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
@@ -46,31 +56,34 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   })));
   await page.reload();
   await page.getByRole('button', { name: /hangar/i }).click();
-  await expect(page.locator('#facility-stage-badge')).toHaveText('BAUPLATZ · VORBEREITET');
+  await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 LEGIERUNGEN');
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
-  await expect(page.locator('#facility-stage-badge')).toHaveText('HANGARDECK · ONLINE');
-  await expect(page.getByRole('button', { name: /ASTER VALE ANSEHEN/ })).toBeVisible();
+  await expect(page.locator('#facility-level')).toHaveText('ONLINE · +2 Frachtraum in jeder Expedition');
+  await expect(page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ })).toBeVisible();
 });
 
 test('uses the test shipyard to persist visible modules', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
-    resources: { alloys: 1, data: 1, relics: 0 },
+    resources: { alloys: 1, data: 2, relics: 1 },
     facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
     expeditionCount: 2,
     ship: { variant: 'bramble', upgrades: [] },
   })));
   await page.reload();
   await page.getByRole('button', { name: /hangar/i }).click();
-  await page.getByRole('button', { name: /TESTWERFT ÖFFNEN/ }).click();
-  await expect(page.getByRole('heading', { name: 'TESTWERFT' })).toBeVisible();
+  await page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ }).click();
+  await expect(page.getByRole('heading', { name: 'WERKSTATT' })).toBeVisible();
   await page.getByRole('button', { name: 'ASTER VALE' }).click();
   await expect(page.locator('#shipyard-ship-name')).toHaveText('ASTER VALE');
+  await page.getByText('RUMPFIDEEN ANSEHEN').click();
   await page.getByRole('button', { name: /Breitbandarray/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="broadband-array"]')).toBeVisible();
   await page.getByRole('button', { name: /Frachtrücken/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="cargo-spine"]')).toBeVisible();
+  await page.getByRole('button', { name: /Minenlaser/ }).click();
+  await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toBeVisible();
 });
 
 test('scans a sector, classifies a signal and keeps the mobile HUD readable', async ({ page }) => {
