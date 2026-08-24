@@ -8,6 +8,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 #### Added
 
+- geschlossener erster Spielbogen: Rumpfwahl → erstes Wrack → sichtbare Frachtübergabe → Hangar → erspielbarer Frachtrücken
+- bestätigter TEST-Reset für den vollständigen lokalen Entwicklerstand
 - freiwilliges Xenogate mit ruhiger Loop-Animation und eigener Veloria-Rift-Kartensonde mit drei fremden Signalen
 - neuer aktiver Singleplayer-Loop: Außenposten → Expedition → Rückkehr → Ausbau
 - Farhaven-Save v2 mit getrenntem Storage-Key
@@ -20,6 +22,9 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 #### Changed
 
+- Fliegen und Kurssetzen verbrauchen keine Energie mehr; Systemladung regeneriert sich zügig und begrenzt nur aktive Systeme
+- Aster Vale erhält beim Start zusätzliche Scanreichweite, Bramble einen zusätzlichen Frachtslot
+- Schiffswerkstatt trennt den ersten echten, kostenpflichtigen Frachtrücken klar von den übrigen Komponenten-Prototypen
 - sichtbarer Produktname von `Voidline Tactics` zu `Voidline: Farhaven`
 - aktiver Runtime-Pfad von Fleet Corridors zu Farhaven umgestellt
 - frühere Fleet-Corridors-Version lokal als `fleet-corridors-poc-2026-08-24` getaggt

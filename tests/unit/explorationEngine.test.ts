@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
 
 describe('exploration engine', () => {
-  it('classifies nearby echoes while spending scan energy', () => {
+  it('classifies nearby echoes while consuming rechargeable system charge', () => {
     const start = createExpedition();
     const scanned = scan(start);
     expect(scanned.energy).toBe(92);
@@ -28,6 +28,7 @@ describe('exploration engine', () => {
     expect(moved.position.y).toBe(start.position.y);
     expect(moved.heading).toBeCloseTo(Math.PI / 2);
     expect(moved.course).toBeUndefined();
+    expect(moved.energy).toBe(start.energy);
   });
 
   it('secures a classified wreck only when the ship is nearby', () => {
@@ -36,7 +37,7 @@ describe('exploration engine', () => {
     expect(tooFar.cargo.alloys).toBe(0);
     const nearWreck = { ...scanned, position: { x: 2_520, y: 1_230 } };
     const salvaged = investigate(nearWreck, 'echo-wreck');
-    expect(salvaged.cargo.alloys).toBe(2);
+    expect(salvaged.cargo.alloys).toBe(3);
     expect(salvaged.signals.find((signal) => signal.id === 'echo-wreck')?.knowledge).toBe('resolved');
   });
 
@@ -45,6 +46,14 @@ describe('exploration engine', () => {
     const returning = returnToFarhaven(outbound);
     expect(returning.status).toBe('returning');
     expect(returning.course).toEqual(returning.origin);
+  });
+
+  it('restores system charge while travelling instead of spending fuel', () => {
+    const drained = { ...createExpedition(), energy: 50 };
+    const travelling = setCourse(drained, { x: 2_520, y: 1_230 });
+    const advanced = stepExpedition(travelling, 1_000);
+    expect(advanced.energy).toBeGreaterThan(drained.energy);
+    expect(advanced.energy).toBeLessThanOrEqual(advanced.maxEnergy);
   });
 
   it('enters the optional alien-realm map only at the Xenogate', () => {

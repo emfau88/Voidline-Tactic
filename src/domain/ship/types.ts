@@ -36,6 +36,12 @@ export interface ShipUpgradeDefinition {
   readonly accent: string;
 }
 
+export const FIRST_FIELD_UPGRADE_ID = 'cargo-spine' as const satisfies ShipUpgradeId;
+
+export const FIELD_UPGRADE_COSTS: Readonly<Partial<Record<ShipUpgradeId, Readonly<Partial<Record<'alloys' | 'data' | 'relics', number>>>>>> = {
+  [FIRST_FIELD_UPGRADE_ID]: { alloys: 1 },
+};
+
 export const SHIP_VARIANTS: Record<ShipVariantId, ShipVariantDefinition> = {
   'aster-vale': {
     id: 'aster-vale', name: 'Aster Vale', subtitle: 'Erkundungskutter',
@@ -51,7 +57,7 @@ export const SHIP_VARIANTS: Record<ShipVariantId, ShipVariantDefinition> = {
 
 export const SHIP_UPGRADES: readonly ShipUpgradeDefinition[] = [
   { id: 'broadband-array', name: 'Breitbandarray', shortName: 'ARRAY', description: 'Cyanfarbene Sensorzinken am Rücken.', slot: 'dorsal', accent: '#7ee8f3' },
-  { id: 'cargo-spine', name: 'Frachtrücken', shortName: 'FRACHT', description: 'Ein breiter, warmer Container am Rumpf.', slot: 'dorsal', accent: '#d6a45e' },
+  { id: 'cargo-spine', name: 'Frachtrücken', shortName: 'FRACHT', description: 'Ein echter Hangar-Einbau: +2 Frachtraum auf jeder Expedition.', slot: 'dorsal', accent: '#d6a45e' },
   { id: 'vector-tail', name: 'Vector-Heck', shortName: 'VECTOR', description: 'Zusätzliche violette Schubdüsen.', slot: 'stern', accent: '#ba86ef' },
   { id: 'aegis-crown', name: 'Aegis-Kranz', shortName: 'AEGIS', description: 'Ein sanft leuchtender Schutzkranz.', slot: 'core', accent: '#77dbe9' },
   { id: 'rail-lance', name: 'Rail-Lanze', shortName: 'LANZE', description: 'Eine lange präzise Schienenwaffe.', slot: 'nose', accent: '#f1d08a' },

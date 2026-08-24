@@ -21,6 +21,12 @@ test('asks a new player to select a starting hull', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'FARHAVEN' })).toBeVisible();
 });
 
+test('offers a confirmed developer reset back to the ship choice', async ({ page }) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Entwicklerstand zurücksetzen' }).click();
+  await expect(page.getByRole('heading', { name: /WELCHES SCHIFF/ })).toBeVisible();
+});
+
 test('presents the Farhaven outpost and a compact launch flow', async ({ page }) => {
   await expect(page.getByText('EXPEDITION STARTEN')).toBeVisible();
   await page.getByRole('button', { name: /hangar/i }).click();
@@ -50,7 +56,7 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
 test('uses the test shipyard to persist visible modules', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
-    resources: { alloys: 0, data: 1, relics: 0 },
+    resources: { alloys: 1, data: 1, relics: 0 },
     facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
     expeditionCount: 2,
     ship: { variant: 'bramble', upgrades: [] },
@@ -63,6 +69,8 @@ test('uses the test shipyard to persist visible modules', async ({ page }) => {
   await expect(page.locator('#shipyard-ship-name')).toHaveText('ASTER VALE');
   await page.getByRole('button', { name: /Breitbandarray/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="broadband-array"]')).toBeVisible();
+  await page.getByRole('button', { name: /Frachtrücken/ }).click();
+  await expect(page.locator('#shipyard-preview img[data-upgrade="cargo-spine"]')).toBeVisible();
 });
 
 test('scans a sector, classifies a signal and keeps the mobile HUD readable', async ({ page }) => {

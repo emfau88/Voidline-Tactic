@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { canUpgrade, secureCargo, upgradeFacility } from '../../src/domain/outpost/outpostEngine';
+import { canPurchaseShipUpgrade, canUpgrade, purchaseShipUpgrade, secureCargo, upgradeFacility } from '../../src/domain/outpost/outpostEngine';
 import { DEFAULT_PROFILE } from '../../src/domain/outpost/types';
+import { FIRST_FIELD_UPGRADE_ID, newShip } from '../../src/domain/ship/types';
 
 describe('outpost progression', () => {
   it('secures expedition cargo before it can fund an upgrade', () => {
@@ -16,5 +17,16 @@ describe('outpost progression', () => {
     const funded = secureCargo(DEFAULT_PROFILE, { alloys: 2, data: 0, relics: 0 });
     const upgraded = upgradeFacility(funded, 'hangar');
     expect(upgradeFacility(upgraded, 'hangar')).toEqual(upgraded);
+  });
+
+  it('closes the first loop: salvage funds the hangar and the first real ship part', () => {
+    const withShip = { ...DEFAULT_PROFILE, ship: newShip('aster-vale') };
+    const secured = secureCargo(withShip, { alloys: 3, data: 0, relics: 0 });
+    const hangar = upgradeFacility(secured, 'hangar');
+    expect(hangar.resources.alloys).toBe(1);
+    expect(canPurchaseShipUpgrade(hangar, FIRST_FIELD_UPGRADE_ID)).toBe(true);
+    const upgraded = purchaseShipUpgrade(hangar, FIRST_FIELD_UPGRADE_ID);
+    expect(upgraded.resources.alloys).toBe(0);
+    expect(upgraded.ship?.upgrades).toContain(FIRST_FIELD_UPGRADE_ID);
   });
 });

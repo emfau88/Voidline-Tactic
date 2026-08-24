@@ -5,6 +5,7 @@ const WORLD_WIDTH = 4_200;
 const WORLD_HEIGHT = 2_600;
 const MAX_LOG_ENTRIES = 4;
 const DUMMY_RESPAWN_MS = 2_700;
+const SYSTEM_RECHARGE_PER_MS = 0.012;
 export const WORMHOLE_POSITION: Vector2 = { x: 1_360, y: 1_320 };
 const WORMHOLE_ENTRY_RANGE = 170;
 
@@ -35,6 +36,11 @@ function cargoTotal(cargo: Cargo): number {
 
 function appendLog(state: ExpeditionState, entry: string): ExpeditionState {
   return { ...state, log: [entry, ...state.log].slice(0, MAX_LOG_ENTRIES) };
+}
+
+function rechargeSystems(state: ExpeditionState, deltaMs: number): ExpeditionState {
+  if (deltaMs <= 0 || state.energy >= state.maxEnergy) return state;
+  return { ...state, energy: Math.min(state.maxEnergy, state.energy + deltaMs * SYSTEM_RECHARGE_PER_MS) };
 }
 
 function forwardVector(heading: number): Vector2 {
@@ -159,18 +165,17 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
       x: Math.max(55, Math.min(WORLD_WIDTH - 55, state.position.x + velocity.x * deltaMs)),
       y: Math.max(55, Math.min(WORLD_HEIGHT - 55, state.position.y + velocity.y * deltaMs)),
     };
-    return advanceHostiles({
+    return advanceHostiles(rechargeSystems({
       ...state,
       position,
       velocity,
       heading: Math.atan2(velocity.y, velocity.x) + Math.PI / 2,
-      energy: Math.max(0, state.energy - Math.hypot(velocity.x, velocity.y) * deltaMs * 0.013),
-    }, deltaMs);
+    }, deltaMs), deltaMs);
   }
   if (state.status === 'active' && Math.hypot(state.velocity.x, state.velocity.y) > 0.001) {
     const drag = Math.pow(0.9975, deltaMs);
     const velocity = { x: state.velocity.x * drag, y: state.velocity.y * drag };
-    return advanceHostiles({
+    return advanceHostiles(rechargeSystems({
       ...state,
       velocity,
       position: {
@@ -178,15 +183,15 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
         y: Math.max(55, Math.min(WORLD_HEIGHT - 55, state.position.y + velocity.y * deltaMs)),
       },
       heading: Math.atan2(velocity.y, velocity.x) + Math.PI / 2,
-    }, deltaMs);
+    }, deltaMs), deltaMs);
   }
   const target = state.status === 'returning' ? state.origin : state.course;
-  if (!target || deltaMs <= 0) return advanceHostiles(state, deltaMs);
+  if (!target || deltaMs <= 0) return advanceHostiles(rechargeSystems(state, deltaMs), deltaMs);
   const remaining = distance(state.position, target);
   if (remaining < 3) {
-    return advanceHostiles(state.status === 'returning'
+    return advanceHostiles(rechargeSystems(state.status === 'returning'
       ? { ...state, position: target, course: undefined }
-      : { ...state, position: target, course: undefined }, deltaMs);
+      : { ...state, position: target, course: undefined }, deltaMs), deltaMs);
   }
   const travel = Math.min(remaining, deltaMs * 0.085);
   const ratio = travel / remaining;
@@ -194,18 +199,16 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
     x: state.position.x + (target.x - state.position.x) * ratio,
     y: state.position.y + (target.y - state.position.y) * ratio,
   };
-  const energyCost = travel * 0.018;
-  return advanceHostiles({
+  return advanceHostiles(rechargeSystems({
     ...state,
     position: nextPosition,
     velocity: { x: 0, y: 0 },
-    energy: Math.max(0, state.energy - energyCost),
     course: remaining - travel < 3 ? undefined : state.course,
-  }, deltaMs);
+  }, deltaMs), deltaMs);
 }
 
 export function scan(state: ExpeditionState): ExpeditionState {
-  if (state.status !== 'active' || state.energy < 8) return appendLog(state, 'Scanner nicht bereit: mindestens 8 Energie erforderlich.');
+  if (state.status !== 'active' || state.energy < 8) return appendLog(state, 'Scanner nicht bereit: mindestens 8 Systemladung erforderlich.');
   let found = 0;
   const signals = state.signals.map((signal) => {
     if (signal.knowledge !== 'echo' || distance(signal.position, state.position) > state.scanRadius) return signal;
@@ -228,18 +231,17 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
   if (distance(state.position, signal.position) > 112) return appendLog(state, 'Für eine Untersuchung musst du näher heranfliegen.');
   if (cargoTotal(state.cargo) >= state.cargoCapacity) return appendLog(state, 'Der Frachtraum ist voll. Sichere die Fracht in Farhaven.');
 
-  const rewards: Record<SignalKind, { kind: ResourceKind; amount: number; energy: number; text: string }> = {
-    wreck: { kind: 'alloys', amount: 2, energy: 6, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
-    vein: { kind: 'alloys', amount: 2, energy: 5, text: 'Die Greifer lösen dunkle Legierungen aus der Ader.' },
-    anomaly: { kind: 'data', amount: 2, energy: 14, text: 'Die Liturgie zerfällt in verwertbare Sternendaten. Die Systeme zittern.' },
-    distress: { kind: 'relics', amount: 1, energy: 10, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
+  const rewards: Record<SignalKind, { kind: ResourceKind; amount: number; text: string }> = {
+    wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
+    vein: { kind: 'alloys', amount: 2, text: 'Die Greifer lösen dunkle Legierungen aus der Ader.' },
+    anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in verwertbare Sternendaten.' },
+    distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
   };
   const reward = rewards[signal.kind];
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
   return appendLog({
     ...state,
     signals,
-    energy: Math.max(0, state.energy - reward.energy),
     cargo: addCargo(state.cargo, reward.kind, reward.amount),
   }, reward.text);
 }
@@ -248,7 +250,7 @@ export function mineVein(state: ExpeditionState, signalId: string): ExpeditionSt
   const signal = state.signals.find((candidate) => candidate.id === signalId);
   if (!signal || signal.kind !== 'vein' || signal.knowledge !== 'classified') return appendLog(state, 'Diese Ader kann nicht abgebaut werden.');
   if (distance(state.position, signal.position) > 128) return appendLog(state, 'Für den Abbau musst du näher an die Ader heranfliegen.');
-  if (state.energy < 10) return appendLog(state, 'Minenlaser nicht bereit: mindestens 10 Energie erforderlich.');
+  if (state.energy < 10) return appendLog(state, 'Minenlaser nicht bereit: mindestens 10 Systemladung erforderlich.');
   if (cargoTotal(state.cargo) + 3 > state.cargoCapacity) return appendLog(state, 'Zu wenig Frachtraum für die geborgenen Legierungen.');
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
   return appendLog({
@@ -283,7 +285,7 @@ export function weaponReadiness(state: ExpeditionState, targetId: string | undef
   const rules = WEAPON_RULES[weapon];
   const targetDistance = distance(target.position, state.position);
   if (targetDistance > rules.range) return { ready: false, reason: `Außer Reichweite · ${Math.round(targetDistance)}u` };
-  if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Energie · ${rules.energy} nötig` };
+  if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Systemladung · ${rules.energy} nötig` };
   const forward = forwardVector(state.heading);
   const toTarget = { x: (target.position.x - state.position.x) / targetDistance, y: (target.position.y - state.position.y) / targetDistance };
   const forwardDot = forward.x * toTarget.x + forward.y * toTarget.y;

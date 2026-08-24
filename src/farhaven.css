@@ -30,6 +30,8 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .topbar small { color: #8cd7eb; font-size: clamp(8px, 1.2vw, 11px); font-weight: 800; letter-spacing: .17em; }
 .topbar strong { color: #f6e5c0; font-family: Georgia, serif; font-size: clamp(16px, 2.7vw, 27px); letter-spacing: .08em; line-height: .9; }
 #fullscreen-button { width: 42px; height: 42px; border: 1px solid rgb(112 206 235 / 42%); border-radius: 50%; background: rgb(4 14 24 / 78%); color: #bdefff; font-size: 20px; }
+#reset-button { display: inline-flex; align-items: center; gap: 3px; min-height: 33px; margin-left: 2px; padding: 5px 8px; border: 1px solid rgb(198 149 104 / 37%); border-radius: 10px; background: rgb(35 23 18 / 70%); color: #e3ba8d; font-size: 14px; }
+#reset-button span { font-size: 7px; font-weight: 800; letter-spacing: .09em; }
 #resource-strip { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .resource { display: grid; min-width: 62px; padding: 5px 9px; border: 1px solid rgb(150 188 200 / 20%); border-radius: 12px; background: rgb(4 12 21 / 76%); color: #aebfca; font-size: 7px; font-weight: 800; letter-spacing: .08em; text-align: center; }
 .resource b { margin-top: 1px; color: #f4db9b; font-size: 13px; }
@@ -50,6 +52,10 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .primary-button span { color: #9edff1; font-size: 8px; font-weight: 800; letter-spacing: .14em; }
 .primary-button strong { margin-top: 2px; font-family: Georgia, serif; font-size: 20px; letter-spacing: .04em; }
 .primary-button small { margin-top: 3px; color: #b2c6ce; font-size: 9px; }
+#objective-tracker { position: fixed; z-index: 12; top: max(60px, calc(env(safe-area-inset-top) + 51px)); left: 50%; width: min(410px, calc(100vw - 38px)); padding: 7px 12px; border: 1px solid rgb(144 211 231 / 24%); border-radius: 13px; background: rgb(5 17 28 / 70%); box-shadow: 0 8px 30px rgb(0 0 0 / 24%); color: #e6eef0; text-align: center; transform: translateX(-50%); backdrop-filter: blur(9px); pointer-events: none; }
+#objective-tracker small { display: block; color: #91ddea; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
+#objective-tracker strong { display: block; margin-top: 2px; color: #f0deba; font-family: Georgia, serif; font-size: 15px; letter-spacing: .04em; }
+#objective-tracker p { margin: 2px 0 0; color: #b8cbd0; font-size: 8px; line-height: 1.25; }
 #outpost-nav { position: fixed; z-index: 11; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; width: min(410px, calc(100vw - 32px)); }
 #outpost-nav button { display: grid; min-height: 60px; place-items: center; gap: 3px; border: 1px solid rgb(122 207 235 / 38%); border-radius: 13px; background: rgb(5 15 25 / 82%); color: #93ddee; font-size: 19px; backdrop-filter: blur(9px); }
 #outpost-nav span { color: #e3edf0; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
@@ -74,6 +80,11 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #construction-moment i { width: 54px; height: 4px; border-radius: 99px; background: #4f7484; animation: construction-pulse 1s ease-in-out infinite; }
 #construction-moment i:nth-child(2) { animation-delay: .15s; } #construction-moment i:nth-child(3) { animation-delay: .3s; }
 #construction-moment.complete i { background: #f1ca7c; animation: none; }
+#return-moment { position: fixed; z-index: 46; top: 50%; left: 50%; width: min(400px, calc(100vw - 42px)); padding: 22px 24px; border: 1px solid rgb(127 215 203 / 66%); border-radius: 20px; background: radial-gradient(circle at 50% 0%, rgb(28 86 78 / 95%), rgb(6 18 27 / 98%) 70%); box-shadow: 0 24px 90px rgb(0 0 0 / 65%), inset 0 0 24px rgb(126 231 202 / 14%); color: #e3f9ef; text-align: center; transform: translate(-50%, -50%); animation: construction-arrive .28s ease-out; }
+#return-moment small { color: #8be0d0; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
+#return-moment strong { display: block; margin-top: 8px; color: #f5e1ba; font-family: Georgia, serif; font-size: clamp(21px, 3.2vw, 29px); letter-spacing: .04em; }
+#return-moment p { margin: 8px 0 15px; color: #c9d9d5; font-size: 11px; line-height: 1.4; }
+#return-moment button { min-height: 38px; padding: 6px 16px; border: 1px solid rgb(144 226 213 / 63%); border-radius: 10px; background: rgb(9 46 48 / 88%); color: #d9fff5; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 @keyframes construction-arrive { from { opacity: 0; transform: translate(-50%, -46%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @keyframes construction-pulse { 50% { background: #eec87e; box-shadow: 0 0 12px rgb(239 200 126 / 60%); } }
 #open-shipyard-button { width: 100%; min-height: 44px; margin: -2px 0 10px; border: 1px solid rgb(204 166 238 / 58%); border-radius: 11px; background: linear-gradient(110deg, rgb(39 27 57 / 88%), rgb(10 28 40 / 88%)); color: #e5cffa; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
@@ -170,6 +181,9 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #expedition-hud .meter-grid label { grid-template-columns: 39px 1fr 34px; font-size: 6px; }
 #expedition-hud #signal-list { display: none; }
 #expedition-hud .expedition-log { display: inline; margin-left: 8px; color: #c7d6d8; font-size: 7px; }
+#game-shell[data-screen='expedition'] #objective-tracker { top: max(104px, calc(env(safe-area-inset-top) + 96px)); width: min(360px, calc(100vw - 220px)); padding: 4px 9px; opacity: .92; }
+#game-shell[data-screen='expedition'] #objective-tracker strong { font-size: 12px; }
+#game-shell[data-screen='expedition'] #objective-tracker p { font-size: 7px; }
 #expedition-actions { position: fixed; z-index: 14; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 66px); gap: 7px; width: auto; }
 #expedition-actions button { min-height: 54px; border-radius: 13px; background: rgb(7 25 37 / 88%); }
 #expedition-actions #fire-button { border-color: rgb(237 157 111 / 62%); color: #ffd2a9; }
@@ -188,6 +202,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
   #expedition-hud { top: 48px; width: min(390px, calc(100vw - 190px)); padding: 5px 8px; }
   #expedition-hud .expedition-top strong { font-size: 12px; }
   #expedition-hud .meter-grid { width: 190px; }
+  #game-shell[data-screen='expedition'] #objective-tracker { top: 88px; width: min(310px, calc(100vw - 190px)); }
   #expedition-actions { right: 10px; bottom: 10px; grid-template-columns: repeat(2, 52px); gap: 5px; }
   #expedition-actions button { min-height: 44px; padding: 3px; }
   #combat-prompt { bottom: 10px; min-width: 224px; border-radius: 12px; } #combat-prompt > div { min-width: 118px; padding: 6px 8px; } #combat-prompt strong { font-size: 11px; } #combat-prompt-fire { min-width: 92px; padding: 5px 8px; }

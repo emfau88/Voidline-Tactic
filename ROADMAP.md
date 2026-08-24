@@ -29,6 +29,9 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - ✅ Hangar- und Scanner-Ausbau verändern Folgeexpeditionen
 - ✅ einmalige Startwahl zwischen Erkundungskutter und Bergungsschlepper
 - ✅ Hangar-Testwerft mit zehn dauerhaft sichtbaren Komponenten-Prototypen
+- ✅ erster geschlossener Prolog: Wrack scannen und bergen → Fracht sichern → Hangar → echter Frachtrücken
+- ✅ Flug ohne Reichweiten-/Treibstoffdruck; regenerierende Systemladung nur für aktive Systeme
+- ✅ bestätigter lokaler Entwickler-Reset zurück zur Rumpfwahl
 - ⏳ mehrteilige Signalentscheidungen und reproduzierbare Sektor-Seeds
 - ⏳ Unit-Tests für Scan, Cargo, Rückkehr und Save-Validierung
 

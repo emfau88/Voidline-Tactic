@@ -44,3 +44,7 @@ export function loadProfile(): FarhavenProfile {
 export function saveProfile(profile: FarhavenProfile): void {
   if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 }
+
+export function clearProfile(): void {
+  if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
+}

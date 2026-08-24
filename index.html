@@ -40,8 +40,12 @@
         <header class="topbar">
           <div><small>VOIDLINE</small><strong>FARHAVEN</strong></div>
           <div id="resource-strip" aria-label="Gesicherte Ressourcen"></div>
+          <button id="reset-button" type="button" title="Entwicklerstand zurücksetzen" aria-label="Entwicklerstand zurücksetzen">↻<span>TEST</span></button>
           <button id="fullscreen-button" type="button" aria-label="Vollbild umschalten">⛶</button>
         </header>
+        <section id="objective-tracker" aria-live="polite">
+          <small id="objective-kicker"></small><strong id="objective-title"></strong><p id="objective-copy"></p>
+        </section>
 
         <section id="outpost-hud" class="screen-panel" aria-labelledby="outpost-title">
           <div class="outpost-copy">
@@ -105,7 +109,7 @@
             <div id="expedition-status">AUF ERKUNDUNG</div>
           </div>
           <div class="meter-grid">
-            <label>ENERGIE <b id="energy-value">100 / 100</b><span><i id="energy-bar"></i></span></label>
+            <label>SYSTEME <b id="energy-value">100 / 100</b><span><i id="energy-bar"></i></span></label>
             <label>HÜLLE <b id="hull-value">100 / 100</b><span><i id="hull-bar"></i></span></label>
             <label>FRACHT <b id="cargo-value">0 / 6</b><span><i id="cargo-bar"></i></span></label>
           </div>
@@ -113,15 +117,19 @@
           <div id="expedition-log" class="expedition-log" aria-live="polite"></div>
         </section>
         <div id="expedition-actions" class="expedition-actions" hidden aria-label="Expeditionsaktionen">
-          <button id="scan-button" type="button">⌁<span>SCANNEN</span><small>8 Energie</small></button>
+          <button id="scan-button" type="button">⌁<span>SCANNEN</span><small>8 Systeme</small></button>
           <button id="interact-button" type="button">✦<span>INTERAGIEREN</span><small>Signal bergen</small></button>
-          <button id="fire-button" type="button">✹<span>FEUER</span><small>4 Energie</small></button>
+          <button id="fire-button" type="button">✹<span>FEUER</span><small>4 Systeme</small></button>
           <button id="ordnance-button" type="button">◉<span>ORDNANZ</span><small>Kein System</small></button>
           <button id="return-button" type="button">⌂<span>RÜCKKEHR</span><small>Fracht sichern</small></button>
         </div>
         <section id="combat-prompt" hidden aria-live="polite" aria-label="Aktiver Feuerbefehl">
           <div><small id="combat-prompt-kicker">ZIEL ERFASST</small><strong id="combat-prompt-target">KEIN KONTAKT</strong></div>
           <button id="combat-prompt-fire" type="button"><span>✹</span><b>SALVE</b><small>Feuer frei</small></button>
+        </section>
+        <section id="return-moment" hidden aria-live="polite" aria-label="Fracht in Farhaven gesichert">
+          <small>FARHAVEN · ANKUNFT</small><strong id="return-title"></strong><p id="return-copy"></p>
+          <button id="close-return-moment" type="button">WEITER</button>
         </section>
         <section id="flight-control" hidden aria-label="Flugsteuerung">
           <div id="flight-stick" aria-label="Schiff steuern"><i></i><span>FLIEGEN</span></div>

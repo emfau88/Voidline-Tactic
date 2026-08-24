@@ -7,7 +7,7 @@ Mobile-first 2D-Space-Explorer im Browser: Mit einem eigenen Schiff erkundest du
 ## Aktueller spielbarer Kern
 
 ```text
-Farhaven → Aschsaum I → Scannen → Anfliegen → Untersuchen → Rückkehr → Ausbau
+Rumpfwahl → Aschsaum I → Scannen → Bergen → Rückkehr → Hangar → Frachtrücken
                            └→ Xenogate → Veloria Rift (Kartensonde)
 ```
 
@@ -17,15 +17,17 @@ Der aktuelle spielbare Prototyp enthält:
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
 - ein sichtbares, sanft pulsierendes Xenogate: freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
+- ein geführter erster Loop: nahes Wrack scannen, drei Legierungen bergen, Fracht sichtbar sichern, Hangar errichten und den ersten echten Frachtrücken kaufen
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
 - drei passive Übungsdummies für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
 - einen modularen Außenposten mit Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
 - drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
-- eine Schiffswahl und Testwerft mit zehn sichtbaren Upgrade-Modulen
+- eine Schiffswahl mit kleinen Startvorteilen sowie eine Werkstatt: Frachtrücken ist der erste erspielbare Einbau, weitere Komponenten bleiben klar als Prototypen markiert
 - persistente Ausbauten und Schiffsdaten über `localStorage` mit dem Save-Key `voidline-farhaven-save-v2`
+- einen bestätigten **TEST**-Reset in der Kopfzeile, der den lokalen Entwicklerstand vollständig auf die Rumpfwahl zurücksetzt
 - Touch-freundliche Querformat-PWA und taktische Pause
 
-Exploration ist bewusst der Kern; Kampf ist derzeit ein optionaler, risikofreier Testbereich und kein Dauercombat-Loop. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
+Exploration ist bewusst der Kern; Kampf ist derzeit ein optionaler, risikofreier Testbereich und kein Dauercombat-Loop. Flug kostet keine Energie: die sich schnell regenerierende **Systemladung** ist ausschließlich eine weiche Begrenzung für Scanner, Minenlaser und Waffen. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
 
 ## Entwicklungsstand
 

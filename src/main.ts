@@ -1,10 +1,10 @@
 import './farhaven.css';
 import { createGame } from './app/createGame';
-import { beginExpedition, changeShipVariantForTest, chooseStartingShip, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getSelectedTargetId, improveFacility, investigateSignal, mineVeinSignal, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
+import { beginExpedition, canPurchaseFieldUpgrade, changeShipVariantForTest, chooseStartingShip, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
 import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
-import type { WeaponMode } from './domain/exploration/types';
+import type { Cargo, WeaponMode } from './domain/exploration/types';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
-import { SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
+import { FIRST_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
 
 const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
   'broadband-array': '/assets/ships/aster-vale/broadband-array-v1.png',
@@ -30,6 +30,7 @@ let paused = false;
 let toastTimer: number | undefined;
 let selectedFacility: FacilityId | undefined;
 let constructionTimer: number | undefined;
+let resettingForDevelopment = false;
 
 function required<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -70,6 +71,13 @@ function renderResources(): void {
   const resources = getProfile().resources;
   required<HTMLElement>('resource-strip').innerHTML = [['LEG', resources.alloys], ['DAT', resources.data], ['REL', resources.relics]]
     .map(([label, value]) => `<span class="resource">${label}<b>${value}</b></span>`).join('');
+}
+
+function renderObjective(): void {
+  const objective = getPrologueObjective();
+  required<HTMLElement>('objective-kicker').textContent = objective.kicker;
+  required<HTMLElement>('objective-title').textContent = objective.title;
+  required<HTMLElement>('objective-copy').textContent = objective.copy;
 }
 
 function upgradeCost(facilityId: FacilityId): string {
@@ -113,7 +121,9 @@ function renderFacilityPanel(): void {
   const discovery = required<HTMLElement>('facility-discovery');
   discovery.hidden = !isHangar;
   discovery.textContent = level
-    ? 'ENTDECKT · Zwei Wartungsdrohnen halten den Dockring warm. Tippe „ASTER VALE ANSEHEN“, um ihren Zustand zu prüfen.'
+    ? getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
+      ? 'ENTDECKT · Der Frachtrücken sitzt fest am Rumpf. Zwei Wartungsdrohnen halten den Dockring warm.'
+      : 'WERKSTATT BEREIT · Ein Frachtrücken kann hier mit einer verbleibenden Legierung eingebaut werden.'
     : 'VORBEREITET · Die Schleuse kennt bereits die Signatur der Aster Vale. Nur die Legierungen fehlen noch.';
   const inspect = required<HTMLButtonElement>('facility-inspect-button');
   inspect.hidden = !isHangar || !level;
@@ -146,7 +156,15 @@ function renderShipyard(): void {
   }).join('');
   required<HTMLElement>('shipyard-module-list').innerHTML = SHIP_UPGRADES.map((upgrade) => {
     const active = ship.upgrades.includes(upgrade.id);
-    return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"><span>${upgrade.shortName}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></button>`;
+    const isFieldUpgrade = upgrade.id === FIRST_FIELD_UPGRADE_ID;
+    const available = isFieldUpgrade && canPurchaseFieldUpgrade(upgrade.id);
+    const status = active
+      ? 'ECHTER EINBAU · ONLINE'
+      : isFieldUpgrade
+        ? available ? '1 LEGIERUNG · EINBAUEN' : 'HANGAR + 1 LEGIERUNG NÖTIG'
+        : 'KOSTENLOSER PROTOTYP';
+    const disabled = isFieldUpgrade && !available;
+    return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></button>`;
   }).join('');
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
     const active = button.dataset.shipSwitch === ship.variant;
@@ -180,6 +198,24 @@ function playConstructionMoment(facilityId: FacilityId): void {
   window.setTimeout(() => { moment.hidden = true; }, 2100);
 }
 
+function formatCargo(cargo: Cargo): string {
+  return [
+    cargo.alloys ? `+${cargo.alloys} Legierungen` : '',
+    cargo.data ? `+${cargo.data} Daten` : '',
+    cargo.relics ? `+${cargo.relics} Relikte` : '',
+  ].filter(Boolean).join(' · ');
+}
+
+function playReturnMoment(cargo: Cargo): void {
+  const total = cargo.alloys + cargo.data + cargo.relics;
+  if (!total) { toast('Farhaven empfängt dich. Keine Fracht im Laderaum.'); return; }
+  const hangarCost = FACILITIES.hangar.cost.alloys ?? Number.POSITIVE_INFINITY;
+  const hangarReady = !getProfile().facilities.hangar && getProfile().resources.alloys >= hangarCost;
+  required<HTMLElement>('return-title').textContent = 'FRACHT GESICHERT';
+  required<HTMLElement>('return-copy').textContent = `${formatCargo(cargo)} wurden in Farhaven verladen. ${hangarReady ? 'Die Legierungen reichen jetzt für den Hangar – öffne den Dockbereich rechts.' : 'Die Dockkrallen lösen sich. Farhaven wächst mit jedem Fund.'}`;
+  required<HTMLElement>('return-moment').hidden = false;
+}
+
 function renderOutpost(): void {
   required<HTMLElement>('expedition-count').textContent = String(getProfile().expeditionCount);
   renderFacilityPanel();
@@ -211,7 +247,7 @@ function renderExpedition(): void {
     interact.disabled = false;
   } else if (nearby?.kind === 'vein') {
     interactLabel.textContent = 'ABBAUEN';
-    interact.querySelector('small')!.textContent = hasMiningLasers ? 'Minenlaser · 10 Energie' : 'Minenlaser fehlt';
+    interact.querySelector('small')!.textContent = hasMiningLasers ? 'Minenlaser · 10 Systeme' : 'Minenlaser fehlt';
     interact.disabled = !hasMiningLasers;
   } else {
     interactLabel.textContent = 'INTERAGIEREN';
@@ -255,7 +291,9 @@ function renderExpedition(): void {
       : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : 'ZIEL AUF KARTE WÄHLEN';
   const list = required<HTMLElement>('signal-list');
   list.replaceChildren(...expedition.signals.filter((signal) => signal.knowledge === 'classified').map((signal) => {
-    const item = document.createElement('div');
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.dataset.signalCourse = signal.id;
     const distance = Math.round(Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y));
     item.className = 'signal';
     item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${signal.description ?? ''}</small></span><span>${distance}u</span>`;
@@ -287,6 +325,7 @@ function render(): void {
     renderShipSelection();
     if (!shipyardPanel.hidden) renderShipyard();
   }
+  renderObjective();
 }
 
 function startExpedition(): void {
@@ -365,12 +404,22 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-sw
 required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-ship-upgrade]');
   if (!button) return;
-  toggleShipTestUpgrade(button.dataset.shipUpgrade as ShipUpgradeId);
+  const upgradeId = button.dataset.shipUpgrade as ShipUpgradeId;
+  if (upgradeId === FIRST_FIELD_UPGRADE_ID) {
+    if (purchaseFieldUpgrade(upgradeId)) toast('FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE');
+    else toast('Der Frachtrücken braucht einen aktiven Hangar und 1 Legierung.');
+  } else {
+    toggleShipTestUpgrade(upgradeId);
+  }
   renderShipyard();
 });
 required<HTMLButtonElement>('scan-button').addEventListener('click', () => {
   scanNearby();
   game.events.emit('farhaven:scan-pulse');
+});
+required<HTMLElement>('signal-list').addEventListener('click', (event) => {
+  const signalId = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-signal-course]')?.dataset.signalCourse;
+  if (signalId) game.events.emit('farhaven:signal-selected', signalId);
 });
 required<HTMLButtonElement>('interact-button').addEventListener('click', () => {
   const expedition = getExpedition();
@@ -403,6 +452,20 @@ required<HTMLButtonElement>('ordnance-button').addEventListener('click', () => {
   if (weapon) fireSelectedWeapon(weapon);
 });
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
+required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => { required<HTMLElement>('return-moment').hidden = true; });
+required<HTMLButtonElement>('reset-button').addEventListener('click', () => {
+  if (!window.confirm('Entwickler-Reset: Schiff, Ressourcen, Ausbauten und laufende Expedition wirklich zurücksetzen?')) return;
+  const wasExpedition = shell.dataset.screen === 'expedition';
+  resettingForDevelopment = true;
+  shipyardPanel.hidden = true;
+  facilityPanel.hidden = true;
+  required<HTMLElement>('return-moment').hidden = true;
+  resetGameForDevelopment();
+  if (!wasExpedition) {
+    resettingForDevelopment = false;
+    toast('TESTSTAND ZURÜCKGESETZT · WÄHLE EINEN RUMPF.');
+  }
+});
 required<HTMLButtonElement>('pause-button').addEventListener('click', () => {
   paused = !paused;
   if (paused) game.loop.sleep(); else game.loop.wake();
@@ -442,9 +505,17 @@ stick.addEventListener('pointercancel', releaseFlight);
 
 subscribe(() => {
   if (!getExpedition() && shell.dataset.screen === 'expedition') {
+    const returnedCargo = consumeReturnCargo();
     game.scene.stop('expedition');
     game.scene.start('outpost');
-    toast('Farhaven empfängt dich. Die Fracht ist gesichert.');
+    if (resettingForDevelopment) {
+      resettingForDevelopment = false;
+      toast('TESTSTAND ZURÜCKGESETZT · WÄHLE EINEN RUMPF.');
+    } else if (returnedCargo) {
+      playReturnMoment(returnedCargo);
+    } else {
+      toast('Farhaven empfängt dich.');
+    }
   }
   render();
 });
