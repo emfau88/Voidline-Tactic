@@ -14,7 +14,7 @@ Rumpfwahl → erstes Wrack → Hangar → Frachtrücken → Zweite Schicht
 
 Der aktuelle spielbare Prototyp enthält:
 
-- direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus
+- direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus; zwei Finger zoomen auf mobilen Karten frei hinein und heraus
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
 - ein sichtbares, sanft pulsierendes Xenogate: Nach drei sicheren Rückkehren und dem Minenlaser freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
@@ -22,7 +22,7 @@ Der aktuelle spielbare Prototyp enthält:
 - eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
-- drei passive Übungsdummies und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
+- drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
 - einen modularen Außenposten mit Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
 - drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
 - eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; weitere Komponenten liegen als einklappbare Prototypen-Vorschau dahinter

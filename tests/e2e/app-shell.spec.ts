@@ -117,6 +117,17 @@ test('offers an enabled manual broadside on mobile and desktop', async ({ page }
   await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
 });
 
+test('lets the player select a practice dummy directly on the open map', async ({ page }) => {
+  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  const canvas = page.locator('#game-root canvas');
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Expected the expedition canvas to be visible.');
+  // Aschen-Attrappe: world (-220, -40) from the start, camera zoom 0.95.
+  await canvas.click({ position: { x: box.width / 2 - 220 * .95, y: box.height / 2 - 40 * .95 } });
+  await expect(page.locator('#combat-prompt-target')).toHaveText('ASCHEN-ATTRAPPE');
+  await expect(page.locator('#combat-prompt-kicker')).toContainText('ZIEL ERFASST');
+});
+
 test('can pause and request a safe return', async ({ page }) => {
   await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
   await page.locator('#pause-button').click();

@@ -123,18 +123,19 @@ describe('exploration engine', () => {
 
   it('fires only when a hostile contact is in range', () => {
     const start = createExpedition();
-    expect(firePrimary(start).hostiles[0]?.hull).toBe(3);
-    const tooFar = { ...start, position: { x: 1_700, y: 1_500 } };
-    expect(firePrimary(tooFar).hostiles[0]?.hull).toBe(4);
-    const closeContact = { ...start, position: { x: 2_700, y: 1_560 } };
-    expect(firePrimary(closeContact).hostiles[0]?.hull).toBe(3);
+    const target = start.hostiles[0]!;
+    expect(firePrimary(start).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
+    const tooFar = { ...start, position: { x: 0, y: 0 } };
+    expect(firePrimary(tooFar).hostiles).toEqual(start.hostiles);
+    const closeContact = { ...start, position: { x: target.position.x - 300, y: target.position.y } };
+    expect(firePrimary(closeContact).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
   });
 
   it('requires manual target selection and uses ship positioning as the aim model', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;
     expect(weaponReadiness(start, undefined, 'broadside').ready).toBe(false);
-    const sideOn = { ...start, position: { x: 2_300, y: 1_500 }, heading: 0 };
+    const sideOn = { ...start, position: { x: target.position.x - 220, y: target.position.y }, heading: 0 };
     expect(weaponReadiness(sideOn, target.id, 'broadside').ready).toBe(true);
     const fired = fireWeapon(sideOn, target.id, 'broadside');
     expect(fired.hostiles[0]?.hull).toBe(3);

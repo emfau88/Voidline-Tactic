@@ -15,6 +15,10 @@ const ASTER_MODULE_ART: Partial<Record<ShipUpgradeId, string>> = {
   'side-turrets': 'aster-module-side-turrets-v1',
 };
 
+const DEFAULT_EXPEDITION_ZOOM = 1.1;
+const MIN_EXPEDITION_ZOOM = 0.82;
+const MAX_EXPEDITION_ZOOM = 1.7;
+
 interface WeaponFireEvent {
   readonly weapon: WeaponMode;
   readonly target: {
@@ -34,6 +38,11 @@ export class ExpeditionScene extends Phaser.Scene {
   private signalLayer?: Phaser.GameObjects.Container;
   private knownHostileIds = new Set<string>();
   private contactsInitialized = false;
+  private expeditionZoom = DEFAULT_EXPEDITION_ZOOM;
+  private readonly touchPointers = new Map<number, { x: number; y: number }>();
+  private pinchStartDistance = 0;
+  private pinchStartZoom = DEFAULT_EXPEDITION_ZOOM;
+  private removePinchListeners?: () => void;
 
   public constructor() { super('expedition'); }
 
@@ -41,7 +50,7 @@ export class ExpeditionScene extends Phaser.Scene {
     const expedition = getExpedition();
     const isAlienRealm = expedition?.sectorId === 'veloria-rift';
     this.cameras.main.setBounds(0, 0, 4200, 2600);
-    this.cameras.main.setZoom(0.95);
+    this.setExpeditionZoom(DEFAULT_EXPEDITION_ZOOM);
     const backdrop = this.add.image(2100, 1300, isAlienRealm ? 'veloria-rift-v1' : 'ashen-fringe-v1');
     const backdropScale = Math.max(4400 / backdrop.width, 2700 / backdrop.height);
     backdrop.setDisplaySize(backdrop.width * backdropScale, backdrop.height * backdropScale).setAlpha(isAlienRealm ? 0.94 : 0.92);
@@ -74,11 +83,15 @@ export class ExpeditionScene extends Phaser.Scene {
     this.game.events.on('farhaven:mining-start', this.showMining, this);
     this.game.events.on('farhaven:signal-action', this.showSignalAction, this);
     this.game.events.on('farhaven:scan-pulse', this.showScanPulse, this);
+    this.input.on('pointerdown', this.selectHostileAtPointer, this);
+    this.bindPinchZoom();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.events.off('farhaven:weapon-fired', this.showWeaponFire, this);
       this.game.events.off('farhaven:mining-start', this.showMining, this);
       this.game.events.off('farhaven:signal-action', this.showSignalAction, this);
       this.game.events.off('farhaven:scan-pulse', this.showScanPulse, this);
+      this.input.off('pointerdown', this.selectHostileAtPointer, this);
+      this.removePinchListeners?.();
     });
     this.refresh();
   }
@@ -158,9 +171,7 @@ export class ExpeditionScene extends Phaser.Scene {
       const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 'ship-enemy-destroyer-v1' : 'ship-enemy-patrol-v1');
       const hostileHeight = hostile.kind === 'raider' ? 118 : 96;
       hostileArt.setDisplaySize(hostileArt.width / hostileArt.height * hostileHeight, hostileHeight)
-        .setRotation(hostile.heading)
-        .setInteractive({ useHandCursor: true });
-      hostileArt.on('pointerdown', () => this.game.events.emit('farhaven:target-selected', hostile.id));
+        .setRotation(hostile.heading);
       if (!this.contactsInitialized || !this.knownHostileIds.has(hostile.id)) {
         if (this.contactsInitialized) this.showDummyRespawn(hostile.position);
       }
@@ -179,13 +190,73 @@ export class ExpeditionScene extends Phaser.Scene {
         warning.lineStyle(1, 0xffd3b5, 0.46); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 82 : 69);
         this.signalLayer?.add(warning);
       }
-      const state = hostile.passive ? 'ÜBUNGSDUMMY · KEINE GEGENWEHR' : hostile.status === 'alert' ? 'ALARM' : 'PATROUILLE';
+      const state = hostile.passive
+        ? selected ? 'ZIEL MARKIERT · KEINE GEGENWEHR' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
+        : hostile.status === 'alert' ? 'ALARM' : 'PATROUILLE';
       const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);
       this.signalLayer?.add(label);
     }
     this.knownHostileIds = new Set(expedition.hostiles.map((hostile) => hostile.id));
     this.contactsInitialized = true;
+  }
+
+  private selectHostileAtPointer(pointer: Phaser.Input.Pointer): void {
+    const expedition = getExpedition();
+    if (!expedition) return;
+    const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    const nearest = expedition.hostiles
+      .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - world.x, hostile.position.y - world.y) }))
+      .sort((first, second) => first.distance - second.distance)[0];
+    if (!nearest) return;
+    const hitRadius = nearest.hostile.kind === 'raider' ? 94 : 82;
+    if (nearest.distance <= hitRadius) this.game.events.emit('farhaven:target-selected', nearest.hostile.id);
+  }
+
+  private setExpeditionZoom(zoom: number): void {
+    this.expeditionZoom = Phaser.Math.Clamp(zoom, MIN_EXPEDITION_ZOOM, MAX_EXPEDITION_ZOOM);
+    this.cameras.main.setZoom(this.expeditionZoom);
+  }
+
+  private bindPinchZoom(): void {
+    const canvas = this.game.canvas;
+    const point = (event: PointerEvent): { x: number; y: number } => {
+      const bounds = canvas.getBoundingClientRect();
+      return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    };
+    const gap = (): number => {
+      const [first, second] = [...this.touchPointers.values()];
+      return first && second ? Math.hypot(second.x - first.x, second.y - first.y) : 0;
+    };
+    const down = (event: PointerEvent): void => {
+      if (event.pointerType !== 'touch') return;
+      this.touchPointers.set(event.pointerId, point(event));
+      if (this.touchPointers.size === 2) {
+        this.pinchStartDistance = Math.max(1, gap());
+        this.pinchStartZoom = this.expeditionZoom;
+      }
+    };
+    const move = (event: PointerEvent): void => {
+      if (!this.touchPointers.has(event.pointerId)) return;
+      this.touchPointers.set(event.pointerId, point(event));
+      if (this.touchPointers.size !== 2 || this.pinchStartDistance <= 0) return;
+      event.preventDefault();
+      this.setExpeditionZoom(this.pinchStartZoom * gap() / this.pinchStartDistance);
+    };
+    const up = (event: PointerEvent): void => {
+      this.touchPointers.delete(event.pointerId);
+      if (this.touchPointers.size < 2) this.pinchStartDistance = 0;
+    };
+    canvas.addEventListener('pointerdown', down, { passive: true });
+    canvas.addEventListener('pointermove', move, { passive: false });
+    canvas.addEventListener('pointerup', up, { passive: true });
+    canvas.addEventListener('pointercancel', up, { passive: true });
+    this.removePinchListeners = () => {
+      canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointermove', move);
+      canvas.removeEventListener('pointerup', up);
+      canvas.removeEventListener('pointercancel', up);
+    };
   }
 
   private addFaintEcho(position: Vector2): void {

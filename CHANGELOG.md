@@ -24,6 +24,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - aktiver Aschenplünderer mit telegraphiertem Nahbereichsfeuer; alle bisherigen Dummies bleiben passiv
 - Xenogate-Freischaltung nach drei Rückkehren und installiertem Minenlaser
 - getrennte, kompakte Raumansichten für Farhaven-Bereiche und eine einklappbare Prototypen-Schublade in der Hangarwerkstatt
+- direkte Dummy-Zielerfassung auf der Karte mit großen Zielzonen und klarer „Tippe zum Zielen“-Kennzeichnung
+- Zwei-Finger-Pinch-Zoom für Expeditionen, mit begrenztem Zoom-Bereich für Mobile
 
 #### Changed
 
@@ -37,6 +39,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Expeditions-HUD auf eine schmale Kartenanzeige oben reduziert; Aktionen liegen im rechten Daumenbereich
 - Farhaven-Raumdialoge auf Status plus eine Hauptaktion reduziert; das große Hangarbild ist aus dem Baufluss entfernt
 - Werkstatt von `TESTWERFT` zu `WERKSTATT` umbenannt; echte Einbauten stehen vor rein visuellen Prototypen
+- Expeditions-Startzoom von 0,95 auf 1,10 angehoben, damit echte Mobile-Viewports nicht unnötig weit herausgezoomt wirken
 
 #### Deferred
 

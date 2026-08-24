@@ -13,6 +13,7 @@ button { font: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 
 #game-root, #game-root canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; image-rendering: auto; }
+#game-root canvas { touch-action: none; }
 #ship-selection { position: fixed; z-index: 42; top: 50%; left: 50%; width: min(820px, calc(100vw - 32px)); max-height: calc(100dvh - 28px); overflow-y: auto; padding: clamp(20px, 3vw, 34px); border: 1px solid rgb(147 219 237 / 48%); border-radius: 25px; background: linear-gradient(135deg, rgb(5 17 28 / 97%), rgb(26 22 31 / 96%)); box-shadow: 0 28px 100px rgb(0 0 0 / 66%), inset 0 0 42px rgb(102 215 240 / 7%); text-align: center; transform: translate(-50%, -50%); }
 #ship-selection > small { color: #9ce3f1; font-size: 9px; font-weight: 800; letter-spacing: .16em; }
 #ship-selection h1 { max-width: 650px; margin: 9px auto; color: #f6e3bc; font-family: Georgia, serif; font-size: clamp(24px, 4vw, 39px); line-height: 1.02; letter-spacing: .035em; }

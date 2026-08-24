@@ -77,11 +77,11 @@ export function getPrologueObjective(): PrologueObjective {
   if (!profile.ship.upgrades.includes(FIRST_FIELD_UPGRADE_ID)) {
     return canPurchaseShipUpgrade(profile, FIRST_FIELD_UPGRADE_ID)
       ? { kicker: 'ERSTER SCHIFFSBAUTEIL', title: 'FRACHTRÜCKEN EINBAUEN', copy: 'Im Hangar wartet ein verfügbarer Frachtrücken. Er erweitert jede Expedition um zwei Frachtplätze.' }
-      : { kicker: 'HANGAR ONLINE', title: 'WERKSTATT PRÜFEN', copy: 'Öffne die Testwerft im Hangar, um den nächsten verfügbaren Bauteil zu sehen.' };
+      : { kicker: 'HANGAR ONLINE', title: 'WERKSTATT PRÜFEN', copy: 'Öffne die Werkstatt im Hangar, um den nächsten verfügbaren Bauteil zu sehen.' };
   }
   if (!profile.ship.upgrades.includes(SECOND_FIELD_UPGRADE_ID)) {
     return canPurchaseShipUpgrade(profile, SECOND_FIELD_UPGRADE_ID)
-      ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Testwerft im Hangar und rüste den echten Minenlaser aus.' }
+      ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' }
       : { kicker: 'ZWEITE SCHICHT', title: 'BAUPLAN FINDEN', copy: 'Mönchslaterne und Schneideliturgie liefern zusammen genau das Material für einen Minenlaser.' };
   }
   if (!isXenogateUnlocked()) return { kicker: 'DRITTE SCHICHT', title: 'EINE ADER ERSCHLIESSEN', copy: 'Der Minenlaser ist bereit. Kehre in den Aschsaum zurück und sichere deine erste Schwarze Ader.' };

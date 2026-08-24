@@ -10,9 +10,11 @@ export const WORMHOLE_POSITION: Vector2 = { x: 1_360, y: 1_320 };
 const WORMHOLE_ENTRY_RANGE = 170;
 
 const TRAINING_DUMMIES: readonly HostileState[] = [
-  { id: 'ash-patrol', name: 'Aschen-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 2_500, y: 1_580 }, patrolCenter: { x: 2_500, y: 1_580 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 4, maxHull: 4 },
-  { id: 'cinder-escort', name: 'Glut-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 2_510, y: 1_400 }, patrolCenter: { x: 2_510, y: 1_400 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI / 2, hull: 3, maxHull: 3 },
-  { id: 'wreck-eater', name: 'Schrott-Attrappe', kind: 'raider', passive: true, status: 'patrol', position: { x: 2_400, y: 1_790 }, patrolCenter: { x: 2_400, y: 1_790 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 6, maxHull: 6 },
+  // The practice ring surrounds the player but deliberately avoids the top status strip,
+  // lower combat prompt and right-side action cluster on a landscape phone.
+  { id: 'ash-patrol', name: 'Aschen-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 1_880, y: 1_460 }, patrolCenter: { x: 1_880, y: 1_460 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 4, maxHull: 4 },
+  { id: 'cinder-escort', name: 'Glut-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 2_390, y: 1_460 }, patrolCenter: { x: 2_390, y: 1_460 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI / 2, hull: 3, maxHull: 3 },
+  { id: 'wreck-eater', name: 'Schrott-Attrappe', kind: 'raider', passive: true, status: 'patrol', position: { x: 1_870, y: 1_610 }, patrolCenter: { x: 1_870, y: 1_610 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 6, maxHull: 6 },
 ];
 
 const ASH_REAVER: HostileState = {
