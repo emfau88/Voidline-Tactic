@@ -1,7 +1,7 @@
 {
-  "name": "Voidline Tactics",
-  "short_name": "Voidline",
-  "description": "Mobile-first real-time fleet tactics with tactical pause.",
+  "name": "Voidline: Farhaven",
+  "short_name": "Farhaven",
+  "description": "Mobile-first space exploration about signals, salvage and coming home.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

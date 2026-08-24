@@ -3,274 +3,131 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta
-      name="description"
-      content="Voidline Tactics – mobile-first Echtzeit-Flottentaktik mit taktischer Pause im Browser."
-    />
-    <meta name="theme-color" content="#05070c" />
+    <meta name="description" content="Voidline: Farhaven – ein mobile-first Space Explorer über Signale, Bergung und Heimkehr." />
+    <meta name="theme-color" content="#080a12" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Voidline" />
+    <meta name="apple-mobile-web-app-title" content="Farhaven" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <title>Voidline Tactics</title>
+    <title>Voidline: Farhaven</title>
   </head>
   <body>
-    <main id="app" aria-label="Voidline Tactics">
-      <section id="game-shell" data-screen="menu" aria-label="Voidline Tactics" aria-busy="false">
+    <main id="app" aria-label="Voidline: Farhaven">
+      <section id="game-shell" data-screen="outpost" aria-busy="false">
         <aside id="rotate-device" aria-label="Gerät drehen">
           <span aria-hidden="true">↻</span>
-          <strong>FÜR DAS GEFECHT QUER DREHEN</strong>
-          <small>Mehr Raum für Flotte, Feuerbögen und Zwei-Daumen-Steuerung</small>
+          <strong>BITTE QUER DREHEN</strong>
+          <small>Farhaven ist für eine weite Sternenkarte gebaut.</small>
         </aside>
-        <svg class="icon-sprite" aria-hidden="true">
-          <symbol id="icon-move" viewBox="0 0 24 24"><path d="M4 19 20 12 4 5l3 7-3 7Z"/><path d="M7 12h9"/></symbol>
-          <symbol id="icon-rotate" viewBox="0 0 24 24"><path d="M19 8V3l-2 2a8 8 0 1 0 2.4 8"/><path d="M19 3h-5"/></symbol>
-          <symbol id="icon-broadside" viewBox="0 0 24 24"><path d="M12 4 9 9v6l3 5 3-5V9l-3-5Z"/><path d="M7 8H3M7 12H2M7 16H3M17 8h4M17 12h5M17 16h4"/></symbol>
-          <symbol id="icon-lance" viewBox="0 0 24 24"><path d="m12 3 3 6-3 12-3-12 3-6Z"/><path d="M12 3v18M5 12h14"/></symbol>
-          <symbol id="icon-torpedo" viewBox="0 0 24 24"><path d="M4 12h12M13 7l6 5-6 5"/><path d="M4 9v6"/></symbol>
-          <symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 4.4-2.8 7.7-7 10-4.2-2.3-7-5.6-7-10V6l7-3Z"/><path d="M12 7v10"/></symbol>
-          <symbol id="icon-turn" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 4c0 4 3 5 4 8-1 3-4 4-4 8M16 4c0 4-3 5-4 8 1 3 4 4 4 8"/><path d="M9 17h6"/></symbol>
-        </svg>
-        <section id="main-menu" aria-labelledby="menu-title">
-          <div class="menu-stars" aria-hidden="true"></div>
-          <header class="menu-header">
-            <div>
-              <small>VOIDLINE FLEET COMMAND · DEVELOPMENT BUILD</small>
-              <h1 id="menu-title">WÄHLE DEIN<br><span>STARTSCHIFF</span></h1>
-              <p>Kommandiere einen kleinen Verband indirekt, kontrolliere drei Raumkorridore und entscheide eine dynamische Flottenschlacht.</p>
-            </div>
-            <button class="menu-fullscreen-button" type="button" data-fullscreen aria-pressed="false" title="Vollbild öffnen">
-              <span aria-hidden="true">⛶</span><span>VOLLBILD</span>
-            </button>
-          </header>
+        <div id="game-root" aria-label="Voidline: Farhaven Spielwelt"></div>
 
-          <div class="starter-grid" aria-label="Verfügbare Startschiffe">
-            <button class="starter-card selected" type="button" data-starter="p-cruiser" aria-pressed="true">
-              <span class="starter-role">LINIENSCHIFF · AUSGEWOGEN</span>
-              <span class="starter-visual">
-                <img class="starter-hull" src="assets/ships/player-cruiser-v2.png" alt="Sovereign's Fury von oben">
-                <img class="starter-module-mount aegis" data-mounted-module="aegis-emitter" src="assets/modules/aegis-emitter-v1.svg" alt="">
-                <img class="starter-module-mount vector" data-mounted-module="vector-drive" src="assets/modules/vector-drive-v1.svg" alt="">
-              </span>
-              <span class="starter-name">Sovereign's Fury</span>
-              <span class="starter-class">CRUISER</span>
-              <span class="starter-stats"><b>112</b> Hülle · <b>83</b> Schild · <b>58</b> Tempo</span>
-              <span class="starter-bonus">KLASSENDOKTRIN · +15 SCHILD</span>
-              <span class="mount-list"><i>MASS DRIVER</i><i>RIFT LANCE</i><i>VOID TORPEDO</i></span>
+        <section id="ship-selection" hidden aria-labelledby="ship-selection-title">
+          <small>ERSTE HEIMKEHR · WÄHLE DEINEN RUMPF</small>
+          <h1 id="ship-selection-title">WELCHES SCHIFF RUFST DU NACH FARHAVEN?</h1>
+          <p>Beide Rümpfe können wachsen. Die Wahl bestimmt zunächst nur Silhouette und Charakter.</p>
+          <div class="ship-choice-grid">
+            <button class="ship-choice" type="button" data-ship-variant="aster-vale">
+              <img src="/assets/ships/player-aster-vale-v1.png" alt="" />
+              <span>ERKUNDUNGSKUTTER</span><strong>ASTER VALE</strong><small>Schlank · Sensorrails · Neugierig</small>
             </button>
-            <button class="starter-card" type="button" data-starter="p-frigate" aria-pressed="false">
-              <span class="starter-role">JAGDSCHIFF · MOBIL</span>
-              <span class="starter-visual">
-                <img class="starter-hull" src="assets/ships/player-frigate-v1.png" alt="Aster Vale von oben">
-                <img class="starter-module-mount aegis" data-mounted-module="aegis-emitter" src="assets/modules/aegis-emitter-v1.svg" alt="">
-                <img class="starter-module-mount vector" data-mounted-module="vector-drive" src="assets/modules/vector-drive-v1.svg" alt="">
-              </span>
-              <span class="starter-name">Aster Vale</span>
-              <span class="starter-class">FRIGATE</span>
-              <span class="starter-stats"><b>72</b> Hülle · <b>38</b> Schild · <b>90</b> Tempo</span>
-              <span class="starter-bonus">KLASSENDOKTRIN · +12 ENERGIE · +8 TEMPO</span>
-              <span class="mount-list"><i>RIFT LANCE</i><i>2× VOID TORPEDO</i></span>
+            <button class="ship-choice" type="button" data-ship-variant="bramble">
+              <img src="/assets/ships/player-bramble-v1.png" alt="" />
+              <span>BERGUNGSSCHLEPPER</span><strong>BRAMBLE</strong><small>Breit · Frachtraum · Robust</small>
             </button>
           </div>
-
-          <section class="refit-preview" id="campaign-panel" aria-labelledby="campaign-title">
-            <div class="refit-heading">
-              <div><small>SPIELBARER PROOF OF CONCEPT</small><strong id="campaign-title">FLEET CORRIDORS</strong></div>
-              <span id="campaign-salvage">0 SALVAGE</span>
-            </div>
-            <section id="starter-refit" aria-labelledby="starter-refit-title">
-              <div class="starter-refit-heading">
-                <div><small>SCHRITT 2 · VOR DEM START</small><strong id="starter-refit-title">1 MODUL MONTIEREN</strong></div>
-                <span id="starter-module-status">ERFORDERLICH</span>
-              </div>
-              <div class="starter-module-grid">
-                <button type="button" data-starter-module="aegis-emitter" aria-pressed="false">
-                  <img src="assets/modules/aegis-emitter-v1.svg" alt="">
-                  <span><strong>AEGIS</strong><small>+12 Schild</small></span>
-                </button>
-                <button type="button" data-starter-module="vector-drive" aria-pressed="false">
-                  <img src="assets/modules/vector-drive-v1.svg" alt="">
-                  <span><strong>VECTOR</strong><small>Tempo + Drehen</small></span>
-                </button>
-              </div>
-            </section>
-            <div class="mission-track" aria-label="Missionsauswahl">
-              <button class="selected" type="button" data-mission="mission-1" aria-pressed="true">
-                <span>01</span><b>KORRIDORBRUCH</b><small>3 Routen · 2 Ziele</small>
-              </button>
-              <button type="button" data-mission="mission-2" aria-pressed="false" disabled>
-                <span>02</span><b>NÄCHSTER EINSATZ</b><small>Nach dem PoC</small>
-              </button>
-              <button type="button" data-mission="mission-3" aria-pressed="false" disabled>
-                <span>03</span><b>FLOTTENKAMPAGNE</b><small>Roadmap</small>
-              </button>
-            </div>
-            <div class="campaign-briefing">
-              <strong id="mission-briefing-title">MISSION 01 · ERSTER KONTAKT</strong>
-              <small id="mission-briefing-copy">Zwei Vorpostenschiffe blockieren die Voidline. Breche den Verband und sichere erste Bergungsgüter.</small>
-            </div>
-          </section>
-
-          <footer class="menu-footer">
-            <p id="menu-status" role="status">Ausgewählt: <strong id="selected-starter-label">Sovereign's Fury</strong></p>
-            <button id="start-button" type="button" disabled><span id="start-mission-number">MISSION 01</span><strong id="start-mission-name">ERSTEN KONTAKT STARTEN</strong><small id="start-loadout-status">Zuerst ein sichtbares Modul montieren</small></button>
-          </footer>
         </section>
 
-        <div id="game-root" class="battle-ui" aria-label="Taktisches Spielfeld"></div>
-
-        <header id="topbar" class="panel battle-ui">
-          <div class="brand-block">
-            <strong>VOIDLINE</strong>
-            <small>ERSTER KONTAKT</small>
-          </div>
-          <div class="turn-block">
-            <strong>GEFECHT <span id="turn-number">00:00</span></strong>
-            <small id="phase-label">1× LIVE</small>
-          </div>
-          <div class="objective-block">
-            <small>ZIEL</small>
-            <strong id="objective-label">Command Ship ausschalten</strong>
-          </div>
-          <button id="supply-label" type="button" aria-label="Verstärkungen öffnen" aria-expanded="false">+ 45</button>
-          <button id="view-menu-button" type="button" aria-label="Ansichtsmenü öffnen" aria-expanded="false">•••</button>
+        <header class="topbar">
+          <div><small>VOIDLINE</small><strong>FARHAVEN</strong></div>
+          <div id="resource-strip" aria-label="Gesicherte Ressourcen"></div>
+          <button id="fullscreen-button" type="button" aria-label="Vollbild umschalten">⛶</button>
         </header>
 
-        <nav id="time-controls" class="battle-ui" aria-label="Simulationsgeschwindigkeit">
-          <button id="pause-button" type="button" aria-label="Taktische Pause"><span>Ⅱ</span><small>PAUSE</small></button>
-          <button id="slow-button" type="button" aria-label="Zeitlupe"><span>¼</span><small>PLANEN</small></button>
-          <button id="live-button" class="active" type="button" aria-label="Normale Geschwindigkeit"><span>▶</span><small>LIVE</small></button>
+        <section id="outpost-hud" class="screen-panel" aria-labelledby="outpost-title">
+          <div class="outpost-copy">
+            <small>DEIN AUSSENPOSTEN · EXPEDITIONEN <span id="expedition-count">0</span></small>
+            <h1 id="outpost-title">FARHAVEN</h1>
+            <p>Wähle einen Stationsbereich oder bereite im Hangar den nächsten Flug vor.</p>
+          </div>
+          <button id="launch-button" class="primary-button" type="button">
+            <span>ASCHSAUM I</span><strong>EXPEDITION STARTEN</strong><small>4 unbekannte Echos · Rückkehr jederzeit möglich</small>
+          </button>
+        </section>
+        <nav id="outpost-nav" aria-label="Farhaven Bereiche">
+          <button type="button" data-facility="hangar">⌂<span>HANGAR</span></button>
+          <button type="button" data-facility="scanner">⌁<span>SCANNER</span></button>
+          <button type="button" data-facility="labor">✦<span>LABOR</span></button>
+          <button type="button" data-facility="navigation">✧<span>STERNENWERK</span></button>
         </nav>
-
-        <nav id="view-controls" class="battle-ui" aria-label="Ansicht steuern">
-          <button id="zoom-out-button" type="button" aria-label="Herauszoomen" disabled>−</button>
-          <button id="zoom-reset-button" type="button" aria-label="Zoom zurücksetzen" disabled>100%</button>
-          <button id="zoom-in-button" type="button" aria-label="Hineinzoomen" disabled>+</button>
-          <button id="fleet-focus-button" type="button" aria-label="Eigene Flotte auf der Karte zeigen" disabled>◎</button>
-          <button id="fullscreen-button" type="button" data-fullscreen aria-label="Vollbild umschalten" aria-pressed="false" disabled>⛶</button>
-          <button id="help-button" type="button" aria-label="Spielhilfe öffnen" disabled>?</button>
-        </nav>
-        <div id="toast" class="battle-ui" role="status" aria-live="polite"></div>
-        <aside id="command-guide" class="panel battle-ui" aria-live="polite">
-          <span id="command-guide-step">1</span>
-          <p><strong id="command-guide-title">SCHIFF AUSGEWÄHLT</strong><small id="command-guide-copy">Bestimme unten links zuerst das Verhalten.</small></p>
-          <button id="close-command-guide" type="button" aria-label="Kurzanleitung schließen">×</button>
-        </aside>
-        <div id="loading-label" class="battle-ui" role="status">FLOTTENDATEN WERDEN GELADEN…</div>
-
-        <aside id="target-card" class="panel battle-ui" hidden aria-label="Zielvorschau">
-          <div class="card-heading">
-            <div>
-              <strong id="target-name">Kein Ziel</strong>
-              <small id="target-class"></small>
-            </div>
-            <span id="hit-chance"></span>
+        <section id="facility-panel" hidden aria-live="polite">
+          <button id="close-facility-button" type="button" aria-label="Bereich schließen">×</button>
+          <small id="facility-kicker"></small>
+          <h2 id="facility-title"></h2>
+          <div id="facility-stage" hidden>
+            <img id="facility-art-image" alt="" />
+            <span id="facility-stage-badge"></span>
           </div>
-          <div class="compact-bars">
-            <label>HÜLLE <span id="target-hull-text"></span></label>
-            <div class="meter"><span id="target-hull-bar" class="hull-fill"></span></div>
-            <label>SCHILD <span id="target-shield-text"></span></label>
-            <div class="meter"><span id="target-shield-bar" class="shield-fill"></span></div>
+          <p id="facility-copy"></p>
+          <div id="facility-discovery"></div>
+          <div id="facility-level"></div>
+          <button id="facility-inspect-button" type="button" hidden></button>
+          <button id="open-shipyard-button" type="button" hidden>✧  TESTWERFT ÖFFNEN</button>
+          <button id="facility-upgrade-button" class="primary-button" type="button"></button>
+        </section>
+        <section id="shipyard-panel" hidden aria-labelledby="shipyard-title">
+          <button id="close-shipyard-button" type="button" aria-label="Testwerft schließen">×</button>
+          <small>FARHAVEN · KOMPONENTENPROTOTYP</small>
+          <h2 id="shipyard-title">TESTWERFT</h2>
+          <p>Diese zehn Anbauten sind kostenlose Silhouetten-Tests. Sie werden am Expeditionsschiff sofort sichtbar gespeichert.</p>
+          <div id="shipyard-hull-switch" aria-label="Test-Rumpf wählen">
+            <button type="button" data-ship-switch="aster-vale">ASTER VALE</button>
+            <button type="button" data-ship-switch="bramble">BRAMBLE</button>
           </div>
-          <p id="preview-damage"></p>
-        </aside>
-
-        <section id="ship-card" class="panel battle-ui" aria-label="Ausgewähltes Schiff">
-          <div class="card-heading">
-            <div>
-              <strong id="ship-name">–</strong>
-              <small id="ship-class">–</small>
+          <div class="shipyard-layout">
+            <div id="shipyard-preview" aria-label="Schiffsvorschau">
+              <img id="shipyard-ship-image" alt="" />
+              <div id="shipyard-parts" aria-hidden="true"></div>
+              <strong id="shipyard-ship-name"></strong>
             </div>
-            <span id="ship-status">BEREIT</span>
-          </div>
-          <div class="ship-meters">
-            <div>
-              <label>HÜLLE <span id="ship-hull-text"></span></label>
-              <div class="meter"><span id="ship-hull-bar" class="hull-fill"></span></div>
-            </div>
-            <div>
-              <label>SCHILD <span id="ship-shield-text"></span></label>
-              <div class="meter"><span id="ship-shield-bar" class="shield-fill"></span></div>
-            </div>
-            <div>
-              <label>ENERGIE <span id="ship-energy-text"></span></label>
-              <div class="meter"><span id="ship-energy-bar" class="energy-fill"></span></div>
-            </div>
-          </div>
-          <div class="resource-row">
-            <span>TEMPO <strong id="ship-ap">–</strong></span>
-            <span>KURS <strong id="ship-facing">–</strong></span>
+            <div id="shipyard-module-list" aria-label="Schiffsmodule"></div>
           </div>
         </section>
-
-        <section id="deployment-panel" class="panel battle-ui" aria-label="Verstärkungen anfordern" hidden>
-          <header><strong>VERSTÄRKUNG</strong><small>VERSORGUNG <span id="deployment-supply">45 / 100</span></small></header>
-          <div class="deploy-lanes" aria-label="Einsatzkorridor">
-            <button type="button" data-deploy-lane="upper">OBEN</button>
-            <button class="active" type="button" data-deploy-lane="center">MITTE</button>
-            <button type="button" data-deploy-lane="lower">UNTEN</button>
-          </div>
-          <div class="deploy-ships">
-            <button type="button" data-deploy="frigate"><strong>FREGATTE</strong><small>30 SUP</small></button>
-            <button type="button" data-deploy="destroyer"><strong>ZERSTÖRER</strong><small>55 SUP</small></button>
-          </div>
+        <section id="construction-moment" hidden aria-live="polite" aria-label="Baufortschritt">
+          <small id="construction-kicker">FARHAVEN BAUDOCK</small>
+          <strong id="construction-title"></strong>
+          <p id="construction-copy"></p>
+          <div><i></i><i></i><i></i></div>
         </section>
 
-        <footer id="combat-hud" class="battle-ui">
-          <div id="control-deck">
-            <section id="fleet-command-panel" aria-label="Indirekte Flottenbefehle" hidden>
-              <button id="command-summary-button" class="command-heading" type="button" aria-expanded="true"><strong id="command-group-title">ROUTENGRUPPE</strong><small id="command-group-count">AUTONOM</small></button>
-              <div class="stance-grid" aria-label="Haltung">
-                <button type="button" data-stance="advance"><strong>▲</strong><small>ANGRIFF</small></button>
-                <button type="button" data-stance="broadside"><strong>↔</strong><small>BREITSEITE</small></button>
-                <button type="button" data-stance="hold"><strong>◆</strong><small>HALT</small></button>
-                <button type="button" data-stance="keep-range"><strong>◎</strong><small>ABSTAND</small></button>
-                <button type="button" data-stance="retreat"><strong>▼</strong><small>ZURÜCK</small></button>
-              </div>
-              <div class="lane-grid" aria-label="Korridor zuweisen">
-                <button type="button" data-lane="upper">OBERE ROUTE</button>
-                <button type="button" data-lane="center">MITTLERE ROUTE</button>
-                <button type="button" data-lane="lower">UNTERE ROUTE</button>
-              </div>
-              <button id="transfer-selected-button" type="button">AUSGEWÄHLTES SCHIFF AUF DIESE ROUTE VERLEGEN</button>
-            </section>
-
-            <small id="optional-systems-label">OPTIONAL · EINZELSCHIFF</small>
-            <nav id="action-grid" aria-label="Optionale Systeme des ausgewählten Schiffs">
-              <button type="button" data-action="target" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-broadside"/></svg></span><strong>FOKUS</strong><small>Erfassen</small></button>
-              <button type="button" data-action="lance" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-lance"/></svg></span><strong>LANZE</strong><small>bereit · 18 EN</small></button>
-              <button type="button" data-action="torpedo" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-torpedo"/></svg></span><strong>TORPEDO</strong><small>bereit · 12 EN</small></button>
-              <button type="button" data-action="shield" disabled><span class="action-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></span><strong>BOOST</strong><small>bereit · 16 EN</small></button>
-            </nav>
+        <section id="expedition-hud" class="screen-panel" hidden aria-labelledby="sector-title">
+          <div class="expedition-top">
+            <div><small>SEKTOR</small><strong id="sector-title">ASCHSAUM I</strong></div>
+            <div id="expedition-status">AUF ERKUNDUNG</div>
           </div>
-        </footer>
-
-        <dialog id="help-dialog" class="modal panel">
-          <h2>SO SPIELST DU</h2>
-          <ol>
-            <li>Tippe ein eigenes Schiff an und gib ihm eine Haltung: Vorrücken, Breitseite, Halten, Distanz oder Rückzug.</li>
-            <li>Weise OBEN, MITTE oder UNTEN zu. Ein Korridorwechsel erfolgt nachvollziehbar über den nächsten Knoten.</li>
-            <li>Tippe einen Gegner an, um ihn als Fokusziel zu markieren. Standardwaffen feuern automatisch; Spezialwaffen löst du rechts aus.</li>
-            <li>Das Relais oben erhöht Versorgung, die Werft unten beschleunigt Verstärkungen. Die Mitte ist der direkte, riskante Weg.</li>
-            <li>Fordere Fregatten oder Zerstörer für einen gewählten Korridor an. Pro Seite sind höchstens sieben Schiffe aktiv.</li>
-            <li>Wische frei über die Karte. Pinch zoomt am Berührungspunkt; ◎ zentriert nur auf ausdrücklichen Wunsch auf deine Flotte.</li>
-          </ol>
-          <button id="close-help-button" type="button">ZURÜCK ZUM GEFECHT</button>
-        </dialog>
-
-        <dialog id="result-dialog" class="modal panel">
-          <h2 id="result-title">MISSION BEENDET</h2>
-          <p id="result-copy"></p>
-          <p id="result-reward"></p>
-          <section id="upgrade-choice" hidden aria-label="Upgrade auswählen">
-            <small>EIN UPGRADE INSTALLIEREN</small>
-            <div></div>
-          </section>
-          <div class="result-actions">
-            <button id="restart-button" type="button">MISSION NEU STARTEN</button>
-            <button id="continue-button" type="button" disabled>WEITER</button>
+          <div class="meter-grid">
+            <label>ENERGIE <b id="energy-value">100 / 100</b><span><i id="energy-bar"></i></span></label>
+            <label>HÜLLE <b id="hull-value">100 / 100</b><span><i id="hull-bar"></i></span></label>
+            <label>FRACHT <b id="cargo-value">0 / 6</b><span><i id="cargo-bar"></i></span></label>
           </div>
-        </dialog>
+          <div id="signal-list" class="signal-list" aria-label="Klassifizierte Signale"></div>
+          <div id="expedition-log" class="expedition-log" aria-live="polite"></div>
+        </section>
+        <div id="expedition-actions" class="expedition-actions" hidden aria-label="Expeditionsaktionen">
+          <button id="scan-button" type="button">⌁<span>SCANNEN</span><small>8 Energie</small></button>
+          <button id="interact-button" type="button">✦<span>INTERAGIEREN</span><small>Signal bergen</small></button>
+          <button id="fire-button" type="button">✹<span>FEUER</span><small>4 Energie</small></button>
+          <button id="ordnance-button" type="button">◉<span>ORDNANZ</span><small>Kein System</small></button>
+          <button id="return-button" type="button">⌂<span>RÜCKKEHR</span><small>Fracht sichern</small></button>
+        </div>
+        <section id="combat-prompt" hidden aria-live="polite" aria-label="Aktiver Feuerbefehl">
+          <div><small id="combat-prompt-kicker">ZIEL ERFASST</small><strong id="combat-prompt-target">KEIN KONTAKT</strong></div>
+          <button id="combat-prompt-fire" type="button"><span>✹</span><b>SALVE</b><small>Feuer frei</small></button>
+        </section>
+        <section id="flight-control" hidden aria-label="Flugsteuerung">
+          <div id="flight-stick" aria-label="Schiff steuern"><i></i><span>FLIEGEN</span></div>
+          <button id="pause-button" type="button" aria-pressed="false">Ⅱ</button>
+        </section>
+        <div id="toast" role="status" aria-live="polite"></div>
       </section>
     </main>
     <script type="module" src="/src/main.ts"></script>

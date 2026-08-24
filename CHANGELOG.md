@@ -1,8 +1,33 @@
 # Changelog
 
-Alle nachvollziehbaren Änderungen an Voidline Tactics werden hier chronologisch dokumentiert. Das Format orientiert sich an Keep a Changelog; Commit-IDs werden nach dem jeweiligen Meilenstein ergänzt.
+Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologisch dokumentiert. Das Format orientiert sich an Keep a Changelog; Commit-IDs werden nach dem jeweiligen Meilenstein ergänzt.
 
 ## [Unreleased]
+
+### Farhaven Pivot – 2026-08-24
+
+#### Added
+
+- neuer aktiver Singleplayer-Loop: Außenposten → Expedition → Rückkehr → Ausbau
+- Farhaven-Save v2 mit getrenntem Storage-Key
+- erste Explorationsdomain für Energie, Frachtraum, Signale, Scan und Bergung
+- antippbarer Greybox-Sektor Aschsaum I mit vier Echos
+- sichtbarer Außenposten und erste Ausbauten für Hangar und Scanner
+- direkter Flugstick links, Beschleunigung, Ausrollen und Triebwerks-VFX
+- mehrbildschirmiger Sektor mit Follow-Kamera und erster Aschenpatrouille
+- erster Feuerbutton mit Breitseitensalve in Reichweite
+
+#### Changed
+
+- sichtbarer Produktname von `Voidline Tactics` zu `Voidline: Farhaven`
+- aktiver Runtime-Pfad von Fleet Corridors zu Farhaven umgestellt
+- frühere Fleet-Corridors-Version lokal als `fleet-corridors-poc-2026-08-24` getaggt
+- README, Roadmap und Game Vision auf den neuen Produktpfad ausgerichtet
+- Expeditions-HUD auf eine schmale Kartenanzeige oben reduziert; Aktionen liegen im rechten Daumenbereich
+
+#### Deferred
+
+- Combat bleibt bis zum bestandenen Explorations-Greybox-Gate außerhalb des aktiven Loops
 
 ### Map-first Mobile Battlefield — 2026-08-22
 
