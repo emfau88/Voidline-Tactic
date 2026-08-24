@@ -22,7 +22,7 @@ Der aktuelle spielbare Prototyp enthält:
 - eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
-- drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
+- drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven auch während des Flugs und sichtbare Waffen-VFX
 - einen modularen Top-down-Außenposten: eine kompakte Kernplatte mit vier echten Andockplätzen; gebaute Räume erscheinen als eigene Hangar-, Scanner-, Labor- und Sternenwerk-Module
 - drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
 - eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; weitere Komponenten liegen als einklappbare Prototypen-Vorschau dahinter

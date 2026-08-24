@@ -139,6 +139,9 @@ describe('exploration engine', () => {
     expect(weaponReadiness(sideOn, target.id, 'broadside').ready).toBe(true);
     const fired = fireWeapon(sideOn, target.id, 'broadside');
     expect(fired.hostiles[0]?.hull).toBe(3);
+    const runningBroadside = { ...sideOn, velocity: { x: 0.2, y: 0 }, flightInput: { x: 1, y: 0 } };
+    expect(weaponReadiness(runningBroadside, target.id, 'broadside').ready).toBe(true);
+    expect(fireWeapon(runningBroadside, target.id, 'broadside').hostiles[0]?.hull).toBe(3);
     expect(fired.hostiles[0]?.status).toBe('patrol');
     expect(fired.hostiles[0]?.passive).toBe(true);
     const angleToTarget = Math.atan2(target.position.y - sideOn.position.y, target.position.x - sideOn.position.x);

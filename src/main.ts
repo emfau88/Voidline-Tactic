@@ -480,12 +480,24 @@ function fireSelectedWeapon(weapon: WeaponMode): void {
   const destroyed = !getExpedition()?.hostiles.some((hostile) => hostile.id === target.id);
   game.events.emit('farhaven:weapon-fired', { weapon, target: { id: target.id, name: target.name, position: target.position, destroyed } });
 }
-required<HTMLButtonElement>('fire-button').addEventListener('click', () => fireSelectedWeapon(primaryWeaponMode()));
-required<HTMLButtonElement>('combat-prompt-fire').addEventListener('click', () => fireSelectedWeapon(primaryWeaponMode()));
-required<HTMLButtonElement>('ordnance-button').addEventListener('click', () => {
-  const weapon = ordnanceWeaponMode();
-  if (weapon) fireSelectedWeapon(weapon);
-});
+function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponMode | undefined): void {
+  // Fire on press, not release. A second mobile thumb can shoot while the first
+  // still holds the flight stick; keyboard activation remains available too.
+  button.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const weapon = resolveWeapon();
+    if (weapon) fireSelectedWeapon(weapon);
+  });
+  button.addEventListener('click', (event) => {
+    if (event.detail !== 0) return;
+    const weapon = resolveWeapon();
+    if (weapon) fireSelectedWeapon(weapon);
+  });
+}
+bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponMode());
+bindFireControl(required<HTMLButtonElement>('combat-prompt-fire'), () => primaryWeaponMode());
+bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => { required<HTMLElement>('return-moment').hidden = true; });
 required<HTMLButtonElement>('reset-button').addEventListener('click', () => {

@@ -28,6 +28,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Zwei-Finger-Pinch-Zoom für Expeditionen, mit begrenztem Zoom-Bereich für Mobile
 - markierte Übungsdummies geben unabhängig von Manöverwinkel sofort Feuer frei; Positionswinkel bleiben eine Regel für echte Gegner
 - kompakte Top-down-Farhaven-Bauplatte mit vier antippbaren Andockplätzen und einem transparenten, originalen Modul-Asset-Kit für Hangar, Scanner, Labor und Sternenwerk
+- echte Alpha-Bereinigung für das Farhaven-Modul-Kit statt eingebranntem Checkerboard; Hangarwerkstatt erhält eine belastbare Schiffsvorschau als Fallback
+- Feueraktionen lösen beim Drücken aus, damit der zweite Daumen während eines gehaltenen Flugsticks salven kann
 
 #### Changed
 
