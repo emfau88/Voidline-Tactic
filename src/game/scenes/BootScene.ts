@@ -25,8 +25,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image('module-vector-drive-v1', 'assets/modules/vector-drive-v1.svg');
     this.load.image('battlefield-nebula-v1', 'assets/backgrounds/battlefield-nebula-v2.jpg');
     this.load.image('ashen-fringe-v1', 'assets/backgrounds/ashen-fringe-v1.png');
-    this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.png');
-    this.load.image('wormhole-gate-v3', 'assets/objects/wormhole-gate-v3.png');
+    this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.webp');
+    this.load.image('wormhole-gate-v3', 'assets/objects/wormhole-gate-v3.webp');
     this.load.image('farhaven-outpost-v1', 'assets/backgrounds/farhaven-outpost-v1.png');
     this.load.image('farhaven-hangar-module-v1', 'assets/outpost/farhaven-hangar-module-v1.png');
   }
