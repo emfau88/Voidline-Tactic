@@ -1,4 +1,4 @@
-import { createExpedition, finishExpedition, fireWeapon, investigate, isHome, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition } from '../domain/exploration/expeditionEngine';
+import { createExpedition, enterWormhole, finishExpedition, fireWeapon, investigate, isHome, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition } from '../domain/exploration/expeditionEngine';
 import type { ExpeditionState, Vector2, WeaponMode } from '../domain/exploration/types';
 import { canUpgrade, secureCargo, upgradeFacility } from '../domain/outpost/outpostEngine';
 import type { FacilityId, FarhavenProfile } from '../domain/outpost/types';
@@ -58,6 +58,19 @@ export function scanNearby(): void {
   if (!expedition) return;
   expedition = scan(expedition);
   emit();
+}
+
+export function enterAlienRift(): boolean {
+  if (!expedition) return false;
+  const previousSector = expedition.sectorId;
+  expedition = enterWormhole(expedition);
+  if (expedition.sectorId === previousSector) {
+    emit();
+    return false;
+  }
+  selectedTargetId = undefined;
+  emit();
+  return true;
 }
 
 export function investigateSignal(signalId: string): void {

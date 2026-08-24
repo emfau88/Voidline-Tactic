@@ -5,6 +5,8 @@ const WORLD_WIDTH = 4_200;
 const WORLD_HEIGHT = 2_600;
 const MAX_LOG_ENTRIES = 4;
 const DUMMY_RESPAWN_MS = 2_700;
+export const WORMHOLE_POSITION: Vector2 = { x: 1_360, y: 1_320 };
+const WORMHOLE_ENTRY_RANGE = 170;
 
 const TRAINING_DUMMIES: readonly HostileState[] = [
   { id: 'ash-patrol', name: 'Aschen-Attrappe', kind: 'patrol', passive: true, status: 'patrol', position: { x: 2_500, y: 1_580 }, patrolCenter: { x: 2_500, y: 1_580 }, patrolRadius: 0, patrolPhase: 0, heading: Math.PI, hull: 4, maxHull: 4 },
@@ -77,6 +79,7 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
 
 export function createExpedition(scanBonus = 0, cargoBonus = 0): ExpeditionState {
   return {
+    sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
     status: 'active',
     position: ORIGIN,
@@ -100,6 +103,34 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0): ExpeditionState
     hostiles: TRAINING_DUMMIES.map((dummy) => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })),
     dummyRespawns: [],
     log: ['Die Schleuse von Farhaven schließt sich hinter dir.'],
+  };
+}
+
+export function canEnterWormhole(state: ExpeditionState): boolean {
+  return state.sectorId === 'ashenscar'
+    && state.status === 'active'
+    && distance(state.position, WORMHOLE_POSITION) <= WORMHOLE_ENTRY_RANGE;
+}
+
+export function enterWormhole(state: ExpeditionState): ExpeditionState {
+  if (!canEnterWormhole(state)) return appendLog(state, 'Das Xenogate ist noch außer Reichweite.');
+  return {
+    ...state,
+    sectorId: 'veloria-rift',
+    sectorName: 'Veloria Rift',
+    position: { x: 2_100, y: 1_500 },
+    origin: { x: 2_100, y: 1_500 },
+    flightInput: { x: 0, y: 0 },
+    velocity: { x: 0, y: 0 },
+    course: undefined,
+    signals: [
+      { id: 'veloria-husk', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Schalenbarke', classifiedDescription: 'Eine stumme, organische Barke treibt unter den Lichtern der Rift.', position: { x: 2_470, y: 1_180 }, knowledge: 'echo', risk: 'medium' },
+      { id: 'veloria-crystal', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Resonanzader', classifiedDescription: 'Kristallines Erz singt in einem fremden Takt.', position: { x: 1_500, y: 1_030 }, knowledge: 'echo', risk: 'low' },
+      { id: 'veloria-choir', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Der leise Chor', classifiedDescription: 'Ein Chor aus Lichtmustern erwartet eine Deutung.', position: { x: 1_680, y: 2_060 }, knowledge: 'echo', risk: 'high' },
+    ],
+    hostiles: [],
+    dummyRespawns: [],
+    log: ['Veloria Rift · Platzhalterkarte betreten. Scanne die fremden Echos und kehre mit deinen Funden zurück.'],
   };
 }
 
@@ -179,7 +210,14 @@ export function scan(state: ExpeditionState): ExpeditionState {
   const signals = state.signals.map((signal) => {
     if (signal.knowledge !== 'echo' || distance(signal.position, state.position) > state.scanRadius) return signal;
     found += 1;
-    return { ...signal, ...SIGNAL_DETAILS[signal.kind], knowledge: 'classified' as const };
+    const detail = SIGNAL_DETAILS[signal.kind];
+    return {
+      ...signal,
+      name: signal.classifiedName ?? detail.name,
+      risk: detail.risk,
+      description: signal.classifiedDescription ?? detail.description,
+      knowledge: 'classified' as const,
+    };
   });
   return appendLog({ ...state, signals, energy: state.energy - 8 }, found > 0 ? `${found} Signal${found === 1 ? '' : 'e'} klassifiziert.` : 'Scan beendet. Nur Stille antwortet.');
 }

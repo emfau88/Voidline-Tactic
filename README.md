@@ -8,6 +8,7 @@ Mobile-first 2D-Space-Explorer im Browser: Mit einem eigenen Schiff erkundest du
 
 ```text
 Farhaven → Aschsaum I → Scannen → Anfliegen → Untersuchen → Rückkehr → Ausbau
+                           └→ Xenogate → Veloria Rift (Kartensonde)
 ```
 
 Der aktuelle spielbare Prototyp enthält:
@@ -15,6 +16,7 @@ Der aktuelle spielbare Prototyp enthält:
 - direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
+- ein sichtbares, sanft pulsierendes Xenogate: freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
 - drei passive Übungsdummies für freiwillige Kampf-Tests, manuelle Salven und sichtbare Waffen-VFX
 - einen modularen Außenposten mit Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
@@ -23,7 +25,7 @@ Der aktuelle spielbare Prototyp enthält:
 - persistente Ausbauten und Schiffsdaten über `localStorage` mit dem Save-Key `voidline-farhaven-save-v2`
 - Touch-freundliche Querformat-PWA und taktische Pause
 
-Exploration ist bewusst der Kern; Kampf ist derzeit ein optionaler, risikofreier Testbereich und kein Dauercombat-Loop.
+Exploration ist bewusst der Kern; Kampf ist derzeit ein optionaler, risikofreier Testbereich und kein Dauercombat-Loop. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
 
 ## Entwicklungsstand
 

@@ -1,7 +1,7 @@
 import './farhaven.css';
 import { createGame } from './app/createGame';
-import { beginExpedition, changeShipVariantForTest, chooseStartingShip, courseTo, fireWeapons, getExpedition, getProfile, getSelectedTargetId, improveFacility, investigateSignal, mineVeinSignal, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
-import { weaponReadiness } from './domain/exploration/expeditionEngine';
+import { beginExpedition, changeShipVariantForTest, chooseStartingShip, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getSelectedTargetId, improveFacility, investigateSignal, mineVeinSignal, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
+import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { WeaponMode } from './domain/exploration/types';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
@@ -194,16 +194,22 @@ function renderExpedition(): void {
   required<HTMLElement>('energy-value').textContent = `${Math.ceil(expedition.energy)} / ${expedition.maxEnergy}`;
   required<HTMLElement>('hull-value').textContent = `${Math.ceil(expedition.hull)} / ${expedition.maxHull}`;
   required<HTMLElement>('cargo-value').textContent = `${cargoTotal()} / ${expedition.cargoCapacity}`;
+  required<HTMLElement>('sector-title').textContent = expedition.sectorName.toUpperCase();
   meter('energy-bar', expedition.energy, expedition.maxEnergy);
   meter('hull-bar', expedition.hull, expedition.maxHull);
   meter('cargo-bar', cargoTotal(), expedition.cargoCapacity);
   required<HTMLElement>('expedition-status').textContent = expedition.status === 'returning' ? 'RÜCKKEHR LÄUFT' : 'DIREKTSTEUERUNG';
   required<HTMLElement>('expedition-log').textContent = expedition.log[0] ?? '';
   const nearby = expedition.signals.find((signal) => signal.knowledge === 'classified' && Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) <= 112);
+  const atWormhole = canEnterWormhole(expedition);
   const interact = required<HTMLButtonElement>('interact-button');
   const interactLabel = interact.querySelector('span')!;
   const hasMiningLasers = getProfile().ship?.upgrades.includes('mining-lasers') ?? false;
-  if (nearby?.kind === 'vein') {
+  if (atWormhole) {
+    interactLabel.textContent = 'DURCHQUEREN';
+    interact.querySelector('small')!.textContent = 'Xenogate · Veloria Rift';
+    interact.disabled = false;
+  } else if (nearby?.kind === 'vein') {
     interactLabel.textContent = 'ABBAUEN';
     interact.querySelector('small')!.textContent = hasMiningLasers ? 'Minenlaser · 10 Energie' : 'Minenlaser fehlt';
     interact.disabled = !hasMiningLasers;
@@ -242,7 +248,11 @@ function renderExpedition(): void {
     ordnance.querySelector('span')!.textContent = weaponLabel(ordnanceMode);
     ordnance.querySelector('small')!.textContent = ordnanceReadiness.reason;
   }
-  required<HTMLElement>('expedition-status').textContent = expedition.status === 'returning' ? 'RÜCKKEHR LÄUFT' : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : 'ZIEL AUF KARTE WÄHLEN';
+  required<HTMLElement>('expedition-status').textContent = expedition.status === 'returning'
+    ? 'RÜCKKEHR LÄUFT'
+    : expedition.sectorId === 'veloria-rift'
+      ? 'VELORIA RIFT · KARTENSONDE'
+      : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : 'ZIEL AUF KARTE WÄHLEN';
   const list = required<HTMLElement>('signal-list');
   list.replaceChildren(...expedition.signals.filter((signal) => signal.knowledge === 'classified').map((signal) => {
     const item = document.createElement('div');
@@ -310,6 +320,22 @@ game.events.on('farhaven:signal-selected', (signalId: string) => {
   courseTo(signal.position);
   toast(`KURS ZU ${signal.name.toUpperCase()} GESETZT.`);
 });
+function enterRiftIfReady(): void {
+  if (!enterAlienRift()) return;
+  game.scene.stop('expedition');
+  game.scene.start('expedition');
+  toast('Das Xenogate verschluckt die Aster Vale. Veloria Rift ist noch eine Kartensonde.');
+}
+game.events.on('farhaven:wormhole-selected', () => {
+  const expedition = getExpedition();
+  if (!expedition || expedition.sectorId !== 'ashenscar') return;
+  if (canEnterWormhole(expedition)) {
+    enterRiftIfReady();
+    return;
+  }
+  courseTo(WORMHOLE_POSITION);
+  toast('KURS ZUM XENOGATE GESETZT · Am Tor „DURCHQUEREN“ wählen.');
+});
 required<HTMLButtonElement>('close-facility-button').addEventListener('click', () => { facilityPanel.hidden = true; selectedFacility = undefined; });
 required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click', () => {
   if (!selectedFacility) return;
@@ -348,6 +374,10 @@ required<HTMLButtonElement>('scan-button').addEventListener('click', () => {
 });
 required<HTMLButtonElement>('interact-button').addEventListener('click', () => {
   const expedition = getExpedition();
+  if (expedition && canEnterWormhole(expedition)) {
+    enterRiftIfReady();
+    return;
+  }
   const nearby = expedition?.signals.find((signal) => signal.knowledge === 'classified' && Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) <= 112);
   if (!nearby) return;
   if (nearby.kind === 'vein') {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createExpedition, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness } from '../../src/domain/exploration/expeditionEngine';
+import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
 
 describe('exploration engine', () => {
   it('classifies nearby echoes while spending scan energy', () => {
@@ -45,6 +45,18 @@ describe('exploration engine', () => {
     const returning = returnToFarhaven(outbound);
     expect(returning.status).toBe('returning');
     expect(returning.course).toEqual(returning.origin);
+  });
+
+  it('enters the optional alien-realm map only at the Xenogate', () => {
+    const start = createExpedition();
+    expect(canEnterWormhole(start)).toBe(false);
+    const atGate = { ...start, position: WORMHOLE_POSITION };
+    expect(canEnterWormhole(atGate)).toBe(true);
+    const rift = enterWormhole(atGate);
+    expect(rift.sectorId).toBe('veloria-rift');
+    expect(rift.sectorName).toBe('Veloria Rift');
+    expect(rift.signals).toHaveLength(3);
+    expect(rift.hostiles).toHaveLength(0);
   });
 
   it('mines a classified vein only when the ship is close and has room', () => {

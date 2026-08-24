@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { getExpedition, getProfile, getSelectedTargetId, tickExpedition } from '../../app/gameFlow';
+import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
 import type { ExpeditionState, SignalKind, Vector2, WeaponMode } from '../../domain/exploration/types';
 import { SHIP_VARIANTS, type ShipUpgradeId } from '../../domain/ship/types';
 
@@ -37,19 +38,27 @@ export class ExpeditionScene extends Phaser.Scene {
   public constructor() { super('expedition'); }
 
   public create(): void {
+    const expedition = getExpedition();
+    const isAlienRealm = expedition?.sectorId === 'veloria-rift';
     this.cameras.main.setBounds(0, 0, 4200, 2600);
     this.cameras.main.setZoom(0.95);
-    const backdrop = this.add.image(2100, 1300, 'ashen-fringe-v1');
+    const backdrop = this.add.image(2100, 1300, isAlienRealm ? 'veloria-rift-v1' : 'ashen-fringe-v1');
     const backdropScale = Math.max(4400 / backdrop.width, 2700 / backdrop.height);
-    backdrop.setDisplaySize(backdrop.width * backdropScale, backdrop.height * backdropScale).setAlpha(0.92);
+    backdrop.setDisplaySize(backdrop.width * backdropScale, backdrop.height * backdropScale).setAlpha(isAlienRealm ? 0.94 : 0.92);
     const field = this.add.graphics();
-    field.fillStyle(0x040812, 0.34);
+    field.fillStyle(isAlienRealm ? 0x10091a : 0x040812, isAlienRealm ? 0.26 : 0.34);
     field.fillRect(0, 0, 4200, 2600);
-    const home = this.add.graphics();
-    home.fillStyle(0x111d29, 0.92); home.fillRoundedRect(2_068, 1_478, 64, 44, 9);
-    home.lineStyle(2, 0xe0b567, 0.92); home.strokeRoundedRect(2_068, 1_478, 64, 44, 9);
-    home.lineStyle(2, 0x94e2ef, 0.8); home.lineBetween(2_078, 1_500, 2_122, 1_500); home.lineBetween(2_100, 1_486, 2_100, 1_514);
-    this.homeLabel = this.add.text(2_100, 1_540, 'FARHAVEN · DOCK', { fontFamily: 'Arial', fontSize: 9, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 1 }).setOrigin(0.5).setDepth(2);
+    if (!isAlienRealm) {
+      const home = this.add.graphics();
+      home.fillStyle(0x111d29, 0.92); home.fillRoundedRect(2_068, 1_478, 64, 44, 9);
+      home.lineStyle(2, 0xe0b567, 0.92); home.strokeRoundedRect(2_068, 1_478, 64, 44, 9);
+      home.lineStyle(2, 0x94e2ef, 0.8); home.lineBetween(2_078, 1_500, 2_122, 1_500); home.lineBetween(2_100, 1_486, 2_100, 1_514);
+      this.homeLabel = this.add.text(2_100, 1_540, 'FARHAVEN · DOCK', { fontFamily: 'Arial', fontSize: 9, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 1 }).setOrigin(0.5).setDepth(2);
+      this.addWormholeGate();
+    } else {
+      const riftTag = this.add.text(2_100, 1_410, 'VELORIA RIFT · KARTENSONDE 01', { fontFamily: 'Arial', fontSize: 10, color: '#d4b8fa', fontStyle: 'bold', letterSpacing: 1.2 }).setOrigin(0.5).setDepth(2);
+      this.tweens.add({ targets: riftTag, alpha: { from: 0.56, to: 0.95 }, duration: 1_900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    }
     const playerShip = getProfile().ship;
     const shipKey = playerShip ? SHIP_VARIANTS[playerShip.variant].assetKey : 'ship-player-frigate-v1';
     this.ship = this.add.image(0, 0, shipKey);
@@ -72,6 +81,29 @@ export class ExpeditionScene extends Phaser.Scene {
       this.game.events.off('farhaven:scan-pulse', this.showScanPulse, this);
     });
     this.refresh();
+  }
+
+  private addWormholeGate(): void {
+    const x = WORMHOLE_POSITION.x;
+    const y = WORMHOLE_POSITION.y;
+    const glow = this.add.image(x, y, 'wormhole-gate-v3').setDisplaySize(254, 254).setAlpha(0.24).setBlendMode(Phaser.BlendModes.ADD).setDepth(2);
+    const gate = this.add.image(x, y, 'wormhole-gate-v3').setDisplaySize(236, 236).setDepth(3).setInteractive({ useHandCursor: true });
+    const portalMaskSource = this.make.graphics({ x: 0, y: 0 });
+    portalMaskSource.fillStyle(0xffffff); portalMaskSource.fillCircle(x, y, 119);
+    const portalMask = portalMaskSource.createGeometryMask();
+    glow.setMask(portalMask);
+    gate.setMask(portalMask);
+    gate.on('pointerdown', () => this.game.events.emit('farhaven:wormhole-selected'));
+    this.tweens.add({ targets: glow, angle: 360, duration: 12_000, repeat: -1, ease: 'Linear' });
+    this.tweens.add({ targets: gate, scaleX: gate.scaleX * 1.035, scaleY: gate.scaleY * 1.035, duration: 1_650, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    this.tweens.add({ targets: glow, scaleX: glow.scaleX * 1.06, scaleY: glow.scaleY * 1.06, duration: 1_650, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    const frame = this.add.graphics().setDepth(4);
+    this.drawCornerFrame(frame, WORMHOLE_POSITION, 137, 19, 0xb881f4, 0.9);
+    const labelBack = this.add.graphics().setDepth(4);
+    labelBack.fillStyle(0x0c101d, 0.88); labelBack.fillRoundedRect(x - 74, y + 136, 148, 32, 8);
+    labelBack.lineStyle(1, 0xa879e4, 0.78); labelBack.strokeRoundedRect(x - 74, y + 136, 148, 32, 8);
+    this.add.text(x, y + 141, 'XENOGATE · VELORIA', { fontFamily: 'Arial', fontSize: 9, color: '#eee0ff', fontStyle: 'bold', letterSpacing: 0.65 }).setOrigin(0.5, 0).setDepth(5);
+    this.add.text(x, y + 153, 'TIPPE FÜR KURS · AM TOR DURCHQUEREN', { fontFamily: 'Arial', fontSize: 6, color: '#b9d9dc', letterSpacing: 0.25 }).setOrigin(0.5, 0).setDepth(5);
   }
 
   public update(_time: number, delta: number): void {

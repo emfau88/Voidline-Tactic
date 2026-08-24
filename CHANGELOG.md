@@ -8,6 +8,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 #### Added
 
+- freiwilliges Xenogate mit ruhiger Loop-Animation und eigener Veloria-Rift-Kartensonde mit drei fremden Signalen
 - neuer aktiver Singleplayer-Loop: Außenposten → Expedition → Rückkehr → Ausbau
 - Farhaven-Save v2 mit getrenntem Storage-Key
 - erste Explorationsdomain für Energie, Frachtraum, Signale, Scan und Bergung

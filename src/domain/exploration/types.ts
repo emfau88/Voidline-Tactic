@@ -7,6 +7,7 @@ export type ResourceKind = 'alloys' | 'data' | 'relics';
 export type SignalKind = 'wreck' | 'vein' | 'anomaly' | 'distress';
 export type SignalKnowledge = 'echo' | 'classified' | 'resolved';
 export type ExpeditionStatus = 'active' | 'returning';
+export type SectorId = 'ashenscar' | 'veloria-rift';
 export type WeaponMode = 'broadside' | 'rail' | 'torpedo' | 'orb';
 export type HostileKind = 'patrol' | 'raider';
 export type HostileStatus = 'patrol' | 'alert';
@@ -25,6 +26,8 @@ export interface SignalState {
   readonly knowledge: SignalKnowledge;
   readonly risk: 'low' | 'medium' | 'high';
   readonly description?: string;
+  readonly classifiedName?: string;
+  readonly classifiedDescription?: string;
 }
 
 export interface HostileState {
@@ -48,6 +51,7 @@ export interface DummyRespawnState {
 }
 
 export interface ExpeditionState {
+  readonly sectorId: SectorId;
   readonly sectorName: string;
   readonly status: ExpeditionStatus;
   readonly position: Vector2;
