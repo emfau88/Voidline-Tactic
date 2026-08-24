@@ -26,6 +26,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - getrennte, kompakte Raumansichten für Farhaven-Bereiche und eine einklappbare Prototypen-Schublade in der Hangarwerkstatt
 - direkte Dummy-Zielerfassung auf der Karte mit großen Zielzonen und klarer „Tippe zum Zielen“-Kennzeichnung
 - Zwei-Finger-Pinch-Zoom für Expeditionen, mit begrenztem Zoom-Bereich für Mobile
+- markierte Übungsdummies geben unabhängig von Manöverwinkel sofort Feuer frei; Positionswinkel bleiben eine Regel für echte Gegner
 
 #### Changed
 

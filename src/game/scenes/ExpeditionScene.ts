@@ -191,7 +191,7 @@ export class ExpeditionScene extends Phaser.Scene {
         this.signalLayer?.add(warning);
       }
       const state = hostile.passive
-        ? selected ? 'ZIEL MARKIERT · KEINE GEGENWEHR' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
+        ? selected ? 'ZIEL MARKIERT · FEUER FREI' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
         : hostile.status === 'alert' ? 'ALARM' : 'PATROUILLE';
       const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);

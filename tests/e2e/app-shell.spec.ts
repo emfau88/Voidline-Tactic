@@ -122,10 +122,26 @@ test('lets the player select a practice dummy directly on the open map', async (
   const canvas = page.locator('#game-root canvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Expected the expedition canvas to be visible.');
-  // Aschen-Attrappe: world (-220, -40) from the start, camera zoom 0.95.
-  await canvas.click({ position: { x: box.width / 2 - 220 * .95, y: box.height / 2 - 40 * .95 } });
+  // Aschen-Attrappe: world (-220, -40) from the start, camera zoom 1.1.
+  await canvas.click({ position: { x: box.width / 2 - 220 * 1.1, y: box.height / 2 - 40 * 1.1 } });
   await expect(page.locator('#combat-prompt-target')).toHaveText('ASCHEN-ATTRAPPE');
   await expect(page.locator('#combat-prompt-kicker')).toContainText('ZIEL ERFASST');
+});
+
+test('keeps a selected practice dummy immediately fireable with a visual test weapon', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 2,
+    resources: { alloys: 0, data: 0, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 1,
+    ship: { variant: 'aster-vale', upgrades: ['rail-lance'] },
+  })));
+  await page.reload();
+  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await expect(page.locator('#combat-prompt-fire')).toContainText('LANZE');
+  await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
+  await page.locator('#combat-prompt-fire').click();
+  await expect(page.locator('#expedition-log')).toContainText('Rail-Lanze trifft');
 });
 
 test('can pause and request a safe return', async ({ page }) => {

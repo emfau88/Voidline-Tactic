@@ -147,6 +147,14 @@ describe('exploration engine', () => {
     expect(weaponReadiness(forwardOn, target.id, 'torpedo').ready).toBe(true);
   });
 
+  it('keeps passive practice dummies immediately fireable for weapon testing', () => {
+    const start = createExpedition();
+    const target = start.hostiles[0]!;
+    const misaligned = { ...start, heading: Math.PI / 2 };
+    expect(weaponReadiness(misaligned, target.id, 'rail').ready).toBe(true);
+    expect(weaponReadiness(misaligned, target.id, 'broadside').ready).toBe(true);
+  });
+
   it('respawns passive combat dummies after they are destroyed', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;

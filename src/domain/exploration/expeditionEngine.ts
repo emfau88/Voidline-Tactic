@@ -332,6 +332,9 @@ export function weaponReadiness(state: ExpeditionState, targetId: string | undef
   const targetDistance = distance(target.position, state.position);
   if (targetDistance > rules.range) return { ready: false, reason: `Außer Reichweite · ${Math.round(targetDistance)}u` };
   if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Systemladung · ${rules.energy} nötig` };
+  // Practice contacts are there to test visible weapons, not to require a precise
+  // maneuver before the first shot. Real opponents still demand positioning.
+  if (target.passive) return { ready: true, reason: `Feuer frei · ${target.name}` };
   const forward = forwardVector(state.heading);
   const toTarget = { x: (target.position.x - state.position.x) / targetDistance, y: (target.position.y - state.position.y) / targetDistance };
   const forwardDot = forward.x * toTarget.x + forward.y * toTarget.y;
