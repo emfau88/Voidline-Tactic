@@ -57,6 +57,8 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #objective-tracker small { display: block; color: #91ddea; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
 #objective-tracker strong { display: block; margin-top: 2px; color: #f0deba; font-family: Georgia, serif; font-size: 15px; letter-spacing: .04em; }
 #objective-tracker p { margin: 2px 0 0; color: #b8cbd0; font-size: 8px; line-height: 1.25; }
+#game-shell[data-screen='outpost'] #objective-tracker { width: min(345px, calc(100vw - 38px)); padding: 5px 10px; }
+#game-shell[data-screen='outpost'] #objective-tracker p { display: none; }
 #game-shell[data-outpost-view='room'] #game-root { filter: brightness(.5) saturate(.72) blur(1px); transform: scale(1.012); transition: filter .18s ease, transform .18s ease; }
 #outpost-nav { position: fixed; z-index: 11; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; width: min(410px, calc(100vw - 32px)); }
 #outpost-nav button { display: grid; min-height: 60px; place-items: center; gap: 3px; border: 1px solid rgb(122 207 235 / 38%); border-radius: 13px; background: rgb(5 15 25 / 82%); color: #93ddee; font-size: 19px; backdrop-filter: blur(9px); }

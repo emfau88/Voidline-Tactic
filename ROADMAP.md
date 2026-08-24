@@ -24,7 +24,7 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - ✅ mehrbildschirmiger 4200×2600-Sektor mit Follow-Kamera, Trägheit und Triebwerks-VFX
 - ✅ map-first Expeditions-HUD: schmale Statusleiste oben, Flugstick links, Aktionen rechts
 - ✅ erster vermeidbarer Kontakt mit Feuerreichweite und sichtbarer Breitseitensalve
-- ✅ Farhaven-Hotspots an die tatsächlichen Bereiche der Stationsillustration gebunden
+- ✅ kompakte Top-down-Bauplatte statt großflächiger Stationsillustration: vier eindeutige Andockplätze, Baugerüste und nach Bau sichtbare Modulräume
 - ✅ Cargo und drei sichere Ressourcenfamilien
 - ✅ Hangar- und Scanner-Ausbau verändern Folgeexpeditionen
 - ✅ einmalige Startwahl zwischen Erkundungskutter und Bergungsschlepper

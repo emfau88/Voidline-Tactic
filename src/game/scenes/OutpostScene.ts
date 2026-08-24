@@ -1,15 +1,32 @@
 import Phaser from 'phaser';
 import { getProfile, subscribe } from '../../app/gameFlow';
-import type { FacilityId } from '../../domain/outpost/types';
+import { FACILITIES, type FacilityId } from '../../domain/outpost/types';
 
+type Point = Readonly<{ x: number; y: number }>;
+type ModuleLayout = Readonly<{ id: FacilityId; x: number; y: number; width: number; height: number; accent: number }>;
+
+const MODULE_ACCENTS: Record<FacilityId, number> = {
+  hangar: 0xd5ad68,
+  scanner: 0x72d9e8,
+  labor: 0xc7a0e8,
+  navigation: 0x8ed9bd,
+};
+
+/** A small state-driven station board: rooms only appear when they have been built. */
 export class OutpostScene extends Phaser.Scene {
   private unsubscribe?: () => void;
+  private readonly setInteractionLock = (locked: boolean): void => { this.input.enabled = !locked; };
 
   public constructor() { super('outpost'); }
 
   public create(): void {
     this.scale.on('resize', this.draw, this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unsubscribe?.());
+    this.game.events.on('farhaven:outpost-interaction-lock', this.setInteractionLock);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off('resize', this.draw, this);
+      this.game.events.off('farhaven:outpost-interaction-lock', this.setInteractionLock);
+      this.unsubscribe?.();
+    });
     this.unsubscribe = subscribe(() => this.draw());
     this.draw();
   }
@@ -18,67 +35,186 @@ export class OutpostScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
     const profile = getProfile();
+    const unit = Math.min(width / 1500, height / 760);
+    const center: Point = { x: width * 0.53, y: height * 0.51 };
+    const coreWidth = 198 * unit;
+    const coreHeight = 128 * unit;
+    const armX = 230 * unit;
+    const armY = 116 * unit;
+
     this.tweens.killAll();
     this.children.removeAll();
-    this.cameras.main.setBackgroundColor('#080a12');
+    this.cameras.main.setBackgroundColor('#050911');
+    this.drawSpace(width, height, unit);
 
-    const backdrop = this.add.image(width / 2, height / 2, 'farhaven-outpost-v1');
-    const backdropScale = Math.max(width / backdrop.width, height / backdrop.height);
-    backdrop.setDisplaySize(backdrop.width * backdropScale, backdrop.height * backdropScale);
-    this.add.rectangle(0, 0, width, height, 0x02060c, 0.17).setOrigin(0);
-    this.add.text(width * 0.5, height * 0.09, 'FARHAVEN', {
-      fontFamily: 'Georgia, serif', fontSize: Math.max(26, width * 0.038), color: '#f6e4bc', letterSpacing: 7,
-    }).setOrigin(0.5);
-    this.add.text(width * 0.5, height * 0.14, 'ZUFUCHT AM RAND DER VOIDLINE · TIPPE EINEN BEREICH AN', {
-      fontFamily: 'Arial', fontSize: Math.max(8, width * 0.009), color: '#a7e5f4', letterSpacing: 1.5,
-    }).setOrigin(0.5);
+    const board = this.add.graphics();
+    const boardWidth = 620 * unit;
+    const boardHeight = 420 * unit;
+    board.fillStyle(0x07111c, 0.82);
+    board.fillRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
+    board.lineStyle(Math.max(1, 1.4 * unit), 0x2a5b68, 0.52);
+    board.strokeRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
+    this.drawBoardMarks(board, center, boardWidth, boardHeight, unit);
 
-    const hangarX = width * 0.58;
-    const hangarY = height * 0.69;
-    if (profile.facilities.hangar > 0) {
-      const hangar = this.add.image(hangarX, hangarY, 'farhaven-hangar-module-v1');
-      const hangarScale = Math.min(Math.min(width * 0.235, 360) / hangar.width, Math.min(height * 0.58, 550) / hangar.height);
-      hangar.setDisplaySize(hangar.width * hangarScale, hangar.height * hangarScale).setOrigin(0.5, 0.17);
-      hangar.setAlpha(0.98);
-      this.tweens.add({ targets: hangar, alpha: { from: 0.78, to: 1 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    } else {
-      const scaffold = this.add.graphics();
-      const scaffoldWidth = Math.min(width * 0.19, 280);
-      const scaffoldHeight = Math.min(height * 0.36, 330);
-      scaffold.fillStyle(0x050b13, 0.76);
-      scaffold.fillRoundedRect(hangarX - scaffoldWidth / 2, hangarY - scaffoldHeight * 0.12, scaffoldWidth, scaffoldHeight, 18);
-      scaffold.lineStyle(2, 0x5c89a1, 0.72);
-      scaffold.strokeRoundedRect(hangarX - scaffoldWidth / 2, hangarY - scaffoldHeight * 0.12, scaffoldWidth, scaffoldHeight, 18);
-      scaffold.lineStyle(1, 0xc69b54, 0.64);
-      for (let offset = -scaffoldWidth * 0.42; offset < scaffoldWidth * 0.42; offset += 24) {
-        scaffold.lineBetween(hangarX + offset, hangarY + scaffoldHeight * 0.18, hangarX + offset + 34, hangarY + scaffoldHeight * 0.04);
-      }
-      this.add.text(hangarX, hangarY + scaffoldHeight * 0.09, 'FREIER DOCKANSCHLUSS', {
-        fontFamily: 'Arial', fontSize: Math.max(8, width * 0.008), color: '#9ed8e6', fontStyle: 'bold', letterSpacing: 1.1,
-      }).setOrigin(0.5);
-      this.add.text(hangarX, hangarY + scaffoldHeight * 0.16, 'Hangar kann hier errichtet werden', {
-        fontFamily: 'Arial', fontSize: Math.max(7, width * 0.0065), color: '#aab7bd',
-      }).setOrigin(0.5);
+    const layouts: ModuleLayout[] = [
+      { id: 'scanner', x: center.x, y: center.y - armY, width: 136 * unit, height: 88 * unit, accent: MODULE_ACCENTS.scanner },
+      { id: 'labor', x: center.x - armX, y: center.y, width: 154 * unit, height: 92 * unit, accent: MODULE_ACCENTS.labor },
+      { id: 'hangar', x: center.x + armX, y: center.y, width: 182 * unit, height: 104 * unit, accent: MODULE_ACCENTS.hangar },
+      { id: 'navigation', x: center.x, y: center.y + armY, width: 146 * unit, height: 92 * unit, accent: MODULE_ACCENTS.navigation },
+    ];
+
+    const graphics = this.add.graphics();
+    for (const layout of layouts) this.drawConnector(graphics, center, layout, coreWidth, coreHeight, profile.facilities[layout.id] > 0);
+    this.drawCore(graphics, center, coreWidth, coreHeight, unit);
+    for (const layout of layouts) {
+      const built = profile.facilities[layout.id] > 0;
+      this.drawModule(graphics, layout, built, unit);
+      this.addModuleLabel(layout, built, unit);
+      this.addModuleTarget(layout);
     }
 
-    const locations: readonly [FacilityId, string, number, number, number, number][] = [
-      ['navigation', 'STERNENWERK', 0.59, 0.28, 0.64, 0.2],
-      ['hangar', profile.facilities.hangar ? 'HANGAR · ONLINE' : 'HANGAR · BAUPLATZ', 0.58, 0.74, 0.58, 0.93],
-      ['scanner', 'SCANNERKAPELLE', 0.75, 0.5, 0.79, 0.62],
-      ['labor', 'RELIKTLABOR', 0.36, 0.49, 0.3, 0.61],
-    ];
-    locations.forEach(([id, label, xRatio, yRatio, labelXRatio, labelYRatio]) => {
-      const x = width * xRatio;
-      const y = height * yRatio;
-      const upgraded = profile.facilities[id] > 0;
-      const zone = this.add.rectangle(x, y, id === 'hangar' ? Math.max(126, width * 0.145) : Math.max(82, width * 0.085), id === 'hangar' ? Math.max(118, height * 0.26) : Math.max(72, height * 0.14), 0xffffff, 0)
-        .setInteractive({ useHandCursor: true });
-      const marker = this.add.rectangle(width * labelXRatio, height * labelYRatio, Math.max(88, width * 0.09), Math.max(22, height * 0.032), 0x08121d, 0.74)
-        .setStrokeStyle(1, upgraded ? 0xa3ead0 : 0x6cc8e0, 0.7);
-      const labelText = this.add.text(width * labelXRatio, height * labelYRatio, label, { fontFamily: 'Arial', fontSize: Math.max(8, width * 0.009), color: '#e6f4f4', align: 'center', fontStyle: 'bold' }).setOrigin(0.5);
-      zone.on('pointerover', () => { marker.setFillStyle(0x173044, 0.94); marker.setStrokeStyle(2, 0xf0d488, 0.95); labelText.setColor('#fff4d9'); });
-      zone.on('pointerout', () => { marker.setFillStyle(0x08121d, 0.74); marker.setStrokeStyle(1, upgraded ? 0xa3ead0 : 0x6cc8e0, 0.7); labelText.setColor('#e6f4f4'); });
-      zone.on('pointerdown', () => this.game.events.emit('farhaven:facility-selected', id));
+    this.add.text(center.x, center.y + coreHeight * 0.63, 'FARHAVEN · KERNPLATTE', {
+      fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: '#e9d6ac', fontStyle: 'bold', letterSpacing: 1.3,
+    }).setOrigin(0.5);
+    this.add.text(center.x, center.y - boardHeight * 0.44, 'ANDOCKPLÄTZE · BAUE RÄUME AUS DEINEN FÜNDEN', {
+      fontFamily: 'Arial', fontSize: Math.max(7, 8 * unit), color: '#8ccbd8', fontStyle: 'bold', letterSpacing: 1.05,
+    }).setOrigin(0.5).setAlpha(0.9);
+  }
+
+  private drawSpace(width: number, height: number, unit: number): void {
+    const space = this.add.graphics();
+    space.fillStyle(0x050911, 1);
+    space.fillRect(0, 0, width, height);
+    const nebula = this.add.graphics();
+    nebula.fillStyle(0x17364a, 0.11);
+    nebula.fillEllipse(width * 0.09, height * 0.28, 420 * unit, 230 * unit);
+    nebula.fillStyle(0x43284b, 0.08);
+    nebula.fillEllipse(width * 0.88, height * 0.72, 360 * unit, 240 * unit);
+    for (let index = 0; index < 46; index += 1) {
+      const x = ((index * 137) % 997) / 997 * width;
+      const y = ((index * 271 + 89) % 773) / 773 * height;
+      const radius = Math.max(1, ((index % 3) + 1) * unit * 0.75);
+      const color = index % 9 === 0 ? 0xe7c06c : index % 5 === 0 ? 0x6ebed0 : 0x9ab7c7;
+      this.add.circle(x, y, radius, color, index % 9 === 0 ? 0.68 : 0.42);
+    }
+  }
+
+  private drawBoardMarks(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
+    graphics.lineStyle(Math.max(1, unit), 0x28525f, 0.24);
+    for (let column = -2; column <= 2; column += 1) {
+      const x = center.x + column * width * 0.16;
+      graphics.lineBetween(x, center.y - height * 0.44, x, center.y + height * 0.44);
+    }
+    for (let row = -1; row <= 1; row += 1) {
+      const y = center.y + row * height * 0.25;
+      graphics.lineBetween(center.x - width * 0.44, y, center.x + width * 0.44, y);
+    }
+  }
+
+  private drawCore(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
+    const x = center.x - width / 2;
+    const y = center.y - height / 2;
+    graphics.fillStyle(0x0b202c, 1);
+    graphics.fillRoundedRect(x, y, width, height, 22 * unit);
+    graphics.lineStyle(Math.max(1.5, 2 * unit), 0x73cad5, 0.86);
+    graphics.strokeRoundedRect(x, y, width, height, 22 * unit);
+    graphics.fillStyle(0x122f3c, 1);
+    graphics.fillRoundedRect(x + width * 0.11, y + height * 0.14, width * 0.78, height * 0.72, 14 * unit);
+    graphics.lineStyle(Math.max(1, unit), 0x497e89, 0.9);
+    graphics.strokeRoundedRect(x + width * 0.11, y + height * 0.14, width * 0.78, height * 0.72, 14 * unit);
+    const reactor = this.add.circle(center.x, center.y, 22 * unit, 0xd8ad60, 0.9);
+    reactor.setStrokeStyle(Math.max(1, unit), 0xffe0a0, 0.86);
+    this.add.circle(center.x, center.y, 10 * unit, 0xffe0a0, 0.72);
+    this.tweens.add({ targets: reactor, alpha: { from: 0.58, to: 1 }, scale: { from: 0.92, to: 1.06 }, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    for (let index = -2; index <= 2; index += 1) {
+      if (index === 0) continue;
+      graphics.fillStyle(0x78ddeb, 0.76);
+      graphics.fillRoundedRect(center.x + index * width * 0.14 - 4 * unit, center.y - height * 0.25, 8 * unit, 13 * unit, 2 * unit);
+      graphics.fillRoundedRect(center.x + index * width * 0.14 - 4 * unit, center.y + height * 0.15, 8 * unit, 13 * unit, 2 * unit);
+    }
+  }
+
+  private drawConnector(graphics: Phaser.GameObjects.Graphics, center: Point, layout: ModuleLayout, coreWidth: number, coreHeight: number, built: boolean): void {
+    const horizontal = Math.abs(layout.x - center.x) > Math.abs(layout.y - center.y);
+    const start: Point = horizontal
+      ? { x: center.x + Math.sign(layout.x - center.x) * coreWidth / 2, y: center.y }
+      : { x: center.x, y: center.y + Math.sign(layout.y - center.y) * coreHeight / 2 };
+    const end: Point = horizontal
+      ? { x: layout.x - Math.sign(layout.x - center.x) * layout.width / 2, y: layout.y }
+      : { x: layout.x, y: layout.y - Math.sign(layout.y - center.y) * layout.height / 2 };
+    graphics.lineStyle(Math.max(7, Math.min(layout.width, layout.height) * 0.11), 0x091723, 1);
+    graphics.lineBetween(start.x, start.y, end.x, end.y);
+    graphics.lineStyle(Math.max(1, Math.min(layout.width, layout.height) * 0.025), built ? layout.accent : 0x517282, built ? 0.84 : 0.5);
+    graphics.lineBetween(start.x, start.y, end.x, end.y);
+    graphics.fillStyle(built ? layout.accent : 0x517282, built ? 0.94 : 0.54);
+    graphics.fillCircle(end.x, end.y, Math.max(4, Math.min(layout.width, layout.height) * 0.07));
+  }
+
+  private drawModule(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, built: boolean, unit: number): void {
+    const { id, x, y, width, height, accent } = layout;
+    const left = x - width / 2;
+    const top = y - height / 2;
+    const corner = 13 * unit;
+    graphics.fillStyle(built ? 0x102531 : 0x0a151e, built ? 1 : 0.74);
+    graphics.fillRoundedRect(left, top, width, height, corner);
+    graphics.lineStyle(Math.max(1, 1.5 * unit), built ? accent : 0x4d6674, built ? 0.96 : 0.66);
+    graphics.strokeRoundedRect(left, top, width, height, corner);
+    if (!built) {
+      this.drawBuildSocket(graphics, layout, unit);
+      return;
+    }
+    const spriteSize = Math.min(width, height) * 0.9;
+    this.add.image(x, y, 'farhaven-module-kit-v1', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize);
+  }
+
+  private drawBuildSocket(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, unit: number): void {
+    const { x, y, width, height, accent } = layout;
+    const insetX = width * 0.16;
+    const insetY = height * 0.21;
+    graphics.lineStyle(Math.max(1, unit), accent, 0.44);
+    const dash = Math.max(9, 13 * unit);
+    for (let offset = -width / 2 + insetX; offset < width / 2 - insetX; offset += dash * 1.75) {
+      graphics.lineBetween(x + offset, y - height / 2 + insetY, x + Math.min(offset + dash, width / 2 - insetX), y - height / 2 + insetY);
+      graphics.lineBetween(x + offset, y + height / 2 - insetY, x + Math.min(offset + dash, width / 2 - insetX), y + height / 2 - insetY);
+    }
+    graphics.lineStyle(Math.max(1, unit), 0x6d8997, 0.5);
+    graphics.lineBetween(x - width * 0.27, y, x + width * 0.27, y);
+    graphics.lineBetween(x, y - height * 0.28, x, y + height * 0.28);
+    graphics.fillStyle(accent, 0.52);
+    graphics.fillCircle(x, y, Math.max(5, 7 * unit));
+  }
+
+  private moduleFrame(id: FacilityId): number {
+    return id === 'hangar' ? 0 : id === 'scanner' ? 1 : id === 'labor' ? 2 : 3;
+  }
+
+  private addModuleLabel(layout: ModuleLayout, built: boolean, unit: number): void {
+    const facility = FACILITIES[layout.id];
+    const labelY = layout.id === 'scanner' ? layout.y - layout.height * 0.72 : layout.y + layout.height * 0.72;
+    const state = built ? 'ONLINE' : `BAUPLATZ · ${this.compactCost(layout.id)}`;
+    const label = this.add.text(layout.x, labelY, `${facility.name.toUpperCase()}\n${state}`, {
+      fontFamily: 'Arial', fontSize: Math.max(7, 8 * unit), color: built ? '#f3e2bd' : '#9fbbc4', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
+    }).setOrigin(0.5);
+    label.setAlpha(built ? 1 : 0.84);
+  }
+
+  private compactCost(id: FacilityId): string {
+    return Object.entries(FACILITIES[id].cost)
+      .map(([kind, amount]) => `${amount} ${kind === 'alloys' ? 'LEG' : kind === 'data' ? 'DAT' : 'REL'}`)
+      .join(' · ');
+  }
+
+  private addModuleTarget(layout: ModuleLayout): void {
+    const target = this.add.zone(layout.x, layout.y, layout.width + 28, layout.height + 28)
+      .setInteractive({ useHandCursor: true });
+    target.on('pointerover', () => {
+      target.setScale(1.035);
+      this.game.canvas.style.cursor = 'pointer';
     });
+    target.on('pointerout', () => {
+      target.setScale(1);
+      this.game.canvas.style.cursor = 'default';
+    });
+    target.on('pointerdown', () => this.game.events.emit('farhaven:facility-selected', layout.id));
   }
 }

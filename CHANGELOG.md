@@ -27,6 +27,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - direkte Dummy-Zielerfassung auf der Karte mit großen Zielzonen und klarer „Tippe zum Zielen“-Kennzeichnung
 - Zwei-Finger-Pinch-Zoom für Expeditionen, mit begrenztem Zoom-Bereich für Mobile
 - markierte Übungsdummies geben unabhängig von Manöverwinkel sofort Feuer frei; Positionswinkel bleiben eine Regel für echte Gegner
+- kompakte Top-down-Farhaven-Bauplatte mit vier antippbaren Andockplätzen und einem transparenten, originalen Modul-Asset-Kit für Hangar, Scanner, Labor und Sternenwerk
 
 #### Changed
 
@@ -41,6 +42,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Farhaven-Raumdialoge auf Status plus eine Hauptaktion reduziert; das große Hangarbild ist aus dem Baufluss entfernt
 - Werkstatt von `TESTWERFT` zu `WERKSTATT` umbenannt; echte Einbauten stehen vor rein visuellen Prototypen
 - Expeditions-Startzoom von 0,95 auf 1,10 angehoben, damit echte Mobile-Viewports nicht unnötig weit herausgezoomt wirken
+- die große statische Farhaven-Station wird nicht mehr geladen; gebaute Räume werden als konkrete Module direkt an die Kernplatte gesetzt
 
 #### Deferred
 

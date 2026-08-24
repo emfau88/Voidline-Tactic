@@ -221,6 +221,9 @@ function renderOutpost(): void {
 function updateOutpostChrome(): void {
   const hasShip = Boolean(getProfile().ship);
   const isInspecting = !facilityPanel.hidden || !shipyardPanel.hidden;
+  // A room dialog sits above the canvas. Lock its world targets so the same tap
+  // cannot also select a second dock behind the HTML action button.
+  game.events.emit('farhaven:outpost-interaction-lock', isInspecting);
   if (isInspecting) shell.dataset.outpostView = 'room'; else delete shell.dataset.outpostView;
   outpostHud.hidden = !hasShip || isInspecting;
   required<HTMLElement>('outpost-nav').hidden = !hasShip || isInspecting;
@@ -362,7 +365,12 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-va
     if (chooseStartingShip(variant)) toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} IST NUN DEIN SCHIFF.`);
   });
 }
-game.events.on('farhaven:facility-selected', (facilityId: FacilityId) => openFacility(facilityId));
+game.events.on('farhaven:facility-selected', (facilityId: FacilityId) => {
+  // Canvas targets can receive the tail of the same touch that opened a DOM
+  // room panel. Once a room is open, its action must stay bound to that room.
+  if (!facilityPanel.hidden || !shipyardPanel.hidden) return;
+  openFacility(facilityId);
+});
 game.events.on('farhaven:target-selected', (targetId: string) => {
   if (!selectHostile(targetId)) return;
   const target = getExpedition()?.hostiles.find((hostile) => hostile.id === targetId);
@@ -401,9 +409,11 @@ required<HTMLButtonElement>('close-facility-button').addEventListener('click', (
 });
 required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click', () => {
   if (!selectedFacility) return;
-  if (improveFacility(selectedFacility)) {
-    playConstructionMoment(selectedFacility);
-    toast(`${FACILITIES[selectedFacility].name.toUpperCase()} IST JETZT TEIL VON FARHAVEN`);
+  const facilityId = selectedFacility;
+  if (improveFacility(facilityId)) {
+    selectedFacility = facilityId;
+    playConstructionMoment(facilityId);
+    toast(`${FACILITIES[facilityId].name.toUpperCase()} IST JETZT TEIL VON FARHAVEN`);
   }
   else toast('Dafür fehlen gesicherte Ressourcen.');
   renderFacilityPanel();
