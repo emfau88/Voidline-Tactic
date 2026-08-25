@@ -76,7 +76,7 @@ export class OutpostScene extends Phaser.Scene {
       const buildReady = guided && canUpgrade(profile, layout.id);
       this.drawModule(graphics, layout, built, guided, buildReady);
       this.addModuleLabel(layout, built, guided, buildReady, unit);
-      if (built || guided) this.addModuleTarget(layout);
+      this.addModuleTarget(layout);
     }
 
   }
@@ -97,7 +97,6 @@ export class OutpostScene extends Phaser.Scene {
   }
 
   private drawModule(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, built: boolean, guided: boolean, buildReady: boolean): void {
-    if (!built && !guided) return;
     const { id, x, y, width, height } = layout;
     if (built) {
       graphics.fillStyle(0x03080d, .42);
@@ -107,9 +106,9 @@ export class OutpostScene extends Phaser.Scene {
     const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id))
       .setName(`farhaven-module-${id}`)
       .setDisplaySize(spriteSize, spriteSize)
-      .setAlpha(built ? .96 : buildReady ? .34 : .13);
+      .setAlpha(built ? .96 : buildReady ? .38 : guided ? .25 : .18);
     if (id === 'hangar') module.setFlipX(true);
-    if (!built) module.setTint(buildReady ? 0xffdfa3 : 0x6f858d);
+    if (!built) module.setTint(buildReady ? 0xffdfa3 : guided ? 0x8fa9b1 : 0x55717b);
   }
 
   private moduleFrame(id: FacilityId): number | string {

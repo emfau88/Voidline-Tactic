@@ -99,14 +99,18 @@ test('keeps visual hull ideas as previews and only installs real earned modules'
   await openFacility(page, 'hangar');
   await page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ }).click();
   await expect(page.getByRole('heading', { name: 'WERKSTATT' })).toBeVisible();
+  await expect(page.locator('#shipyard-ship-image')).toHaveJSProperty('complete', true);
+  await expect(page.locator('#shipyard-ship-image')).toHaveJSProperty('naturalWidth', 1145);
   await page.getByRole('button', { name: 'ASTER VALE' }).click();
   await expect(page.locator('#shipyard-ship-name')).toHaveText('ASTER VALE');
+  await expect(page.locator('#shipyard-ship-image')).toHaveJSProperty('naturalWidth', 1024);
   await page.getByText('RUMPFIDEEN ANSEHEN').click();
   await expect(page.getByText('VISUELLE STUDIE').first()).toBeVisible();
   await page.getByRole('button', { name: /Frachtrücken/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="cargo-spine"]')).toBeVisible();
   await page.getByRole('button', { name: /Minenlaser/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toBeVisible();
+  await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toHaveJSProperty('naturalWidth', 1024);
 });
 
 test('scans a sector, classifies a signal and keeps the mobile HUD readable', async ({ page }) => {
@@ -120,15 +124,23 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
     const canvas = document.querySelector<HTMLCanvasElement>('#game-root canvas')!;
     const hud = document.querySelector<HTMLElement>('#expedition-hud')!;
     const rect = hud.getBoundingClientRect();
+    const objectiveRect = document.querySelector<HTMLElement>('#objective-tracker')!.getBoundingClientRect();
+    const compactLandscape = innerHeight <= 430 && innerWidth > innerHeight;
     return {
       canvasFits: Math.abs(canvas.getBoundingClientRect().width - innerWidth) <= 1,
       hudFits: rect.left >= 0 && rect.bottom <= innerHeight,
       bodyFits: document.body.scrollWidth <= innerWidth,
+      hudLeavesCenter: !compactLandscape || rect.right < innerWidth / 2,
+      objectiveLeavesCenter: !compactLandscape || objectiveRect.left > innerWidth / 2,
+      overlaysDoNotOverlap: !compactLandscape || rect.right <= objectiveRect.left,
     };
   });
   expect(layout.canvasFits).toBe(true);
   expect(layout.hudFits).toBe(true);
   expect(layout.bodyFits).toBe(true);
+  expect(layout.hudLeavesCenter).toBe(true);
+  expect(layout.objectiveLeavesCenter).toBe(true);
+  expect(layout.overlaysDoNotOverlap).toBe(true);
 });
 
 test('resumes an ongoing expedition after a browser reload', async ({ page }) => {

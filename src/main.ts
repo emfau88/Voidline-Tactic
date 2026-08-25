@@ -9,15 +9,19 @@ import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { FIELD_UPGRADE_COSTS, FIRST_FIELD_UPGRADE_ID, isFieldUpgrade, SECOND_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
 
 const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
-  'broadband-array': '/assets/ships/aster-vale/broadband-array-v1.png',
-  'cargo-spine': '/assets/ships/aster-vale/cargo-spine-v1.png',
-  'vector-tail': '/assets/ships/aster-vale/vector-tail-v1.png',
-  'salvage-claws': '/assets/ships/aster-vale/salvage-claws-v2.png',
-  'mining-lasers': '/assets/ships/aster-vale/mining-lasers-v2.png',
-  'rail-lance': '/assets/ships/aster-vale/rail-lance-v1.png',
-  'relic-shrine': '/assets/ships/aster-vale/relic-shrine-v1.png',
-  'side-turrets': '/assets/ships/aster-vale/side-turrets-v1.png',
+  'broadband-array': 'assets/ships/aster-vale/broadband-array-v1.png',
+  'cargo-spine': 'assets/ships/aster-vale/cargo-spine-v1.png',
+  'vector-tail': 'assets/ships/aster-vale/vector-tail-v1.png',
+  'salvage-claws': 'assets/ships/aster-vale/salvage-claws-v2.png',
+  'mining-lasers': 'assets/ships/aster-vale/mining-lasers-v2.png',
+  'rail-lance': 'assets/ships/aster-vale/rail-lance-v1.png',
+  'relic-shrine': 'assets/ships/aster-vale/relic-shrine-v1.png',
+  'side-turrets': 'assets/ships/aster-vale/side-turrets-v1.png',
 };
+
+function publicAssetPath(path: string): string {
+  return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+}
 
 const shell = document.getElementById('game-shell')!;
 const outpostHud = document.getElementById('outpost-hud')!;
@@ -139,7 +143,9 @@ function renderFacilityPanel(): void {
 }
 
 function shipAssetPath(variant: ShipVariantId): string {
-  return variant === 'aster-vale' ? '/assets/ships/player-aster-vale-v1.png' : '/assets/ships/player-bramble-v1.png';
+  return publicAssetPath(variant === 'aster-vale'
+    ? 'assets/ships/player-aster-vale-v1.png'
+    : 'assets/ships/player-bramble-v1.png');
 }
 
 function renderShipyard(): void {
@@ -153,7 +159,7 @@ function renderShipyard(): void {
   const parts = required<HTMLElement>('shipyard-parts');
   parts.innerHTML = ship.upgrades.map((id) => {
     const path = previewVariant === 'aster-vale' ? ASTER_MODULE_PATHS[id] : undefined;
-    return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${path}" alt="" />` : `<i class="part-${id}"></i>`;
+    return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${publicAssetPath(path)}" alt="" />` : `<i class="part-${id}" data-upgrade="${id}"></i>`;
   }).join('');
   const moduleCard = (upgrade: (typeof SHIP_UPGRADES)[number]) => {
     const active = ship.upgrades.includes(upgrade.id);
