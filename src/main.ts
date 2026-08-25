@@ -100,6 +100,9 @@ function renderFacilityPanel(): void {
   const level = Boolean(getProfile().facilities[selectedFacility]);
   required<HTMLElement>('facility-kicker').textContent = facility.subtitle.toUpperCase();
   required<HTMLElement>('facility-title').textContent = facility.name;
+  const stage = required<HTMLElement>('facility-stage-art');
+  stage.className = `facility-art-${selectedFacility}`;
+  required<HTMLElement>('facility-stage-badge').textContent = level ? 'MODUL ONLINE' : `BAUPLATZ · ${upgradeCost(selectedFacility)}`;
   const isHangar = selectedFacility === 'hangar';
   required<HTMLElement>('facility-copy').textContent = selectedFacility === 'hangar'
     ? level
@@ -113,6 +116,11 @@ function renderFacilityPanel(): void {
   required<HTMLElement>('facility-level').textContent = level
     ? `ONLINE · ${facility.effect}`
     : `FÜR DEN BAU · ${upgradeCost(selectedFacility)}`;
+  required<HTMLElement>('facility-discovery').textContent = level
+    ? selectedFacility === 'hangar'
+      ? 'Dein Schiff und seine echten Einbauten sind hier sichtbar verankert.'
+      : `Dieser Raum ist verbunden. ${facility.effect}`
+    : `Dieser Anschluss gehört zu Farhaven. Baue ihn, sobald du ${upgradeCost(selectedFacility).toLowerCase()} gesichert hast.`;
   const openShipyard = required<HTMLButtonElement>('open-shipyard-button');
   openShipyard.hidden = !isHangar || !level || !getProfile().ship;
   openShipyard.textContent = '✧  WERKSTATT ÖFFNEN';

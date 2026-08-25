@@ -55,7 +55,12 @@ test('keeps a Farhaven room focused on one readable mobile decision', async ({ p
   await expect(page.locator('#outpost-nav')).toBeHidden();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
   await expect(page.locator('#open-shipyard-button')).toBeHidden();
-  const compactRoom = await page.locator('#facility-panel').evaluate((panel) => panel.getBoundingClientRect().height <= innerHeight * .62);
+  await expect(page.locator('#facility-stage-art')).toHaveClass(/facility-art-hangar/);
+  await expect(page.locator('#facility-stage-badge')).toContainText('BAUPLATZ');
+  const compactRoom = await page.locator('#facility-panel').evaluate((panel) => {
+    const limit = innerHeight <= 430 ? .62 : .76;
+    return panel.getBoundingClientRect().height <= innerHeight * limit;
+  });
   expect(compactRoom).toBe(true);
 });
 
@@ -73,6 +78,7 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
   await expect(page.locator('#facility-level')).toHaveText('ONLINE · +2 Frachtraum in jeder Expedition');
+  await expect(page.locator('#facility-stage-badge')).toHaveText('MODUL ONLINE');
   await expect(page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ })).toBeVisible();
 });
 

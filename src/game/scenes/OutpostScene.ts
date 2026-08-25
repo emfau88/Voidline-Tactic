@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { getProfile, subscribe } from '../../app/gameFlow';
 import { FACILITIES, type FacilityId } from '../../domain/outpost/types';
+import { FIRST_FIELD_UPGRADE_ID, SECOND_FIELD_UPGRADE_ID } from '../../domain/ship/types';
 
 type Point = Readonly<{ x: number; y: number }>;
 type ModuleLayout = Readonly<{ id: FacilityId; x: number; y: number; width: number; height: number; accent: number }>;
@@ -36,12 +37,13 @@ export class OutpostScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
     const profile = getProfile();
+    const guidedFacility = this.guidedFacility();
     const unit = Math.min(width / 1500, height / 760);
     const center: Point = { x: width * 0.53, y: height * 0.51 };
-    const coreWidth = 270 * unit;
-    const coreHeight = 270 * unit;
-    const armX = 280 * unit;
-    const armY = 180 * unit;
+    const coreWidth = 232 * unit;
+    const coreHeight = 232 * unit;
+    const armX = 246 * unit;
+    const armY = 160 * unit;
 
     this.tweens.killAll();
     this.children.removeAll();
@@ -58,10 +60,10 @@ export class OutpostScene extends Phaser.Scene {
     this.drawBoardMarks(board, center, boardWidth, boardHeight, unit);
 
     const layouts: ModuleLayout[] = [
-      { id: 'scanner', x: center.x, y: center.y - armY, width: 208 * unit, height: 168 * unit, accent: MODULE_ACCENTS.scanner },
-      { id: 'labor', x: center.x - armX, y: center.y, width: 224 * unit, height: 178 * unit, accent: MODULE_ACCENTS.labor },
-      { id: 'hangar', x: center.x + armX, y: center.y, width: 254 * unit, height: 190 * unit, accent: MODULE_ACCENTS.hangar },
-      { id: 'navigation', x: center.x, y: center.y + armY, width: 216 * unit, height: 176 * unit, accent: MODULE_ACCENTS.navigation },
+      { id: 'scanner', x: center.x, y: center.y - armY, width: 188 * unit, height: 150 * unit, accent: MODULE_ACCENTS.scanner },
+      { id: 'labor', x: center.x - armX, y: center.y, width: 204 * unit, height: 160 * unit, accent: MODULE_ACCENTS.labor },
+      { id: 'hangar', x: center.x + armX, y: center.y, width: 226 * unit, height: 170 * unit, accent: MODULE_ACCENTS.hangar },
+      { id: 'navigation', x: center.x, y: center.y + armY, width: 196 * unit, height: 160 * unit, accent: MODULE_ACCENTS.navigation },
     ];
 
     const graphics = this.add.graphics();
@@ -70,7 +72,8 @@ export class OutpostScene extends Phaser.Scene {
     for (const layout of layouts) {
       const built = profile.facilities[layout.id] > 0;
       this.drawModule(graphics, layout, built, unit);
-      this.addModuleLabel(layout, built, unit);
+      this.addModuleLabel(layout, built, layout.id === guidedFacility, unit);
+      if (layout.id === guidedFacility) this.drawGuidanceRing(graphics, layout, unit);
       this.addModuleTarget(layout);
     }
 
@@ -138,7 +141,7 @@ export class OutpostScene extends Phaser.Scene {
   private drawCore(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
     graphics.fillStyle(0x5fcce2, .1);
     graphics.fillCircle(center.x, center.y, width * .52);
-    const core = this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height);
+    const core = this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height).setAlpha(.9);
     this.tweens.add({ targets: core, scale: { from: .985, to: 1.015 }, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
 
@@ -171,8 +174,10 @@ export class OutpostScene extends Phaser.Scene {
       this.drawBuildSocket(graphics, layout, unit);
       return;
     }
-    const spriteSize = Math.max(width, height) * 1.05;
-    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize);
+    graphics.fillStyle(0x07131d, .42);
+    graphics.fillRoundedRect(left, top, width, height, corner);
+    const spriteSize = Math.max(width, height) * .94;
+    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize).setAlpha(.9);
     if (id === 'hangar') module.setFlipX(true);
     this.tweens.add({ targets: module, alpha: { from: .9, to: 1 }, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
@@ -198,14 +203,16 @@ export class OutpostScene extends Phaser.Scene {
     return id === 'hangar' ? 0 : id === 'scanner' ? 1 : id === 'labor' ? 2 : 3;
   }
 
-  private addModuleLabel(layout: ModuleLayout, built: boolean, unit: number): void {
+  private addModuleLabel(layout: ModuleLayout, built: boolean, guided: boolean, unit: number): void {
     const facility = FACILITIES[layout.id];
     const labelY = layout.id === 'scanner' ? layout.y - layout.height * 0.72 : layout.y + layout.height * 0.72;
-    const state = built ? 'ONLINE' : `BAUPLATZ · ${this.compactCost(layout.id)}`;
-    const label = this.add.text(layout.x, labelY, `${facility.name.toUpperCase()}\n${state}`, {
-      fontFamily: 'Arial', fontSize: Math.max(7, 8 * unit), color: built ? '#f3e2bd' : '#9fbbc4', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
+    const state = built ? 'ANTIPPEN · ÖFFNEN' : `ANTIPPEN · BAUEN · ${this.compactCost(layout.id)}`;
+    const prefix = guided ? '✦ DEIN NÄCHSTER SCHRITT ✦\n' : '';
+    const label = this.add.text(layout.x, labelY, `${prefix}${facility.name.toUpperCase()}\n${state}`, {
+      fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: guided ? '#ffe0a0' : built ? '#f3e2bd' : '#b7d2da', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
     }).setOrigin(0.5);
-    label.setAlpha(built ? 1 : 0.84);
+    label.setAlpha(built || guided ? 1 : 0.88);
+    if (guided) this.tweens.add({ targets: label, alpha: { from: .62, to: 1 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
 
   private compactCost(id: FacilityId): string {
@@ -228,13 +235,33 @@ export class OutpostScene extends Phaser.Scene {
     target.on('pointerdown', () => this.game.events.emit('farhaven:facility-selected', layout.id));
   }
 
+  private guidedFacility(): FacilityId | undefined {
+    const profile = getProfile();
+    if (!profile.facilities.hangar) return 'hangar';
+    const upgrades = profile.ship?.upgrades ?? [];
+    if (!upgrades.includes(FIRST_FIELD_UPGRADE_ID) || !upgrades.includes(SECOND_FIELD_UPGRADE_ID)) return 'hangar';
+    if (!profile.facilities.scanner) return 'scanner';
+    if (!profile.facilities.labor) return 'labor';
+    if (!profile.facilities.navigation) return 'navigation';
+    return undefined;
+  }
+
+  private drawGuidanceRing(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, unit: number): void {
+    const radius = Math.max(layout.width, layout.height) * .58;
+    const ring = this.add.circle(layout.x, layout.y, radius, 0xecc471, .07);
+    ring.setStrokeStyle(Math.max(1.5, 2.2 * unit), 0xf0cb7a, .94);
+    this.tweens.add({ targets: ring, scale: { from: .94, to: 1.08 }, alpha: { from: .3, to: .9 }, duration: 1250, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    graphics.lineStyle(Math.max(1, unit), 0xf0cb7a, .28);
+    graphics.strokeCircle(layout.x, layout.y, radius * .82);
+  }
+
   private addStationTraffic(center: Point, armX: number, armY: number, unit: number): void {
     const routes: readonly [Point, Point][] = [
       [{ x: center.x - armX * .82, y: center.y - armY * .08 }, { x: center.x - armX * .2, y: center.y - armY * .02 }],
       [{ x: center.x + armX * .16, y: center.y + armY * .06 }, { x: center.x + armX * .86, y: center.y + armY * .02 }],
       [{ x: center.x - armX * .06, y: center.y + armY * .14 }, { x: center.x - armX * .02, y: center.y + armY * .82 }],
     ];
-    for (const [start, end] of routes) {
+    for (const [start, end] of routes.slice(0, 2)) {
       const drone = this.add.circle(start.x, start.y, Math.max(2, 3 * unit), 0x8ee8f2, .86);
       drone.setStrokeStyle(Math.max(1, unit * .7), 0xf2c276, .65);
       this.tweens.add({ targets: drone, x: end.x, y: end.y, duration: 2600, delay: Math.random() * 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });

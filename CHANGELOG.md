@@ -35,6 +35,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - strikte Frachtraumprüfung auch für mehrteilige Funde; ein Fund kann den Frachtraum nicht mehr überfüllen
 - Farhaven als direkte Stationsoberfläche: alte Bereichsleiste entfernt, vier aktive Andockplätze und vier spätere Steckplätze um die Kernplatte angeordnet
 - illustrierter Farhaven-Kern und ein transparentes, direkt andockbares Raum-Kit für Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
+- eigene Raumansichten für die vier Level-1-Module mit einem atmosphärischen Innenansicht-Atlas; auf kleinen Querformaten bewusst auf Bild, Status und eine Aktion verdichtet
+- deutliche Bau- und Öffnungs-Affordanzen direkt an der Station: pulsierender nächster Schritt, große Antipp-Zonen und klare Zustandsbeschriftung
 
 #### Changed
 
