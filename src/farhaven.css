@@ -228,33 +228,24 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #game-shell[data-screen='expedition'] #objective-tracker { top: max(104px, calc(env(safe-area-inset-top) + 96px)); width: min(360px, calc(100vw - 220px)); padding: 4px 9px; opacity: .92; }
 #game-shell[data-screen='expedition'] #objective-tracker strong { font-size: 12px; }
 #game-shell[data-screen='expedition'] #objective-tracker p { font-size: 7px; }
-#expedition-actions { position: fixed; z-index: 14; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 66px); gap: 7px; width: auto; }
-#expedition-actions button { min-height: 54px; border-radius: 13px; background: rgb(7 25 37 / 88%); }
+#expedition-actions { position: fixed; z-index: 14; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 76px); gap: 8px; width: auto; }
+#expedition-actions button { min-height: 66px; border-radius: 13px; background: rgb(7 25 37 / 88%); }
 #expedition-actions #fire-button { border-color: rgb(237 157 111 / 62%); color: #ffd2a9; }
 #expedition-actions #ordnance-button { border-color: rgb(120 218 235 / 65%); color: #bfeffd; background: linear-gradient(135deg, rgb(17 54 72 / 92%), rgb(18 26 48 / 92%)); }
 #expedition-actions button:disabled { border-color: rgb(109 137 150 / 24%); color: #6f8994; filter: saturate(.45); opacity: .76; }
-#combat-prompt { position: fixed; z-index: 16; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; display: flex; align-items: stretch; min-width: min(300px, calc(100vw - 330px)); overflow: hidden; border: 1px solid rgb(230 183 105 / 70%); border-radius: 15px; background: linear-gradient(110deg, rgb(28 25 23 / 94%), rgb(8 24 35 / 94%)); box-shadow: 0 12px 34px rgb(0 0 0 / 40%), inset 0 0 22px rgb(239 183 106 / 10%); transform: translateX(-50%); }
-#combat-prompt > div { display: grid; min-width: 132px; padding: 9px 11px; }
-#combat-prompt small { color: #f0c981; font-size: 7px; font-weight: 800; letter-spacing: .1em; }
-#combat-prompt strong { margin-top: 3px; overflow: hidden; color: #f5e3bf; font-family: Georgia, serif; font-size: 13px; letter-spacing: .04em; text-overflow: ellipsis; white-space: nowrap; }
-#combat-prompt-fire { display: grid; min-width: 106px; padding: 7px 12px; border: 0; border-left: 1px solid rgb(234 180 104 / 36%); background: linear-gradient(135deg, #6c3928, #1f3848); color: #ffe1b5; }
-#combat-prompt-fire span { font-size: 16px; line-height: 1; } #combat-prompt-fire b { margin-top: 2px; font-family: Georgia, serif; font-size: 15px; letter-spacing: .08em; } #combat-prompt-fire small { margin-top: 2px; color: #e7d3b1; font-size: 6px; }
-#combat-prompt-fire:not(:disabled):hover { background: linear-gradient(135deg, #9b5732, #235c70); }
-#combat-prompt-fire:disabled { background: rgb(25 34 42 / 94%); color: #7d9298; }
 #flight-control { right: auto; left: max(18px, env(safe-area-inset-left)); }
-@media (max-height: 430px) and (orientation: landscape) {
-  #expedition-hud { top: 48px; left: max(8px, env(safe-area-inset-left)); width: 218px; padding: 5px 8px; transform: none; }
+@media (orientation: landscape) and (max-width: 900px) {
+  #expedition-hud { top: 48px; left: max(8px, env(safe-area-inset-left)); width: 184px; padding: 5px 7px; transform: none; }
   #expedition-hud .expedition-top { display: flex; margin: 0 0 3px; }
   #expedition-hud .expedition-top strong { font-size: 11px; }
   #expedition-hud .meter-grid { display: grid; width: 100%; }
   #expedition-hud .meter-grid label { grid-template-columns: 38px 1fr 31px; gap: 3px; }
   #expedition-hud .expedition-log { display: none; }
-  #game-shell[data-screen='expedition'] #objective-tracker { top: 48px; right: max(8px, env(safe-area-inset-right)); left: auto; width: 190px; padding: 5px 8px; text-align: left; transform: none; }
+  #game-shell[data-screen='expedition'] #objective-tracker { top: 48px; right: max(8px, env(safe-area-inset-right)); left: auto; width: 164px; padding: 5px 7px; text-align: left; transform: none; }
   #game-shell[data-screen='expedition'] #objective-tracker small, #game-shell[data-screen='expedition'] #objective-tracker strong { display: inline; font-size: 7px; }
   #game-shell[data-screen='expedition'] #objective-tracker small::after { content: ' · '; }
   #game-shell[data-screen='expedition'] #objective-tracker p { display: none; }
-  #expedition-actions { right: 10px; bottom: 10px; grid-template-columns: repeat(2, 52px); gap: 5px; }
-  #expedition-actions button { min-height: 44px; padding: 3px; }
-  #combat-prompt { bottom: 10px; min-width: 224px; border-radius: 12px; } #combat-prompt > div { min-width: 118px; padding: 6px 8px; } #combat-prompt strong { font-size: 11px; } #combat-prompt-fire { min-width: 92px; padding: 5px 8px; }
+  #expedition-actions { right: 10px; bottom: 10px; grid-template-columns: repeat(2, 60px); gap: 6px; }
+  #expedition-actions button { min-height: 56px; padding: 4px; }
   #flight-control { left: 10px; }
 }

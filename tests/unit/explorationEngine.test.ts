@@ -69,6 +69,21 @@ describe('exploration engine', () => {
     const returning = returnToFarhaven(outbound);
     expect(returning.status).toBe('returning');
     expect(returning.course).toEqual(returning.origin);
+    expect(returning.heading).toBeCloseTo(Math.atan2(returning.origin.y - outbound.position.y, returning.origin.x - outbound.position.x) + Math.PI / 2);
+    const advanced = stepExpedition(returning, 1_000);
+    expect(Math.hypot(advanced.position.x - returning.origin.x, advanced.position.y - returning.origin.y)).toBeLessThan(
+      Math.hypot(returning.position.x - returning.origin.x, returning.position.y - returning.origin.y),
+    );
+    expect(advanced.heading).toBeCloseTo(returning.heading);
+  });
+
+  it('keeps a manual flight course intact when scanning', () => {
+    const steering = setFlightInput(createExpedition(), { x: 1, y: 0 });
+    const scanned = scan(steering);
+    expect(scanned.flightInput).toEqual(steering.flightInput);
+    const moved = stepExpedition(scanned, 1_000);
+    expect(moved.position.x).toBeGreaterThan(scanned.position.x);
+    expect(moved.position.y).toBe(scanned.position.y);
   });
 
   it('restores system charge while travelling instead of spending fuel', () => {

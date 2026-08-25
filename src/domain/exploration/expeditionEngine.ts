@@ -6,6 +6,7 @@ const WORLD_HEIGHT = 2_600;
 const MAX_LOG_ENTRIES = 4;
 const DUMMY_RESPAWN_MS = 2_700;
 const SYSTEM_RECHARGE_PER_MS = 0.012;
+const RETURN_TRAVEL_SPEED = 0.3;
 export const WORMHOLE_POSITION: Vector2 = { x: 1_360, y: 1_320 };
 const WORMHOLE_ENTRY_RANGE = 170;
 
@@ -32,6 +33,10 @@ const SIGNAL_DETAILS: Record<SignalKind, Pick<SignalState, 'name' | 'risk' | 'de
 
 function distance(first: Vector2, second: Vector2): number {
   return Math.hypot(first.x - second.x, first.y - second.y);
+}
+
+function headingToward(from: Vector2, to: Vector2): number {
+  return Math.atan2(to.y - from.y, to.x - from.x) + Math.PI / 2;
 }
 
 function addCargo(cargo: Cargo, kind: ResourceKind, amount: number): Cargo {
@@ -247,7 +252,7 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
       ? { ...state, position: target, course: undefined }
       : { ...state, position: target, course: undefined }, deltaMs), deltaMs);
   }
-  const travel = Math.min(remaining, deltaMs * 0.085);
+  const travel = Math.min(remaining, deltaMs * (state.status === 'returning' ? RETURN_TRAVEL_SPEED : 0.085));
   const ratio = travel / remaining;
   const nextPosition = {
     x: state.position.x + (target.x - state.position.x) * ratio,
@@ -257,6 +262,7 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
     ...state,
     position: nextPosition,
     velocity: { x: 0, y: 0 },
+    heading: headingToward(state.position, target),
     course: remaining - travel < 3 ? undefined : state.course,
   }, deltaMs), deltaMs);
 }
@@ -318,7 +324,14 @@ export function mineVein(state: ExpeditionState, signalId: string): ExpeditionSt
 
 export function returnToFarhaven(state: ExpeditionState): ExpeditionState {
   if (state.status === 'returning') return state;
-  return appendLog({ ...state, status: 'returning', flightInput: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, course: state.origin }, 'Rücksprung nach Farhaven berechnet. Fracht wird gesichert, wenn du anlegst.');
+  return appendLog({
+    ...state,
+    status: 'returning',
+    flightInput: { x: 0, y: 0 },
+    velocity: { x: 0, y: 0 },
+    heading: headingToward(state.position, state.origin),
+    course: state.origin,
+  }, 'Rückkehrkurs bestätigt. Bug voraus – Farhaven wird schnell angeflogen.');
 }
 
 export interface WeaponReadiness {

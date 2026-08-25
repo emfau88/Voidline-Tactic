@@ -60,11 +60,15 @@ export class ExpeditionScene extends Phaser.Scene {
     field.fillStyle(isAlienRealm ? 0x10091a : 0x040812, isAlienRealm ? 0.26 : 0.34);
     field.fillRect(0, 0, 4200, 2600);
     if (!isAlienRealm) {
-      const home = this.add.graphics();
-      home.fillStyle(0x111d29, 0.92); home.fillRoundedRect(2_068, 1_478, 64, 44, 9);
-      home.lineStyle(2, 0xe0b567, 0.92); home.strokeRoundedRect(2_068, 1_478, 64, 44, 9);
-      home.lineStyle(2, 0x94e2ef, 0.8); home.lineBetween(2_078, 1_500, 2_122, 1_500); home.lineBetween(2_100, 1_486, 2_100, 1_514);
-      this.homeLabel = this.add.text(2_100, 1_540, 'FARHAVEN · DOCK', { fontFamily: 'Arial', fontSize: 9, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 1 }).setOrigin(0.5).setDepth(2);
+      // Farhaven sits just below the launch point: visible on departure without obscuring the ship.
+      const homeY = 1_570;
+      const homeGlow = this.add.circle(2_100, homeY, 56, 0xe7b96e, 0.1).setDepth(1);
+      this.tweens.add({ targets: homeGlow, alpha: { from: 0.07, to: 0.14 }, duration: 3_400, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+      this.add.image(2_100, homeY, 'farhaven-core-v2').setDisplaySize(92, 92).setDepth(2).setAlpha(0.98);
+      const dock = this.add.graphics().setDepth(3);
+      dock.lineStyle(2, 0x91e4eb, 0.7); dock.lineBetween(2_100, 1_510, 2_100, 1_528);
+      dock.fillStyle(0xf2cb79, 0.9); dock.fillCircle(2_100, 1_528, 3);
+      this.homeLabel = this.add.text(2_100, 1_630, 'FARHAVEN · HEIMATHAFEN', { fontFamily: 'Arial', fontSize: 8, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75 }).setOrigin(0.5).setDepth(3);
       this.addWormholeGate();
     } else {
       const riftTag = this.add.text(2_100, 1_410, 'VELORIA RIFT · KARTENSONDE 01', { fontFamily: 'Arial', fontSize: 10, color: '#d4b8fa', fontStyle: 'bold', letterSpacing: 1.2 }).setOrigin(0.5).setDepth(2);

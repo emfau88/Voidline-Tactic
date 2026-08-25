@@ -159,10 +159,10 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
 
 test('offers an enabled manual broadside on mobile and desktop', async ({ page }) => {
   await startExpedition(page);
-  await expect(page.locator('#combat-prompt')).toBeVisible();
-  await expect(page.locator('#combat-prompt-fire')).toContainText('SALVE');
-  await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
-  await page.locator('#combat-prompt-fire').click();
+  await expect(page.locator('#combat-prompt')).toHaveCount(0);
+  await expect(page.locator('#fire-button')).toContainText('SALVE');
+  await expect(page.locator('#fire-button')).toBeEnabled();
+  await page.locator('#fire-button').click();
   await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
 });
 
@@ -173,8 +173,7 @@ test('lets the player select a practice dummy directly on the open map', async (
   if (!box) throw new Error('Expected the expedition canvas to be visible.');
   // Aschen-Attrappe: world (-220, -40) from the start, camera zoom 1.1.
   await canvas.click({ position: { x: box.width / 2 - 220 * 1.1, y: box.height / 2 - 40 * 1.1 } });
-  await expect(page.locator('#combat-prompt-target')).toHaveText('ASCHEN-ATTRAPPE');
-  await expect(page.locator('#combat-prompt-kicker')).toContainText('ZIEL ERFASST');
+  await expect(page.locator('#expedition-status')).toContainText('ASCHEN-ATTRAPPE');
 });
 
 test('removes legacy prototype weapons from an old save instead of activating them', async ({ page }) => {
@@ -187,9 +186,9 @@ test('removes legacy prototype weapons from an old save instead of activating th
   })));
   await page.reload();
   await startExpedition(page);
-  await expect(page.locator('#combat-prompt-fire')).toContainText('SALVE');
-  await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
-  await page.locator('#combat-prompt-fire').click();
+  await expect(page.locator('#fire-button')).toContainText('SALVE');
+  await expect(page.locator('#fire-button')).toBeEnabled();
+  await page.locator('#fire-button').click();
   await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
 });
 

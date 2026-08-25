@@ -334,16 +334,6 @@ function renderExpedition(): void {
   fire.disabled = !primaryReadiness.ready;
   fire.querySelector('span')!.textContent = weaponLabel(primary);
   fire.querySelector('small')!.textContent = primaryReadiness.reason;
-  const combatPrompt = required<HTMLElement>('combat-prompt');
-  const combatPromptFire = required<HTMLButtonElement>('combat-prompt-fire');
-  combatPrompt.hidden = !selectedTarget || expedition.status !== 'active';
-  if (selectedTarget) {
-    required<HTMLElement>('combat-prompt-target').textContent = selectedTarget.name.toUpperCase();
-    required<HTMLElement>('combat-prompt-kicker').textContent = primaryReadiness.ready ? 'ZIEL ERFASST · FEUER FREI' : 'ZIEL ERFASST · MANÖVER NÖTIG';
-    combatPromptFire.disabled = !primaryReadiness.ready;
-    combatPromptFire.querySelector('b')!.textContent = weaponLabel(primary);
-    combatPromptFire.querySelector('small')!.textContent = primaryReadiness.reason;
-  }
   const ordnance = required<HTMLButtonElement>('ordnance-button');
   const ordnanceMode = ordnanceWeaponMode();
   if (!ordnanceMode) {
@@ -391,7 +381,6 @@ function render(): void {
     expeditionHud.hidden = true;
     flightControl.hidden = true;
     expeditionActions.hidden = true;
-    required<HTMLElement>('combat-prompt').hidden = true;
     renderOutpost();
     renderShipSelection();
     updateOutpostChrome();
@@ -569,7 +558,6 @@ function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponM
   });
 }
 bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponMode());
-bindFireControl(required<HTMLButtonElement>('combat-prompt-fire'), () => primaryWeaponMode());
 bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => { required<HTMLElement>('return-moment').hidden = true; });
