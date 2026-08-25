@@ -6,6 +6,10 @@ async function openFacility(page: import('@playwright/test').Page, facility: 'ha
   await page.locator(`[data-facility="${facility}"]`).evaluate((button: HTMLButtonElement) => button.click());
 }
 
+async function startExpedition(page: import('@playwright/test').Page): Promise<void> {
+  await page.locator('#launch-button').click();
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {
@@ -37,7 +41,7 @@ test('offers a confirmed developer reset back to the ship choice', async ({ page
 });
 
 test('presents the Farhaven outpost and a compact launch flow', async ({ page }) => {
-  await expect(page.getByText('EXPEDITION STARTEN')).toBeVisible();
+  await expect(page.locator('#launch-button')).toContainText('NAHES WRACK SICHERN');
   await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
   await expect(page.getByRole('button', { name: /HANGAR ERRICHTEN/ })).toBeVisible();
@@ -95,7 +99,7 @@ test('keeps visual hull ideas as previews and only installs real earned modules'
 });
 
 test('scans a sector, classifies a signal and keeps the mobile HUD readable', async ({ page }) => {
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
@@ -117,7 +121,7 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
 });
 
 test('resumes an ongoing expedition after a browser reload', async ({ page }) => {
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await page.reload();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
@@ -125,7 +129,7 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
 });
 
 test('offers an enabled manual broadside on mobile and desktop', async ({ page }) => {
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   await expect(page.locator('#combat-prompt')).toBeVisible();
   await expect(page.locator('#combat-prompt-fire')).toContainText('SALVE');
   await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
@@ -134,7 +138,7 @@ test('offers an enabled manual broadside on mobile and desktop', async ({ page }
 });
 
 test('lets the player select a practice dummy directly on the open map', async ({ page }) => {
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   const canvas = page.locator('#game-root canvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Expected the expedition canvas to be visible.');
@@ -153,7 +157,7 @@ test('removes legacy prototype weapons from an old save instead of activating th
     ship: { variant: 'aster-vale', upgrades: ['rail-lance'] },
   })));
   await page.reload();
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   await expect(page.locator('#combat-prompt-fire')).toContainText('SALVE');
   await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
   await page.locator('#combat-prompt-fire').click();
@@ -161,7 +165,7 @@ test('removes legacy prototype weapons from an old save instead of activating th
 });
 
 test('can pause and request a safe return', async ({ page }) => {
-  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await startExpedition(page);
   await page.locator('#pause-button').click();
   await expect(page.locator('#pause-button')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('#pause-button').click();
