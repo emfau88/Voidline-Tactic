@@ -283,6 +283,9 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
     distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
   };
   const reward = signal.reward ?? rewards[signal.kind];
+  if (cargoTotal(state.cargo) + reward.amount > state.cargoCapacity) {
+    return appendLog(state, `Zu wenig Frachtraum für diesen Fund (${reward.amount} Plätze nötig). Sichere erst deine Fracht in Farhaven.`);
+  }
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
   return appendLog({
     ...state,

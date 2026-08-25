@@ -24,11 +24,11 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - ✅ mehrbildschirmiger 4200×2600-Sektor mit Follow-Kamera, Trägheit und Triebwerks-VFX
 - ✅ map-first Expeditions-HUD: schmale Statusleiste oben, Flugstick links, Aktionen rechts
 - ✅ erster vermeidbarer Kontakt mit Feuerreichweite und sichtbarer Breitseitensalve
-- ✅ kompakte Top-down-Bauplatte statt großflächiger Stationsillustration: vier eindeutige Andockplätze, Baugerüste und nach Bau sichtbare Modulräume
+- ✅ Farhaven als direkte, fast vollflächige Stationsoberfläche: vier eindeutige Andockplätze, vier spätere Steckplätze, Baugerüste und nach Bau sichtbare Modulräume
 - ✅ Cargo und drei sichere Ressourcenfamilien
 - ✅ Hangar- und Scanner-Ausbau verändern Folgeexpeditionen
 - ✅ einmalige Startwahl zwischen Erkundungskutter und Bergungsschlepper
-- ✅ Hangar-Testwerft mit zehn dauerhaft sichtbaren Komponenten-Prototypen
+- ✅ Hangarwerkstatt mit echten Einbauten; Komponentenideen sind nur noch unveränderliche Vorschauen
 - ✅ erster geschlossener Prolog: Wrack scannen und bergen → Fracht sichern → Hangar → echter Frachtrücken
 - ✅ zweite Prologschicht: sichere Mönchslaterne oder riskante Schneideliturgie → Daten/Relikt → echter Minenlaser
 - ✅ erste aktive Ressourcenschleife: Minenlaser → Schwarze Ader → Legierungen
@@ -38,7 +38,7 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - ✅ Flug ohne Reichweiten-/Treibstoffdruck; regenerierende Systemladung nur für aktive Systeme
 - ✅ bestätigter lokaler Entwickler-Reset zurück zur Rumpfwahl
 - ⏳ mehrteilige Signalentscheidungen und reproduzierbare Sektor-Seeds
-- ⏳ Unit-Tests für Scan, Cargo, Rückkehr und Save-Validierung
+- ✅ Frachtraumgrenze, Niederlage bei Hülle 0 sowie Reload-Fortsetzung einer laufenden Expedition
 
 ## F2 – Vollständiger Exploration-Loop ⏳
 
@@ -46,7 +46,7 @@ Aktiver Produktpfad: **Voidline: Farhaven – Singleplayer-Space-Explorer**
 - Wracks, Rohstoffe, Anomalien und Notsignale mit unterschiedlichen Resultaten
 - sichtbare, modulare Außenposten-Ausbaustufen und atmosphärische Detailräume
 - Progression für 30–45 Minuten
-- Autosave während Expeditionen und nach Browser-Unterbrechung
+- ⏳ Save-Migrationen und manuelle Spielstandverwaltung
 
 ## F3 – Gelegentlicher Combat ⏳
 

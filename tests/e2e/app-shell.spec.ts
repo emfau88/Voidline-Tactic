@@ -1,16 +1,25 @@
 import { expect, test } from '@playwright/test';
 
+async function openFacility(page: import('@playwright/test').Page, facility: 'hangar' | 'scanner' | 'labor' | 'navigation'): Promise<void> {
+  // The buttons remain as accessibility fallbacks; the visible interaction is the
+  // corresponding direct station socket on the Phaser board.
+  await page.locator(`[data-facility="${facility}"]`).evaluate((button: HTMLButtonElement) => button.click());
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+  await page.evaluate(() => {
+    localStorage.removeItem('voidline-farhaven-expedition-v1');
+    localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
     resources: { alloys: 2, data: 1, relics: 0 },
     facilities: { hangar: 0, scanner: 0, labor: 0, navigation: 0 },
     expeditionCount: 0,
     ship: { variant: 'bramble', upgrades: [] },
-  })));
+    }));
+  });
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'FARHAVEN' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'FARHAVEN' })).toBeVisible();
 });
 
 test('asks a new player to select a starting hull', async ({ page }) => {
@@ -18,7 +27,7 @@ test('asks a new player to select a starting hull', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('heading', { name: /WELCHES SCHIFF/ })).toBeVisible();
   await page.getByRole('button', { name: /ASTER VALE/ }).click();
-  await expect(page.getByRole('heading', { name: 'FARHAVEN' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'FARHAVEN' })).toBeVisible();
 });
 
 test('offers a confirmed developer reset back to the ship choice', async ({ page }) => {
@@ -29,7 +38,7 @@ test('offers a confirmed developer reset back to the ship choice', async ({ page
 
 test('presents the Farhaven outpost and a compact launch flow', async ({ page }) => {
   await expect(page.getByText('EXPEDITION STARTEN')).toBeVisible();
-  await page.getByRole('button', { name: /hangar/i }).click();
+  await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
   await expect(page.getByRole('button', { name: /HANGAR ERRICHTEN/ })).toBeVisible();
   await expect(page.locator('#game-root canvas')).toBeVisible();
@@ -37,7 +46,7 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
 });
 
 test('keeps a Farhaven room focused on one readable mobile decision', async ({ page }) => {
-  await page.getByRole('button', { name: /hangar/i }).click();
+  await openFacility(page, 'hangar');
   await expect(page.locator('#outpost-hud')).toBeHidden();
   await expect(page.locator('#outpost-nav')).toBeHidden();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
@@ -55,7 +64,7 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
     ship: { variant: 'aster-vale', upgrades: [] },
   })));
   await page.reload();
-  await page.getByRole('button', { name: /hangar/i }).click();
+  await openFacility(page, 'hangar');
   await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 LEGIERUNGEN');
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
@@ -63,7 +72,7 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   await expect(page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ })).toBeVisible();
 });
 
-test('uses the test shipyard to persist visible modules', async ({ page }) => {
+test('keeps visual hull ideas as previews and only installs real earned modules', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
     resources: { alloys: 1, data: 2, relics: 1 },
@@ -72,14 +81,13 @@ test('uses the test shipyard to persist visible modules', async ({ page }) => {
     ship: { variant: 'bramble', upgrades: [] },
   })));
   await page.reload();
-  await page.getByRole('button', { name: /hangar/i }).click();
+  await openFacility(page, 'hangar');
   await page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ }).click();
   await expect(page.getByRole('heading', { name: 'WERKSTATT' })).toBeVisible();
   await page.getByRole('button', { name: 'ASTER VALE' }).click();
   await expect(page.locator('#shipyard-ship-name')).toHaveText('ASTER VALE');
   await page.getByText('RUMPFIDEEN ANSEHEN').click();
-  await page.getByRole('button', { name: /Breitbandarray/ }).click();
-  await expect(page.locator('#shipyard-preview img[data-upgrade="broadband-array"]')).toBeVisible();
+  await expect(page.getByText('VISUELLE STUDIE').first()).toBeVisible();
   await page.getByRole('button', { name: /Frachtrücken/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="cargo-spine"]')).toBeVisible();
   await page.getByRole('button', { name: /Minenlaser/ }).click();
@@ -108,6 +116,14 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   expect(layout.bodyFits).toBe(true);
 });
 
+test('resumes an ongoing expedition after a browser reload', async ({ page }) => {
+  await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
+  await page.getByRole('button', { name: /SCANNEN/ }).click();
+  await page.reload();
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
+  await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
+});
+
 test('offers an enabled manual broadside on mobile and desktop', async ({ page }) => {
   await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
   await expect(page.locator('#combat-prompt')).toBeVisible();
@@ -128,7 +144,7 @@ test('lets the player select a practice dummy directly on the open map', async (
   await expect(page.locator('#combat-prompt-kicker')).toContainText('ZIEL ERFASST');
 });
 
-test('keeps a selected practice dummy immediately fireable with a visual test weapon', async ({ page }) => {
+test('removes legacy prototype weapons from an old save instead of activating them', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,
     resources: { alloys: 0, data: 0, relics: 0 },
@@ -138,10 +154,10 @@ test('keeps a selected practice dummy immediately fireable with a visual test we
   })));
   await page.reload();
   await page.getByRole('button', { name: /EXPEDITION STARTEN/ }).click();
-  await expect(page.locator('#combat-prompt-fire')).toContainText('LANZE');
+  await expect(page.locator('#combat-prompt-fire')).toContainText('SALVE');
   await expect(page.locator('#combat-prompt-fire')).toBeEnabled();
   await page.locator('#combat-prompt-fire').click();
-  await expect(page.locator('#expedition-log')).toContainText('Rail-Lanze trifft');
+  await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
 });
 
 test('can pause and request a safe return', async ({ page }) => {

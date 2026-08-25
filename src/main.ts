@@ -1,6 +1,7 @@
 import './farhaven.css';
+import Phaser from 'phaser';
 import { createGame } from './app/createGame';
-import { beginExpedition, canPurchaseFieldUpgrade, changeShipVariantForTest, chooseStartingShip, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe, toggleShipTestUpgrade } from './app/gameFlow';
+import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, WeaponMode } from './domain/exploration/types';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
@@ -31,6 +32,7 @@ let toastTimer: number | undefined;
 let selectedFacility: FacilityId | undefined;
 let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
+let shipyardPreviewVariant: ShipVariantId | undefined;
 
 function required<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -101,7 +103,7 @@ function renderFacilityPanel(): void {
   const isHangar = selectedFacility === 'hangar';
   required<HTMLElement>('facility-copy').textContent = selectedFacility === 'hangar'
     ? level
-      ? 'Die Aster Vale ist sicher angedockt. Verwalte hier ihre echten Einbauten.'
+      ? `${SHIP_VARIANTS[getProfile().ship?.variant ?? 'aster-vale'].name} ist sicher angedockt. Verwalte hier die echten Einbauten.`
       : 'Ein freier Dockplatz für dein Schiff. Baue ihn mit gesicherten Legierungen.'
     : selectedFacility === 'scanner'
       ? level ? 'Die Kapelle lauscht auf ferne Echos.' : 'Dein nächster Ausbau für besser lesbare Signale.'
@@ -127,13 +129,14 @@ function shipAssetPath(variant: ShipVariantId): string {
 function renderShipyard(): void {
   const ship = getProfile().ship;
   if (!ship) return;
-  const variant = SHIP_VARIANTS[ship.variant];
-  required<HTMLImageElement>('shipyard-ship-image').src = shipAssetPath(ship.variant);
+  const previewVariant = shipyardPreviewVariant ?? ship.variant;
+  const variant = SHIP_VARIANTS[previewVariant];
+  required<HTMLImageElement>('shipyard-ship-image').src = shipAssetPath(previewVariant);
   required<HTMLImageElement>('shipyard-ship-image').alt = `${variant.name}, Schiffsvorschau`;
   required<HTMLElement>('shipyard-ship-name').textContent = variant.name.toUpperCase();
   const parts = required<HTMLElement>('shipyard-parts');
   parts.innerHTML = ship.upgrades.map((id) => {
-    const path = ship.variant === 'aster-vale' ? ASTER_MODULE_PATHS[id] : undefined;
+    const path = previewVariant === 'aster-vale' ? ASTER_MODULE_PATHS[id] : undefined;
     return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${path}" alt="" />` : `<i class="part-${id}"></i>`;
   }).join('');
   const moduleCard = (upgrade: (typeof SHIP_UPGRADES)[number]) => {
@@ -161,10 +164,10 @@ function renderShipyard(): void {
     </section>
     <details class="prototype-drawer">
       <summary><span>RUMPFIDEEN ANSEHEN</span><small>${prototypes.length} visuelle Prototypen</small></summary>
-      <div class="prototype-grid">${prototypes.map(moduleCard).join('')}</div>
+      <div class="prototype-grid">${prototypes.map((upgrade) => `<article class="ship-module prototype" style="--module-accent:${upgrade.accent}"><span>VISUELLE STUDIE</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></article>`).join('')}</div>
     </details>`;
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
-    const active = button.dataset.shipSwitch === ship.variant;
+    const active = button.dataset.shipSwitch === previewVariant;
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   }
@@ -215,6 +218,17 @@ function playReturnMoment(cargo: Cargo): void {
 
 function renderOutpost(): void {
   required<HTMLElement>('expedition-count').textContent = String(getProfile().expeditionCount);
+  const launch = required<HTMLButtonElement>('launch-button');
+  const next = !getProfile().facilities.hangar
+    ? getProfile().expeditionCount === 0 ? ['ERSTE EXPEDITION', 'NAHES WRACK SICHERN', 'Scan · Bergung · Heimkehr'] : ['FARHAVEN', 'WEITERE BERGUNG', 'Legierungen für den Hangar sichern']
+    : !getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
+      ? ['HANGARWERKSTATT', 'FRACHTRÜCKEN EINBAUEN', 'Erst den echten Einbau im Hangar wählen']
+      : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
+        ? ['ZWEITE SCHICHT', 'ZWEI ECHOS UNTERSUCHEN', 'Sichere Laterne · riskante Liturgie']
+        : ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste'];
+  launch.querySelector('span')!.textContent = next[0];
+  launch.querySelector('strong')!.textContent = next[1];
+  launch.querySelector('small')!.textContent = next[2];
   renderFacilityPanel();
 }
 
@@ -226,7 +240,9 @@ function updateOutpostChrome(): void {
   game.events.emit('farhaven:outpost-interaction-lock', isInspecting);
   if (isInspecting) shell.dataset.outpostView = 'room'; else delete shell.dataset.outpostView;
   outpostHud.hidden = !hasShip || isInspecting;
-  required<HTMLElement>('outpost-nav').hidden = !hasShip || isInspecting;
+  // Farhaven is the menu now. Every constructed room is touched directly on the
+  // station, so the old duplicate navigation rail would only compete for space.
+  required<HTMLElement>('outpost-nav').hidden = true;
   required<HTMLElement>('objective-tracker').hidden = !hasShip || isInspecting;
 }
 
@@ -422,17 +438,20 @@ required<HTMLButtonElement>('open-shipyard-button').addEventListener('click', ()
   facilityPanel.hidden = true;
   selectedFacility = undefined;
   shipyardPanel.hidden = false;
+  shipyardPreviewVariant = getProfile().ship?.variant;
   updateOutpostChrome();
   renderShipyard();
 });
 required<HTMLButtonElement>('close-shipyard-button').addEventListener('click', () => {
   shipyardPanel.hidden = true;
+  shipyardPreviewVariant = undefined;
   updateOutpostChrome();
 });
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
   button.addEventListener('click', () => {
     const variant = button.dataset.shipSwitch as ShipVariantId;
-    if (changeShipVariantForTest(variant)) toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} IST JETZT IN DER TESTWERFT.`);
+    shipyardPreviewVariant = variant;
+    toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} · RUMPFVORSCHAU. Dein gewähltes Schiff bleibt unverändert.`);
     renderShipyard();
   });
 }
@@ -443,8 +462,6 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
   if (isFieldUpgrade(upgradeId)) {
     if (purchaseFieldUpgrade(upgradeId)) toast(upgradeId === FIRST_FIELD_UPGRADE_ID ? 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE' : 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN');
     else toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
-  } else {
-    toggleShipTestUpgrade(upgradeId);
   }
   renderShipyard();
 });
@@ -558,6 +575,8 @@ subscribe(() => {
     if (resettingForDevelopment) {
       resettingForDevelopment = false;
       toast('TESTSTAND ZURÜCKGESETZT · WÄHLE EINEN RUMPF.');
+    } else if (consumeExpeditionDefeat()) {
+      toast('NOTRUF EMPFANGEN · Dein Schiff wurde geborgen. Die ungesicherte Fracht ging verloren.');
     } else if (returnedCargo) {
       playReturnMoment(returnedCargo);
     } else {
@@ -568,3 +587,13 @@ subscribe(() => {
 });
 
 render();
+
+// A browser reload resumes the actual flight, rather than silently replacing it
+// with the outpost screen. The snapshot itself is written by gameFlow.
+game.events.once(Phaser.Core.Events.READY, () => {
+  if (!getExpedition()) return;
+  game.scene.stop('outpost');
+  game.scene.start('expedition');
+  render();
+  toast('EXPEDITION FORTGESETZT · Farhaven hält deine letzte Position bereit.');
+});

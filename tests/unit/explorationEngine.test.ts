@@ -55,6 +55,15 @@ describe('exploration engine', () => {
     expect(risky.hull).toBe(94);
   });
 
+  it('never lets a multi-slot discovery exceed cargo capacity', () => {
+    const scanned = scan({ ...createExpedition(-0, -4, 'second-shift'), position: { x: 1_720, y: 1_240 } });
+    const almostFull = { ...scanned, cargo: { alloys: 1, data: 0, relics: 0 } };
+    const blocked = investigate(almostFull, 'cutting-liturgy');
+    expect(blocked.cargo).toEqual(almostFull.cargo);
+    expect(blocked.signals.find((signal) => signal.id === 'cutting-liturgy')?.knowledge).toBe('classified');
+    expect(blocked.log[0]).toContain('Zu wenig Frachtraum');
+  });
+
   it('sets a return route to Farhaven', () => {
     const outbound = { ...createExpedition(), position: { x: 2_520, y: 1_230 } };
     const returning = returnToFarhaven(outbound);
@@ -119,6 +128,12 @@ describe('exploration engine', () => {
     expect(threatened.hostiles[0]?.status).toBe('alert');
     expect(threatened.hull).toBeLessThan(run.hull);
     expect(threatened.log[0]).toContain('feuert');
+  });
+
+  it('can reduce the hull to zero, allowing the flow layer to resolve a real defeat', () => {
+    const run = createExpedition(0, 4, 'mining-run');
+    const exposed = { ...run, hull: 4, position: { x: 2_570, y: 1_470 } };
+    expect(stepExpedition(exposed, 40).hull).toBe(0);
   });
 
   it('fires only when a hostile contact is in range', () => {

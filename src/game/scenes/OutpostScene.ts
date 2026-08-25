@@ -4,6 +4,7 @@ import { FACILITIES, type FacilityId } from '../../domain/outpost/types';
 
 type Point = Readonly<{ x: number; y: number }>;
 type ModuleLayout = Readonly<{ id: FacilityId; x: number; y: number; width: number; height: number; accent: number }>;
+type FutureSocket = Readonly<{ x: number; y: number; label: string }>;
 
 const MODULE_ACCENTS: Record<FacilityId, number> = {
   hangar: 0xd5ad68,
@@ -39,8 +40,8 @@ export class OutpostScene extends Phaser.Scene {
     const center: Point = { x: width * 0.53, y: height * 0.51 };
     const coreWidth = 198 * unit;
     const coreHeight = 128 * unit;
-    const armX = 230 * unit;
-    const armY = 116 * unit;
+    const armX = 236 * unit;
+    const armY = 138 * unit;
 
     this.tweens.killAll();
     this.children.removeAll();
@@ -48,8 +49,8 @@ export class OutpostScene extends Phaser.Scene {
     this.drawSpace(width, height, unit);
 
     const board = this.add.graphics();
-    const boardWidth = 620 * unit;
-    const boardHeight = 420 * unit;
+    const boardWidth = 720 * unit;
+    const boardHeight = 520 * unit;
     board.fillStyle(0x07111c, 0.82);
     board.fillRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
     board.lineStyle(Math.max(1, 1.4 * unit), 0x2a5b68, 0.52);
@@ -73,12 +74,34 @@ export class OutpostScene extends Phaser.Scene {
       this.addModuleTarget(layout);
     }
 
+    const futureSockets: FutureSocket[] = [
+      { x: center.x - armX * .72, y: center.y - armY * .72, label: 'SPÄTER · RAFFINERIE' },
+      { x: center.x + armX * .72, y: center.y - armY * .72, label: 'SPÄTER · VERTEIDIGUNG' },
+      { x: center.x - armX * .72, y: center.y + armY * .72, label: 'SPÄTER · LAGER' },
+      { x: center.x + armX * .72, y: center.y + armY * .72, label: 'SPÄTER · DROHNENHUB' },
+    ];
+    for (const socket of futureSockets) this.drawFutureSocket(graphics, socket, center, unit);
+
     this.add.text(center.x, center.y + coreHeight * 0.63, 'FARHAVEN · KERNPLATTE', {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: '#e9d6ac', fontStyle: 'bold', letterSpacing: 1.3,
     }).setOrigin(0.5);
-    this.add.text(center.x, center.y - boardHeight * 0.44, 'ANDOCKPLÄTZE · BAUE RÄUME AUS DEINEN FÜNDEN', {
+    this.add.text(center.x, center.y - boardHeight * 0.44, 'FARHAVEN · BERÜHRE EINEN ANDOCKPLATZ', {
       fontFamily: 'Arial', fontSize: Math.max(7, 8 * unit), color: '#8ccbd8', fontStyle: 'bold', letterSpacing: 1.05,
     }).setOrigin(0.5).setAlpha(0.9);
+  }
+
+  private drawFutureSocket(graphics: Phaser.GameObjects.Graphics, socket: FutureSocket, center: Point, unit: number): void {
+    graphics.lineStyle(Math.max(4, 7 * unit), 0x091723, .92);
+    graphics.lineBetween(center.x + (socket.x - center.x) * .56, center.y + (socket.y - center.y) * .56, socket.x, socket.y);
+    graphics.lineStyle(Math.max(1, unit), 0x4e7582, .5);
+    graphics.lineBetween(center.x + (socket.x - center.x) * .56, center.y + (socket.y - center.y) * .56, socket.x, socket.y);
+    graphics.fillStyle(0x091722, .84);
+    graphics.fillCircle(socket.x, socket.y, Math.max(18, 27 * unit));
+    graphics.lineStyle(Math.max(1, 1.2 * unit), 0x4e8191, .58);
+    graphics.strokeCircle(socket.x, socket.y, Math.max(18, 27 * unit));
+    this.add.text(socket.x, socket.y + Math.max(29, 38 * unit), socket.label, {
+      fontFamily: 'Arial', fontSize: Math.max(6, 6.5 * unit), color: '#7894a0', fontStyle: 'bold', align: 'center', letterSpacing: .5,
+    }).setOrigin(.5).setAlpha(.78);
   }
 
   private drawSpace(width: number, height: number, unit: number): void {

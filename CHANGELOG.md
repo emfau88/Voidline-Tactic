@@ -30,6 +30,10 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - kompakte Top-down-Farhaven-Bauplatte mit vier antippbaren Andockplätzen und einem transparenten, originalen Modul-Asset-Kit für Hangar, Scanner, Labor und Sternenwerk
 - echte Alpha-Bereinigung für das Farhaven-Modul-Kit statt eingebranntem Checkerboard; Hangarwerkstatt erhält eine belastbare Schiffsvorschau als Fallback
 - Feueraktionen lösen beim Drücken aus, damit der zweite Daumen während eines gehaltenen Flugsticks salven kann
+- laufende Expeditionen speichern Position, Fracht, Signale und Zielauswahl und werden nach einem Browser-Reload fortgesetzt
+- klare Niederlage bei Hülle 0: Farhaven birgt das Schiff, ungesicherte Fracht bleibt draußen
+- strikte Frachtraumprüfung auch für mehrteilige Funde; ein Fund kann den Frachtraum nicht mehr überfüllen
+- Farhaven als direkte Stationsoberfläche: alte Bereichsleiste entfernt, vier aktive Andockplätze und vier spätere Steckplätze um die Kernplatte angeordnet
 
 #### Changed
 
@@ -45,6 +49,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Werkstatt von `TESTWERFT` zu `WERKSTATT` umbenannt; echte Einbauten stehen vor rein visuellen Prototypen
 - Expeditions-Startzoom von 0,95 auf 1,10 angehoben, damit echte Mobile-Viewports nicht unnötig weit herausgezoomt wirken
 - die große statische Farhaven-Station wird nicht mehr geladen; gebaute Räume werden als konkrete Module direkt an die Kernplatte gesetzt
+- alte, speicherbare Rumpf-Prototypen zu reinen visuellen Studien zurückgestuft; alte Testeinbauten werden beim Laden aus Saves bereinigt
 
 #### Deferred
 
