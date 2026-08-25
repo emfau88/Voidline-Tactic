@@ -55,14 +55,6 @@ export class OutpostScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#050911');
     this.drawSpace(width, height, unit);
 
-    const board = this.add.graphics();
-    const boardWidth = 760 * unit;
-    const boardHeight = 570 * unit;
-    board.fillStyle(0x07111c, 0.82);
-    board.fillRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
-    board.lineStyle(Math.max(1, 1.4 * unit), 0x2a5b68, 0.52);
-    board.strokeRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
-
     const layouts: ModuleLayout[] = [
       { id: 'scanner', x: center.x, y: center.y - coreHeight / 2 - bridgeLength - scannerSize / 2, width: scannerSize, height: scannerSize, accent: MODULE_ACCENTS.scanner },
       { id: 'labor', x: center.x - coreWidth / 2 - bridgeLength - laborSize / 2, y: center.y, width: laborSize, height: laborSize, accent: MODULE_ACCENTS.labor },
@@ -122,22 +114,29 @@ export class OutpostScene extends Phaser.Scene {
     const end: Point = horizontal
       ? { x: layout.x - Math.sign(layout.x - center.x) * layout.width / 2, y: layout.y }
       : { x: layout.x, y: layout.y - Math.sign(layout.y - center.y) * layout.height / 2 };
+    // Generated cut-outs carry transparent breathing room around their visible
+    // metal. Extend the corridor into that padding so it reads as bolted to both
+    // pieces rather than as a floating UI line between rectangles.
+    const direction = horizontal ? Math.sign(layout.x - center.x) : Math.sign(layout.y - center.y);
+    const overlap = Math.max(8, Math.min(layout.width, layout.height) * .14);
+    const visualStart: Point = horizontal ? { x: start.x - direction * overlap, y: start.y } : { x: start.x, y: start.y - direction * overlap };
+    const visualEnd: Point = horizontal ? { x: end.x + direction * overlap, y: end.y } : { x: end.x, y: end.y + direction * overlap };
     const thickness = Math.max(12, Math.min(layout.width, layout.height) * .16);
-    const length = horizontal ? Math.abs(end.x - start.x) : Math.abs(end.y - start.y);
-    const left = horizontal ? Math.min(start.x, end.x) : start.x - thickness / 2;
-    const top = horizontal ? start.y - thickness / 2 : Math.min(start.y, end.y);
+    const length = horizontal ? Math.abs(visualEnd.x - visualStart.x) : Math.abs(visualEnd.y - visualStart.y);
+    const left = horizontal ? Math.min(visualStart.x, visualEnd.x) : visualStart.x - thickness / 2;
+    const top = horizontal ? visualStart.y - thickness / 2 : Math.min(visualStart.y, visualEnd.y);
     const corridorWidth = horizontal ? length : thickness;
     const corridorHeight = horizontal ? thickness : length;
-    graphics.fillStyle(0x0a1923, .98);
-    graphics.fillRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .36);
-    graphics.lineStyle(Math.max(1, thickness * .09), built ? layout.accent : 0x476776, built ? .52 : .28);
-    graphics.strokeRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .36);
+    graphics.fillStyle(0x111a21, .98);
+    graphics.fillRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .16);
+    graphics.lineStyle(Math.max(1, thickness * .07), 0x465158, built ? .72 : .32);
+    graphics.strokeRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .16);
     const lightSize = Math.max(2, thickness * .14);
-    graphics.fillStyle(built ? layout.accent : 0x52727d, built ? .8 : .36);
+    graphics.fillStyle(built ? 0xd5ad68 : 0x52727d, built ? .7 : .26);
     for (const fraction of [.28, .72]) {
       const lightX = horizontal ? left + corridorWidth * fraction : left + corridorWidth / 2;
       const lightY = horizontal ? top + corridorHeight / 2 : top + corridorHeight * fraction;
-      graphics.fillRoundedRect(lightX - lightSize / 2, lightY - lightSize / 2, lightSize, lightSize, 1);
+      graphics.fillRect(lightX - lightSize / 2, lightY - lightSize / 2, lightSize, lightSize);
     }
   }
 
