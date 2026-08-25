@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
+import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, rewardForSignal, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
 
 describe('exploration engine', () => {
   it('classifies nearby echoes while consuming rechargeable system charge', () => {
@@ -53,6 +53,17 @@ describe('exploration engine', () => {
     const risky = investigate({ ...safe, position: liturgy.position }, liturgy.id);
     expect(risky.cargo.data).toBe(2);
     expect(risky.hull).toBe(94);
+  });
+
+  it('reveals one relic and two data after scanning the second expedition', () => {
+    const scanned = scan(createExpedition(0, 4, 'second-shift'));
+    const rewards = scanned.signals
+      .filter((signal) => signal.knowledge === 'classified')
+      .map((signal) => rewardForSignal(signal));
+    expect(rewards).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'relics', amount: 1 }),
+      expect.objectContaining({ kind: 'data', amount: 2 }),
+    ]));
   });
 
   it('never lets a multi-slot discovery exceed cargo capacity', () => {

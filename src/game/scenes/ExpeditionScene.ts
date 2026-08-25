@@ -172,6 +172,7 @@ export class ExpeditionScene extends Phaser.Scene {
       if (signal.knowledge === 'echo') this.addFaintEcho(signal.position);
       else this.addSignalMarker(signal);
     }
+    this.addResourceDirectionHints(expedition);
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
       const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 'ship-enemy-destroyer-v1' : 'ship-enemy-patrol-v1');
@@ -307,6 +308,32 @@ export class ExpeditionScene extends Phaser.Scene {
     marker.add([art, labelBack, label, rewardIcon, actionLabel]);
     marker.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
     this.signalLayer?.add(marker);
+  }
+
+  /** Keeps second-run rewards understandable even while their map markers are off-screen. */
+  private addResourceDirectionHints(expedition: ExpeditionState): void {
+    if (expedition.scenario !== 'second-shift') return;
+    for (const signal of expedition.signals) {
+      if (signal.knowledge !== 'classified') continue;
+      const reward = rewardForSignal(signal);
+      if (reward.kind !== 'data' && reward.kind !== 'relics') continue;
+      const dx = signal.position.x - expedition.position.x;
+      const dy = signal.position.y - expedition.position.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < 145) continue;
+      const resource = RESOURCE_PRESENTATION[reward.kind];
+      const direction = Math.atan2(dy, dx);
+      const offset = Math.min(185, Math.max(112, distance * 0.22));
+      const x = expedition.position.x + Math.cos(direction) * offset;
+      const y = expedition.position.y + Math.sin(direction) * offset;
+      const hint = this.add.container(x, y).setDepth(9);
+      const color = Phaser.Display.Color.HexStringToColor(resource.color).color;
+      const halo = this.add.circle(0, 0, 20, color, 0.13);
+      const arrow = this.add.triangle(0, 0, 0, -14, -10, 9, 10, 9, color, 0.96).setRotation(direction + Math.PI / 2);
+      const icon = this.add.image(0, -30, resource.textureKey).setDisplaySize(16, 16);
+      const text = this.add.text(0, 24, `${resource.name.toUpperCase()}\n${Math.round(distance)}u`, { fontFamily: 'Arial', fontSize: 7, color: resource.color, align: 'center', fontStyle: 'bold', lineSpacing: 1 }).setOrigin(0.5);
+      hint.add([halo, arrow, icon, text]);
+    }
   }
 
   private drawCornerFrame(graphics: Phaser.GameObjects.Graphics, center: Vector2, radius: number, arm: number, color: number, alpha: number): void {
