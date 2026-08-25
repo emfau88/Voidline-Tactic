@@ -36,7 +36,9 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Farhaven als direkte Stationsoberfläche: alte Bereichsleiste entfernt, vier aktive Andockplätze und vier spätere Steckplätze um die Kernplatte angeordnet
 - illustrierter Farhaven-Kern und ein transparentes, direkt andockbares Raum-Kit für Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
 - eigene Raumansichten für die vier Level-1-Module mit einem atmosphärischen Innenansicht-Atlas; auf kleinen Querformaten bewusst auf Bild, Status und eine Aktion verdichtet
-- deutliche Bau- und Öffnungs-Affordanzen direkt an der Station: pulsierender nächster Schritt, große Antipp-Zonen und klare Zustandsbeschriftung
+- deutliche Bau- und Öffnungs-Affordanzen direkt an der Station: große unsichtbare Antipp-Zonen und klare Zustandsbeschriftung
+- atmosphärischer, cozy-grimdark Farhaven-Weltraumhintergrund mit ruhiger dunkler Mitte und warmen Randnebeln
+- echte Farhaven-Ausbauzustände: unbaubare Plätze bleiben verborgen, der nächste Raum erscheint als Blaupause oder warme Bauvorschau und fährt beim Errichten sichtbar an den Kern
 
 #### Changed
 
@@ -52,6 +54,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - Werkstatt von `TESTWERFT` zu `WERKSTATT` umbenannt; echte Einbauten stehen vor rein visuellen Prototypen
 - Expeditions-Startzoom von 0,95 auf 1,10 angehoben, damit echte Mobile-Viewports nicht unnötig weit herausgezoomt wirken
 - die große statische Farhaven-Station wird nicht mehr geladen; gebaute Räume werden als konkrete Module direkt an die Kernplatte gesetzt
+- technische Baukästen, Dauerpulse, Hilfslinien und der Code-Kreis hinter dem Kern entfernt; die vorhandenen Asset-Andockkragen greifen nun direkt ineinander
+- Expeditionsstart und kurze Bauhinweise liegen klein neben der Station, damit Farhaven auf Mobile das eigentliche Menü bleibt
 - alte, speicherbare Rumpf-Prototypen zu reinen visuellen Studien zurückgestuft; alte Testeinbauten werden beim Laden aus Saves bereinigt
 
 #### Deferred

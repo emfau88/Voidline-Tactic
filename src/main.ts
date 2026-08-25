@@ -4,6 +4,7 @@ import { createGame } from './app/createGame';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, WeaponMode } from './domain/exploration/types';
+import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { FIELD_UPGRADE_COSTS, FIRST_FIELD_UPGRADE_ID, isFieldUpgrade, SECOND_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
 
@@ -98,12 +99,16 @@ function openFacility(facilityId: FacilityId): void {
 function renderFacilityPanel(): void {
   if (!selectedFacility) return;
   const facility = FACILITIES[selectedFacility];
-  const level = Boolean(getProfile().facilities[selectedFacility]);
+  const profile = getProfile();
+  const level = Boolean(profile.facilities[selectedFacility]);
+  const buildReady = !level && canUpgrade(profile, selectedFacility);
   required<HTMLElement>('facility-kicker').textContent = facility.subtitle.toUpperCase();
   required<HTMLElement>('facility-title').textContent = facility.name;
   const stage = required<HTMLElement>('facility-stage-art');
-  stage.className = `facility-art-${selectedFacility}`;
-  required<HTMLElement>('facility-stage-badge').textContent = level ? 'MODUL ONLINE' : `BAUPLATZ · ${upgradeCost(selectedFacility)}`;
+  stage.className = `facility-art-${selectedFacility} ${level ? 'is-online' : buildReady ? 'is-build-ready' : 'is-blueprint'}`;
+  required<HTMLElement>('facility-stage-badge').textContent = level
+    ? 'MODUL ONLINE'
+    : buildReady ? `BAUBEREIT · ${upgradeCost(selectedFacility)}` : `BAUPLAN · ${upgradeCost(selectedFacility)}`;
   const isHangar = selectedFacility === 'hangar';
   required<HTMLElement>('facility-copy').textContent = selectedFacility === 'hangar'
     ? level
@@ -127,8 +132,10 @@ function renderFacilityPanel(): void {
   openShipyard.textContent = '✧  WERKSTATT ÖFFNEN';
   const upgrade = required<HTMLButtonElement>('facility-upgrade-button');
   upgrade.hidden = level;
-  upgrade.disabled = level;
-  upgrade.innerHTML = `<span>NÄCHSTER SCHRITT</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong><small>${upgradeCost(selectedFacility)}</small>`;
+  upgrade.disabled = !buildReady;
+  upgrade.innerHTML = buildReady
+    ? `<span>RESSOURCEN GESICHERT</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong><small>${upgradeCost(selectedFacility)}</small>`
+    : `<span>NOCH NICHT BAUBEREIT</span><strong>${upgradeCost(selectedFacility)} SICHERN</strong><small>Ressourcen findest du auf Expeditionen</small>`;
 }
 
 function shipAssetPath(variant: ShipVariantId): string {
@@ -457,12 +464,14 @@ required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click',
   if (!selectedFacility) return;
   const facilityId = selectedFacility;
   if (improveFacility(facilityId)) {
-    selectedFacility = facilityId;
+    facilityPanel.hidden = true;
+    selectedFacility = undefined;
+    updateOutpostChrome();
+    game.events.emit('farhaven:facility-built', facilityId);
     playConstructionMoment(facilityId);
-    toast(`${FACILITIES[facilityId].name.toUpperCase()} IST JETZT TEIL VON FARHAVEN`);
   }
   else toast('Dafür fehlen gesicherte Ressourcen.');
-  renderFacilityPanel();
+  if (selectedFacility) renderFacilityPanel();
 });
 required<HTMLButtonElement>('open-shipyard-button').addEventListener('click', () => {
   facilityPanel.hidden = true;

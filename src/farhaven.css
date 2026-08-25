@@ -78,16 +78,18 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #facility-stage { position: relative; min-height: 145px; margin: 12px 0 15px; overflow: hidden; border: 1px solid rgb(151 218 233 / 35%); border-radius: 15px; background: #080d15; box-shadow: inset 0 0 30px rgb(87 205 234 / 8%); }
 #facility-stage-art { width: 100%; height: clamp(102px, 16vh, 152px); background-image: url('/assets/outpost/farhaven-facility-interiors-v1.png'); background-size: 200% 200%; filter: saturate(.72) brightness(.82) contrast(.9); opacity: .88; }
 #facility-stage-art.facility-art-hangar { background-position: 0 0; } #facility-stage-art.facility-art-scanner { background-position: 100% 0; } #facility-stage-art.facility-art-labor { background-position: 0 100%; } #facility-stage-art.facility-art-navigation { background-position: 100% 100%; }
+#facility-stage-art.is-blueprint { filter: grayscale(.55) saturate(.42) brightness(.48) contrast(.9); opacity: .58; }
+#facility-stage-art.is-build-ready { filter: sepia(.14) saturate(.78) brightness(.76) contrast(.94); opacity: .86; }
 #facility-stage::after { position: absolute; inset: auto 0 0; height: 44%; background: linear-gradient(transparent, rgb(4 10 17 / 78%)); content: ''; pointer-events: none; }
 #facility-stage-badge { position: absolute; z-index: 1; left: 10px; bottom: 9px; padding: 5px 7px; border: 1px solid rgb(126 218 229 / 50%); border-radius: 8px; background: rgb(5 18 28 / 78%); color: #e9d49b; font-size: 8px; font-weight: 800; letter-spacing: .09em; }
 #facility-discovery { margin: -4px 0 12px; padding: 8px 9px; border-left: 2px solid #d9ae63; background: rgb(55 39 22 / 42%); color: #cfdddf; font-size: 9px; line-height: 1.4; }
 #facility-inspect-button { width: 100%; min-height: 42px; margin: -5px 0 9px; border: 1px solid rgb(123 210 230 / 52%); border-radius: 11px; background: rgb(9 30 42 / 84%); color: #c4eef7; font-size: 10px; font-weight: 800; letter-spacing: .07em; }
-#construction-moment { position: fixed; z-index: 45; top: 50%; left: 50%; width: min(390px, calc(100vw - 42px)); padding: 21px 24px; border: 1px solid rgb(237 192 107 / 66%); border-radius: 20px; background: radial-gradient(circle at 50% 0%, rgb(95 67 31 / 96%), rgb(8 18 27 / 98%) 70%); box-shadow: 0 24px 90px rgb(0 0 0 / 65%), inset 0 0 24px rgb(250 201 110 / 18%); color: #f7e2b6; text-align: center; transform: translate(-50%, -50%); animation: construction-arrive .28s ease-out; }
+#construction-moment { position: fixed; z-index: 45; top: 57%; left: max(14px, env(safe-area-inset-left)); width: min(190px, calc(100vw - 32px)); padding: 13px 15px; border: 1px solid rgb(237 192 107 / 58%); border-radius: 15px; background: linear-gradient(145deg, rgb(62 44 24 / 94%), rgb(8 18 27 / 95%)); box-shadow: 0 18px 56px rgb(0 0 0 / 48%), inset 0 0 20px rgb(250 201 110 / 12%); color: #f7e2b6; text-align: left; transform: translateY(-50%); animation: construction-arrive .24s ease-out; pointer-events: none; }
 #construction-moment small { color: #a9e5ee; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
-#construction-moment strong { display: block; margin-top: 8px; font-family: Georgia, serif; font-size: clamp(21px, 3.2vw, 29px); letter-spacing: .04em; }
-#construction-moment p { margin: 8px 0 14px; color: #c9d6d5; font-size: 11px; }
-#construction-moment div { display: flex; justify-content: center; gap: 8px; }
-#construction-moment i { width: 54px; height: 4px; border-radius: 99px; background: #4f7484; animation: construction-pulse 1s ease-in-out infinite; }
+#construction-moment strong { display: block; margin-top: 5px; font-family: Georgia, serif; font-size: 16px; line-height: 1.08; letter-spacing: .035em; }
+#construction-moment p { margin: 6px 0 9px; color: #c9d6d5; font-size: 9px; }
+#construction-moment div { display: flex; gap: 5px; }
+#construction-moment i { width: 34px; height: 3px; border-radius: 99px; background: #4f7484; animation: construction-pulse .8s ease-in-out 2; }
 #construction-moment i:nth-child(2) { animation-delay: .15s; } #construction-moment i:nth-child(3) { animation-delay: .3s; }
 #construction-moment.complete i { background: #f1ca7c; animation: none; }
 #return-moment { position: fixed; z-index: 46; top: 50%; left: 50%; width: min(400px, calc(100vw - 42px)); padding: 22px 24px; border: 1px solid rgb(127 215 203 / 66%); border-radius: 20px; background: radial-gradient(circle at 50% 0%, rgb(28 86 78 / 95%), rgb(6 18 27 / 98%) 70%); box-shadow: 0 24px 90px rgb(0 0 0 / 65%), inset 0 0 24px rgb(126 231 202 / 14%); color: #e3f9ef; text-align: center; transform: translate(-50%, -50%); animation: construction-arrive .28s ease-out; }
@@ -95,7 +97,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #return-moment strong { display: block; margin-top: 8px; color: #f5e1ba; font-family: Georgia, serif; font-size: clamp(21px, 3.2vw, 29px); letter-spacing: .04em; }
 #return-moment p { margin: 8px 0 15px; color: #c9d9d5; font-size: 11px; line-height: 1.4; }
 #return-moment button { min-height: 38px; padding: 6px 16px; border: 1px solid rgb(144 226 213 / 63%); border-radius: 10px; background: rgb(9 46 48 / 88%); color: #d9fff5; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
-@keyframes construction-arrive { from { opacity: 0; transform: translate(-50%, -46%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes construction-arrive { from { opacity: 0; transform: translate(12px, -50%) scale(.97); } to { opacity: 1; transform: translate(0, -50%) scale(1); } }
 @keyframes construction-pulse { 50% { background: #eec87e; box-shadow: 0 0 12px rgb(239 200 126 / 60%); } }
 #open-shipyard-button { width: 100%; min-height: 52px; border: 1px solid rgb(204 166 238 / 58%); border-radius: 12px; background: linear-gradient(110deg, rgb(39 27 57 / 88%), rgb(10 28 40 / 88%)); color: #e5cffa; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
 #shipyard-panel { position: fixed; z-index: 34; top: 50%; left: 50%; width: min(825px, calc(100vw - 32px)); max-height: calc(100dvh - 28px); overflow-y: auto; padding: clamp(20px, 3vw, 30px); border: 1px solid rgb(191 148 237 / 54%); border-radius: 23px; background: linear-gradient(145deg, rgb(16 14 31 / 98%), rgb(5 18 29 / 98%)); box-shadow: 0 26px 90px rgb(0 0 0 / 66%), inset 0 0 42px rgb(158 101 222 / 10%); transform: translate(-50%, -50%); }

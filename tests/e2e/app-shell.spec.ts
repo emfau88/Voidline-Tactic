@@ -45,7 +45,8 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#launch-button')).toContainText('NAHES WRACK SICHERN');
   await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /HANGAR ERRICHTEN/ })).toBeVisible();
+  await expect(page.locator('#facility-upgrade-button')).toBeVisible();
+  await expect(page.locator('#facility-upgrade-button')).toContainText('4 LEGIERUNGEN SICHERN');
   await expect(page.locator('#game-root canvas')).toBeVisible();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
 });
@@ -55,9 +56,10 @@ test('keeps a Farhaven room focused on one readable mobile decision', async ({ p
   await expect(page.locator('#outpost-hud')).toBeHidden();
   await expect(page.locator('#outpost-nav')).toBeHidden();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
+  await expect(page.locator('#facility-upgrade-button')).toBeDisabled();
   await expect(page.locator('#open-shipyard-button')).toBeHidden();
   await expect(page.locator('#facility-stage-art')).toHaveClass(/facility-art-hangar/);
-  await expect(page.locator('#facility-stage-badge')).toContainText('BAUPLATZ');
+  await expect(page.locator('#facility-stage-badge')).toContainText('BAUPLAN');
   const compactRoom = await page.locator('#facility-panel').evaluate((panel) => {
     const limit = innerHeight <= 430 ? .62 : .76;
     return panel.getBoundingClientRect().height <= innerHeight * limit;
@@ -78,6 +80,8 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 LEGIERUNGEN');
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
+  await expect(page.locator('#facility-panel')).toBeHidden();
+  await openFacility(page, 'hangar');
   await expect(page.locator('#facility-level')).toHaveText('ONLINE · +2 Frachtraum in jeder Expedition');
   await expect(page.locator('#facility-stage-badge')).toHaveText('MODUL ONLINE');
   await expect(page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ })).toBeVisible();

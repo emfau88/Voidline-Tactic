@@ -28,10 +28,14 @@ export class BootScene extends Phaser.Scene {
     this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.webp');
     this.load.image('wormhole-gate-v3', 'assets/objects/wormhole-gate-v3.webp');
     this.load.image('farhaven-core-v2', 'assets/outpost/farhaven-core-v2.png');
+    this.load.image('farhaven-space-v1', 'assets/outpost/farhaven-space-v1.png');
     this.load.spritesheet('farhaven-module-kit-v2', 'assets/outpost/farhaven-module-kit-v4.png', { frameWidth: 627, frameHeight: 627 });
   }
 
   public create(): void {
+    // Frame 1 contains a disconnected 15px remnant from the generated atlas edge.
+    // Register a clean sub-frame without changing the source artwork.
+    this.textures.get('farhaven-module-kit-v2').add('scanner-clean', 0, 643, 0, 611, 627);
     this.scene.start('outpost');
   }
 }
