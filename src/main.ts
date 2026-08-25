@@ -30,6 +30,7 @@ const game = createGame('game-root');
 let paused = false;
 let toastTimer: number | undefined;
 let selectedFacility: FacilityId | undefined;
+let outpostTapShieldUntil = 0;
 let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
@@ -243,9 +244,12 @@ function renderOutpost(): void {
 function updateOutpostChrome(): void {
   const hasShip = Boolean(getProfile().ship);
   const isInspecting = !facilityPanel.hidden || !shipyardPanel.hidden;
+  const isChoosingShip = !shipSelection.hidden;
   // A room dialog sits above the canvas. Lock its world targets so the same tap
-  // cannot also select a second dock behind the HTML action button.
-  game.events.emit('farhaven:outpost-interaction-lock', isInspecting);
+  // cannot also select a second dock behind the HTML action button. The same
+  // guard is needed during hull selection: its confirmation tap must not fall
+  // through to a station room as the selection screen closes.
+  game.events.emit('farhaven:outpost-interaction-lock', isInspecting || isChoosingShip || Date.now() < outpostTapShieldUntil);
   if (isInspecting) shell.dataset.outpostView = 'room'; else delete shell.dataset.outpostView;
   outpostHud.hidden = !hasShip || isInspecting;
   // Farhaven is the menu now. Every constructed room is touched directly on the
@@ -386,7 +390,23 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-facilit
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-variant]')) {
   button.addEventListener('click', () => {
     const variant = button.dataset.shipVariant as ShipVariantId;
-    if (chooseStartingShip(variant)) toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} IST NUN DEIN SCHIFF.`);
+    // Phaser receives a pointer-up shortly after this DOM click on some browsers.
+    // Keep the station targets closed for that short tail so choosing a hull never
+    // accidentally opens the dock located behind the confirmation card.
+    outpostTapShieldUntil = Date.now() + 220;
+    if (chooseStartingShip(variant)) {
+      toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} IST NUN DEIN SCHIFF.`);
+      // The screen transition itself owns the next frame. Clear any room that
+      // could have been selected by a stale canvas pointer before revealing the
+      // Farhaven launch control.
+      window.setTimeout(() => {
+        facilityPanel.hidden = true;
+        shipyardPanel.hidden = true;
+        selectedFacility = undefined;
+        updateOutpostChrome();
+      }, 0);
+      window.setTimeout(updateOutpostChrome, 240);
+    }
   });
 }
 game.events.on('farhaven:facility-selected', (facilityId: FacilityId) => {

@@ -30,8 +30,9 @@ test('asks a new player to select a starting hull', async ({ page }) => {
   await page.evaluate(() => localStorage.removeItem('voidline-farhaven-save-v2'));
   await page.reload();
   await expect(page.getByRole('heading', { name: /WELCHES SCHIFF/ })).toBeVisible();
-  await page.getByRole('button', { name: /ASTER VALE/ }).click();
-  await expect(page.getByRole('region', { name: 'FARHAVEN' })).toBeVisible();
+  await page.locator('[data-ship-variant="aster-vale"]').click();
+  await expect(page.locator('#launch-button')).toBeVisible();
+  await expect(page.locator('#facility-panel')).toBeHidden();
 });
 
 test('offers a confirmed developer reset back to the ship choice', async ({ page }) => {
