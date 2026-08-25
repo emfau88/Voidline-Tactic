@@ -42,6 +42,17 @@ function cargoTotal(cargo: Cargo): number {
   return cargo.alloys + cargo.data + cargo.relics;
 }
 
+const SIGNAL_REWARDS: Readonly<Record<SignalKind, NonNullable<SignalState['reward']>>> = {
+  wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
+  vein: { kind: 'alloys', amount: 3, text: 'Die Minenlaser lösen dunkle Legierungen aus der Ader.' },
+  anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in verwertbare Sternendaten.' },
+  distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
+};
+
+export function rewardForSignal(signal: SignalState): NonNullable<SignalState['reward']> {
+  return signal.reward ?? SIGNAL_REWARDS[signal.kind];
+}
+
 function appendLog(state: ExpeditionState, entry: string): ExpeditionState {
   return { ...state, log: [entry, ...state.log].slice(0, MAX_LOG_ENTRIES) };
 }
@@ -276,13 +287,7 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
   if (guard) return appendLog(state, `${signal.name} ist durch ${guard.name} bewacht. Du kannst umkehren oder den Plünderer vertreiben.`);
   if (cargoTotal(state.cargo) >= state.cargoCapacity) return appendLog(state, 'Der Frachtraum ist voll. Sichere die Fracht in Farhaven.');
 
-  const rewards: Record<SignalKind, { kind: ResourceKind; amount: number; hullCost?: number; text: string }> = {
-    wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
-    vein: { kind: 'alloys', amount: 2, text: 'Die Greifer lösen dunkle Legierungen aus der Ader.' },
-    anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in verwertbare Sternendaten.' },
-    distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
-  };
-  const reward = signal.reward ?? rewards[signal.kind];
+  const reward = rewardForSignal(signal);
   if (cargoTotal(state.cargo) + reward.amount > state.cargoCapacity) {
     return appendLog(state, `Zu wenig Frachtraum für diesen Fund (${reward.amount} Plätze nötig). Sichere erst deine Fracht in Farhaven.`);
   }
@@ -300,14 +305,15 @@ export function mineVein(state: ExpeditionState, signalId: string): ExpeditionSt
   if (!signal || signal.kind !== 'vein' || signal.knowledge !== 'classified') return appendLog(state, 'Diese Ader kann nicht abgebaut werden.');
   if (distance(state.position, signal.position) > 128) return appendLog(state, 'Für den Abbau musst du näher an die Ader heranfliegen.');
   if (state.energy < 10) return appendLog(state, 'Minenlaser nicht bereit: mindestens 10 Systemladung erforderlich.');
-  if (cargoTotal(state.cargo) + 3 > state.cargoCapacity) return appendLog(state, 'Zu wenig Frachtraum für die geborgenen Legierungen.');
+  const reward = rewardForSignal(signal);
+  if (cargoTotal(state.cargo) + reward.amount > state.cargoCapacity) return appendLog(state, 'Zu wenig Frachtraum für die geborgenen Legierungen.');
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
   return appendLog({
     ...state,
     signals,
     energy: state.energy - 10,
-    cargo: addCargo(state.cargo, 'alloys', 3),
-  }, 'Minenlaser schneiden die Schwarze Ader auf. Drei Legierungen sind gesichert.');
+    cargo: addCargo(state.cargo, reward.kind, reward.amount),
+  }, reward.text);
 }
 
 export function returnToFarhaven(state: ExpeditionState): ExpeditionState {

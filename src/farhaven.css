@@ -34,8 +34,16 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #reset-button { display: inline-flex; align-items: center; gap: 3px; min-height: 33px; margin-left: 2px; padding: 5px 8px; border: 1px solid rgb(198 149 104 / 37%); border-radius: 10px; background: rgb(35 23 18 / 70%); color: #e3ba8d; font-size: 14px; }
 #reset-button span { font-size: 7px; font-weight: 800; letter-spacing: .09em; }
 #resource-strip { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-.resource { display: grid; min-width: 62px; padding: 5px 9px; border: 1px solid rgb(150 188 200 / 20%); border-radius: 12px; background: rgb(4 12 21 / 76%); color: #aebfca; font-size: 7px; font-weight: 800; letter-spacing: .08em; text-align: center; }
-.resource b { margin-top: 1px; color: #f4db9b; font-size: 13px; }
+.resource-icon { display: inline-block; width: 18px; height: 18px; object-fit: contain; vertical-align: middle; }
+.resource-token { display: inline-flex; align-items: center; gap: 5px; color: #aebfca; }
+.resource-token > span { display: grid; text-align: left; }
+.resource-token small { color: #9eb3bd; font-size: 6px; font-weight: 800; letter-spacing: .06em; line-height: 1; }
+.resource-token b { color: #f4db9b; font-size: 12px; line-height: 1.05; }
+#resource-strip .resource-token { min-width: 84px; padding: 5px 7px; border: 1px solid rgb(150 188 200 / 20%); border-radius: 12px; background: rgb(4 12 21 / 76%); }
+.resource-cost { display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-top: 4px; }
+.resource-cost .resource-token { gap: 3px; }
+.resource-cost .resource-icon { width: 16px; height: 16px; }
+.resource-cost .resource-token b { font-size: 10px; }
 
 .screen-panel { position: fixed; z-index: 11; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); width: min(420px, calc(100vw - 32px)); padding: clamp(14px, 2vw, 22px); border: 1px solid rgb(135 208 232 / 30%); border-radius: 20px; background: linear-gradient(135deg, rgb(6 18 29 / 93%), rgb(12 19 29 / 78%)); box-shadow: 0 16px 48px rgb(0 0 0 / 38%); backdrop-filter: blur(12px); }
 .outpost-copy small { color: #83d4e9; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
@@ -96,6 +104,9 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #return-moment small { color: #8be0d0; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
 #return-moment strong { display: block; margin-top: 8px; color: #f5e1ba; font-family: Georgia, serif; font-size: clamp(21px, 3.2vw, 29px); letter-spacing: .04em; }
 #return-moment p { margin: 8px 0 15px; color: #c9d9d5; font-size: 11px; line-height: 1.4; }
+#return-resources { display: flex; justify-content: center; gap: 15px; margin: 12px 0 4px; }
+#return-resources .resource-icon { width: 25px; height: 25px; }
+#return-resources .resource-token b { font-size: 16px; }
 #return-moment button { min-height: 38px; padding: 6px 16px; border: 1px solid rgb(144 226 213 / 63%); border-radius: 10px; background: rgb(9 46 48 / 88%); color: #d9fff5; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 @keyframes construction-arrive { from { opacity: 0; transform: translate(12px, -50%) scale(.97); } to { opacity: 1; transform: translate(0, -50%) scale(1); } }
 @keyframes construction-pulse { 50% { background: #eec87e; box-shadow: 0 0 12px rgb(239 200 126 / 60%); } }
@@ -148,6 +159,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .ship-module span { color: var(--module-accent); font-size: 7px; font-weight: 800; letter-spacing: .11em; }
 .ship-module strong { margin-top: 3px; color: #f0e0c1; font-family: Georgia, serif; font-size: 14px; }
 .ship-module small { margin-top: 4px; color: #b3c4c8; font-size: 8px; line-height: 1.22; }
+.ship-module .resource-cost { justify-content: flex-start; }
 
 #expedition-hud { width: min(330px, calc(100vw - 32px)); padding: 12px; }
 .expedition-top { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
@@ -161,9 +173,17 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .meter-grid i { display: block; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #55cae7, #a9edff); transition: width .18s linear; }
 #hull-bar { background: linear-gradient(90deg, #df826e, #ffd19b); }
 #cargo-bar { background: linear-gradient(90deg, #b48ad9, #e7c4ff); }
+#cargo-breakdown { display: flex; justify-content: flex-end; gap: 8px; margin: -4px 0 6px; }
+#cargo-breakdown .resource-token { gap: 2px; }
+#cargo-breakdown .resource-icon { width: 13px; height: 13px; }
+#cargo-breakdown .resource-token b { font-size: 8px; }
 .signal-list { display: grid; gap: 5px; max-height: 92px; overflow-y: auto; }
 .signal { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; width: 100%; padding: 7px 8px; border: 1px solid rgb(126 193 216 / 30%); border-radius: 9px; background: rgb(13 31 43 / 72%); color: #dcebef; text-align: left; }
 .signal b { font-size: 9px; }.signal small { color: #9db1ba; font-size: 7px; }.signal span { color: #83dceb; font-size: 8px; font-weight: 800; }
+.signal .signal-reward { display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px 3px; }
+.signal-reward .resource-icon { width: 16px; height: 16px; }
+.signal-reward small { grid-column: 1 / -1; text-align: right; }
+.expedition-actions button small .resource-icon { width: 12px; height: 12px; }
 .expedition-log { min-height: 30px; margin: 9px 0; color: #b9c7ca; font-size: 9px; line-height: 1.35; }
 .expedition-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .expedition-actions button { display: grid; min-height: 54px; padding: 5px; border: 1px solid rgb(119 209 237 / 40%); border-radius: 11px; background: rgb(10 33 46 / 88%); color: #b9ecf7; font-size: 16px; }
@@ -185,7 +205,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 @media (max-height: 430px) and (orientation: landscape) {
   .screen-panel { bottom: max(8px, env(safe-area-inset-bottom)); left: max(8px, env(safe-area-inset-left)); width: min(332px, calc(100vw - 16px)); padding: 10px; border-radius: 14px; }
   .outpost-copy p { display: none; }.outpost-copy h1 { font-size: 28px; }.facility-list { gap: 5px; margin: 8px 0; }.facility { min-height: 50px; padding: 6px; }.facility span { display: none; }.primary-button { min-height: 48px; padding: 7px 10px; }.primary-button strong { font-size: 15px; }.primary-button small { display: none; }
-  #expedition-hud { width: 285px; padding: 9px; }.signal-list { max-height: 55px; }.expedition-log { min-height: 22px; margin: 5px 0; font-size: 8px; }.expedition-actions button { min-height: 43px; }.resource { min-width: 43px; padding: 3px 5px; }.resource b { font-size: 11px; } #reset-button { width: 30px; min-height: 30px; padding: 4px; justify-content: center; } #reset-button span { display: none; } #fullscreen-button { width: 34px; height: 34px; font-size: 16px; }
+  #expedition-hud { width: 285px; padding: 9px; }.signal-list { max-height: 55px; }.expedition-log { min-height: 22px; margin: 5px 0; font-size: 8px; }.expedition-actions button { min-height: 43px; } #resource-strip { gap: 3px; } #resource-strip .resource-token { min-width: 69px; padding: 3px 4px; gap: 3px; } #resource-strip .resource-icon { width: 15px; height: 15px; } #resource-strip .resource-token small { font-size: 5px; letter-spacing: 0; } #resource-strip .resource-token b { font-size: 10px; } #reset-button { width: 30px; min-height: 30px; padding: 4px; justify-content: center; } #reset-button span { display: none; } #fullscreen-button { width: 34px; height: 34px; font-size: 16px; }
   #outpost-nav { right: 8px; bottom: 8px; width: 280px; gap: 4px; } #outpost-nav button { min-height: 45px; font-size: 14px; } #facility-panel { width: min(360px, calc(100vw - 22px)); padding: 10px 14px; border-radius: 17px; } #facility-panel h2 { margin: 1px 0 3px; font-size: 21px; } #facility-panel p { margin-bottom: 4px; font-size: 9px; } #facility-panel #facility-copy { display: none; } #facility-stage { min-height: 50px; margin: 4px 0 5px; } #facility-stage-art { height: 50px; } #facility-stage-badge { bottom: 4px; left: 5px; padding: 3px 5px; font-size: 6px; } #facility-level { margin-bottom: 5px; padding: 5px 7px; font-size: 7px; } #facility-discovery { display: none; } #open-shipyard-button { min-height: 38px; font-size: 8px; } #facility-upgrade-button { min-height: 38px; } #flight-control { right: 10px; bottom: 10px; } #flight-stick { width: 86px; height: 86px; } #flight-stick i { width: 32px; height: 32px; }
   #ship-selection, #shipyard-panel { width: min(690px, calc(100vw - 20px)); padding: 14px 18px; border-radius: 16px; } #ship-selection h1 { margin: 5px auto; font-size: 23px; } #ship-selection > p { margin-bottom: 8px; font-size: 10px; } .ship-choice { min-height: 185px; padding: 7px; border-radius: 12px; } .ship-choice img { height: 96px; } .ship-choice strong { font-size: 17px; }.ship-choice small { font-size: 8px; } #shipyard-panel { display: flex; height: calc(100dvh - 12px); overflow: hidden; flex-direction: column; } #shipyard-panel h2 { margin: 2px 0; font-size: 25px; } #shipyard-panel > p { margin-bottom: 7px; font-size: 9px; } .shipyard-layout { min-height: 0; flex: 1; grid-template-columns: 175px minmax(0, 1fr); gap: 9px; } #shipyard-preview { min-height: 0; } #shipyard-preview img { height: 100%; max-height: 220px; } #shipyard-module-list { min-height: 0; overflow-y: auto; gap: 5px; padding-right: 3px; } .shipyard-field-grid, .prototype-grid { gap: 5px; } .ship-module { min-height: 53px; padding: 5px 6px; } .ship-module strong { margin-top: 1px; font-size: 11px; }.ship-module small { display: none; } .shipyard-section-heading small { display: none; } .prototype-drawer summary { min-height: 32px; padding: 8px; }.prototype-drawer summary small { font-size: 7px; }
   #shipyard-hull-switch { margin-bottom: 7px; } #shipyard-hull-switch button { min-height: 26px; padding: 4px 7px; font-size: 8px; }
@@ -197,7 +217,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 }
 
 /* Expedition map-first pass: status remains visible, the map stays dominant. */
-#expedition-hud { top: max(58px, calc(env(safe-area-inset-top) + 52px)); bottom: auto; left: 50%; width: min(430px, calc(100vw - 230px)); padding: 7px 11px; border-radius: 14px; transform: translateX(-50%); background: rgb(5 16 27 / 72%); }
+#expedition-hud { top: max(58px, calc(env(safe-area-inset-top) + 52px)); bottom: auto; left: 50%; width: min(430px, calc(100vw - 230px)); padding: 7px 11px; border-radius: 14px; transform: translateX(-50%); background: rgb(5 16 27 / 72%); pointer-events: none; }
 #expedition-hud .expedition-top { display: inline-flex; margin-right: 12px; vertical-align: middle; }
 #expedition-hud .expedition-top strong { font-size: 14px; }
 #expedition-hud #expedition-status { padding: 3px 5px; font-size: 6px; }

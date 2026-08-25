@@ -2,10 +2,11 @@ import './farhaven.css';
 import Phaser from 'phaser';
 import { createGame } from './app/createGame';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
-import { canEnterWormhole, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
-import type { Cargo, WeaponMode } from './domain/exploration/types';
+import { canEnterWormhole, rewardForSignal, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
+import type { Cargo, ResourceKind, WeaponMode } from './domain/exploration/types';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
+import { formatResourceCost, RESOURCE_ORDER, RESOURCE_PRESENTATION, resourceEntries, resourceSourceHint, type ResourceAmounts } from './domain/resources/presentation';
 import { FIELD_UPGRADE_COSTS, FIRST_FIELD_UPGRADE_ID, isFieldUpgrade, SECOND_FIELD_UPGRADE_ID, SHIP_UPGRADES, SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from './domain/ship/types';
 
 const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
@@ -21,6 +22,20 @@ const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
 
 function publicAssetPath(path: string): string {
   return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+}
+
+function resourceIconMarkup(kind: ResourceKind, className = ''): string {
+  const resource = RESOURCE_PRESENTATION[kind];
+  return `<img class="resource-icon${className ? ` ${className}` : ''}" src="${publicAssetPath(resource.iconPath)}" alt="" />`;
+}
+
+function resourceAmountMarkup(kind: ResourceKind, amount: number, compact = false): string {
+  const resource = RESOURCE_PRESENTATION[kind];
+  return `<span class="resource-token resource-${kind}" data-resource="${kind}" title="${resource.name} · Fundort: ${resource.source} · Verwendung: ${resource.use}">${resourceIconMarkup(kind)}<span>${compact ? '' : `<small>${resource.name.toUpperCase()}</small>`}<b>${amount}</b></span></span>`;
+}
+
+function resourceCostMarkup(cost: ResourceAmounts): string {
+  return `<span class="resource-cost">${resourceEntries(cost).map(([kind, amount]) => resourceAmountMarkup(kind, amount, true)).join('')}</span>`;
 }
 
 const shell = document.getElementById('game-shell')!;
@@ -77,8 +92,8 @@ function toast(message: string): void {
 
 function renderResources(): void {
   const resources = getProfile().resources;
-  required<HTMLElement>('resource-strip').innerHTML = [['LEG', resources.alloys], ['DAT', resources.data], ['REL', resources.relics]]
-    .map(([label, value]) => `<span class="resource">${label}<b>${value}</b></span>`).join('');
+  required<HTMLElement>('resource-strip').innerHTML = RESOURCE_ORDER
+    .map((kind) => resourceAmountMarkup(kind, resources[kind])).join('');
 }
 
 function renderObjective(): void {
@@ -89,8 +104,7 @@ function renderObjective(): void {
 }
 
 function upgradeCost(facilityId: FacilityId): string {
-  return Object.entries(FACILITIES[facilityId].cost)
-    .map(([kind, amount]) => `${amount} ${kind === 'alloys' ? 'LEGIERUNGEN' : kind === 'data' ? 'DATEN' : 'RELIKTE'}`).join(' · ');
+  return formatResourceCost(FACILITIES[facilityId].cost);
 }
 
 function openFacility(facilityId: FacilityId): void {
@@ -138,8 +152,8 @@ function renderFacilityPanel(): void {
   upgrade.hidden = level;
   upgrade.disabled = !buildReady;
   upgrade.innerHTML = buildReady
-    ? `<span>RESSOURCEN GESICHERT</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong><small>${upgradeCost(selectedFacility)}</small>`
-    : `<span>NOCH NICHT BAUBEREIT</span><strong>${upgradeCost(selectedFacility)} SICHERN</strong><small>Ressourcen findest du auf Expeditionen</small>`;
+    ? `<span>RESSOURCEN GESICHERT</span><strong>${facility.name.toUpperCase()} ERRICHTEN</strong>${resourceCostMarkup(facility.cost)}`
+    : `<span>NOCH NICHT BAUBEREIT</span><strong>${upgradeCost(selectedFacility)} SICHERN</strong>${resourceCostMarkup(facility.cost)}<small>${resourceSourceHint(facility.cost)}</small>`;
 }
 
 function shipAssetPath(variant: ShipVariantId): string {
@@ -166,16 +180,14 @@ function renderShipyard(): void {
     const fieldUpgrade = isFieldUpgrade(upgrade.id);
     const available = fieldUpgrade && canPurchaseFieldUpgrade(upgrade.id);
     const cost = FIELD_UPGRADE_COSTS[upgrade.id];
-    const costLabel = cost
-      ? Object.entries(cost).map(([kind, amount]) => `${amount} ${kind === 'alloys' ? 'LEG' : kind === 'data' ? 'DAT' : 'REL'}`).join(' · ')
-      : '';
+    const costLabel = cost ? formatResourceCost(cost) : '';
     const status = active
       ? 'ECHTER EINBAU · ONLINE'
       : fieldUpgrade
         ? available ? `${costLabel} · EINBAUEN` : `HANGAR + ${costLabel} NÖTIG`
         : 'KOSTENLOSER PROTOTYP';
     const disabled = fieldUpgrade && !available;
-    return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></button>`;
+    return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small>${cost ? resourceCostMarkup(cost) : ''}</button>`;
   };
   const fieldUpgrades = SHIP_UPGRADES.filter((upgrade) => isFieldUpgrade(upgrade.id));
   const prototypes = SHIP_UPGRADES.filter((upgrade) => !isFieldUpgrade(upgrade.id));
@@ -220,21 +232,14 @@ function playConstructionMoment(facilityId: FacilityId): void {
   window.setTimeout(() => { moment.hidden = true; }, 2100);
 }
 
-function formatCargo(cargo: Cargo): string {
-  return [
-    cargo.alloys ? `+${cargo.alloys} Legierungen` : '',
-    cargo.data ? `+${cargo.data} Daten` : '',
-    cargo.relics ? `+${cargo.relics} Relikte` : '',
-  ].filter(Boolean).join(' · ');
-}
-
 function playReturnMoment(cargo: Cargo): void {
   const total = cargo.alloys + cargo.data + cargo.relics;
   if (!total) { toast('Farhaven empfängt dich. Keine Fracht im Laderaum.'); return; }
   const hangarCost = FACILITIES.hangar.cost.alloys ?? Number.POSITIVE_INFINITY;
   const hangarReady = !getProfile().facilities.hangar && getProfile().resources.alloys >= hangarCost;
   required<HTMLElement>('return-title').textContent = 'FRACHT GESICHERT';
-  required<HTMLElement>('return-copy').textContent = `${formatCargo(cargo)} wurden in Farhaven verladen. ${hangarReady ? 'Die Legierungen reichen jetzt für den Hangar – öffne den Dockbereich rechts.' : 'Die Dockkrallen lösen sich. Farhaven wächst mit jedem Fund.'}`;
+  required<HTMLElement>('return-resources').innerHTML = resourceEntries(cargo).map(([kind, amount]) => resourceAmountMarkup(kind, amount)).join('');
+  required<HTMLElement>('return-copy').textContent = hangarReady ? 'Die Legierungen reichen jetzt für den Hangar – öffne den Dockbereich rechts.' : 'Die Dockkrallen lösen sich. Farhaven wächst mit jedem Fund.';
   required<HTMLElement>('return-moment').hidden = false;
 }
 
@@ -282,6 +287,7 @@ function renderExpedition(): void {
   required<HTMLElement>('energy-value').textContent = `${Math.ceil(expedition.energy)} / ${expedition.maxEnergy}`;
   required<HTMLElement>('hull-value').textContent = `${Math.ceil(expedition.hull)} / ${expedition.maxHull}`;
   required<HTMLElement>('cargo-value').textContent = `${cargoTotal()} / ${expedition.cargoCapacity}`;
+  required<HTMLElement>('cargo-breakdown').innerHTML = RESOURCE_ORDER.map((kind) => resourceAmountMarkup(kind, expedition.cargo[kind], true)).join('');
   required<HTMLElement>('sector-title').textContent = expedition.sectorName.toUpperCase();
   meter('energy-bar', expedition.energy, expedition.maxEnergy);
   meter('hull-bar', expedition.hull, expedition.maxHull);
@@ -315,6 +321,10 @@ function renderExpedition(): void {
     interactLabel.textContent = 'INTERAGIEREN';
     interact.querySelector('small')!.textContent = nearby ? nearby.name : 'An Signal heranfliegen';
     interact.disabled = !nearby;
+  }
+  if (nearby && !nearbyGuard) {
+    const reward = rewardForSignal(nearby);
+    interact.querySelector('small')!.innerHTML = `${resourceIconMarkup(reward.kind)} ${reward.amount} ${RESOURCE_PRESENTATION[reward.kind].name}`;
   }
   const targetId = getSelectedTargetId();
   const selectedTarget = expedition.hostiles.find((hostile) => hostile.id === targetId);
@@ -358,7 +368,8 @@ function renderExpedition(): void {
     item.dataset.signalCourse = signal.id;
     const distance = Math.round(Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y));
     item.className = 'signal';
-    item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${signal.description ?? ''}</small></span><span>${distance}u</span>`;
+    const reward = rewardForSignal(signal);
+    item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${signal.description ?? ''}</small></span><span class="signal-reward" data-resource="${reward.kind}">${resourceIconMarkup(reward.kind)}<b>${reward.amount}</b><small>${distance}u</small></span>`;
     return item;
   }));
 }

@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { rewardForSignal } from '../../domain/exploration/expeditionEngine';
+import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, tickExpedition } from '../../app/gameFlow';
 import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
 import type { ExpeditionState, SignalKind, Vector2, WeaponMode } from '../../domain/exploration/types';
@@ -294,8 +296,11 @@ export class ExpeditionScene extends Phaser.Scene {
     labelBack.fillStyle(0x07131d, 0.88); labelBack.fillRoundedRect(-60, 30, 120, 40, 7);
     labelBack.lineStyle(1, color, 0.62); labelBack.strokeRoundedRect(-60, 30, 120, 40, 7);
     const label = this.add.text(0, 34, signal.name.toUpperCase(), { fontFamily: 'Arial', fontSize: 9, color: '#e6f4f3', align: 'center', fontStyle: 'bold', wordWrap: { width: 112 } }).setOrigin(0.5, 0);
-    const actionLabel = this.add.text(0, 59, `⌁ ${action} · TIPPE FÜR KURS`, { fontFamily: 'Arial', fontSize: 6, color: '#b9d9dc', align: 'center', letterSpacing: 0.3 }).setOrigin(0.5, 0);
-    marker.add([art, labelBack, label, actionLabel]);
+    const reward = rewardForSignal(signal);
+    const resource = RESOURCE_PRESENTATION[reward.kind];
+    const rewardIcon = this.add.image(-42, 59, resource.textureKey).setDisplaySize(12, 12);
+    const actionLabel = this.add.text(-33, 58, `${reward.amount} ${resource.name.toUpperCase()} · ${action}`, { fontFamily: 'Arial', fontSize: 6, color: resource.color, align: 'left', fontStyle: 'bold', letterSpacing: 0.2 }).setOrigin(0, 0);
+    marker.add([art, labelBack, label, rewardIcon, actionLabel]);
     marker.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
     this.signalLayer?.add(marker);
   }

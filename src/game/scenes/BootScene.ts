@@ -27,6 +27,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('ashen-fringe-v1', 'assets/backgrounds/ashen-fringe-v1.png');
     this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.webp');
     this.load.image('wormhole-gate-v3', 'assets/objects/wormhole-gate-v3.webp');
+    this.load.image('resource-alloys-v1', 'assets/ui/resource-alloys-v1.png');
+    this.load.image('resource-data-v1', 'assets/ui/resource-data-v1.png');
+    this.load.image('resource-relics-v1', 'assets/ui/resource-relics-v1.png');
     this.load.image('farhaven-core-v2', 'assets/outpost/farhaven-core-v2.png');
     this.load.image('farhaven-space-v1', 'assets/outpost/farhaven-space-v1.png');
     this.load.spritesheet('farhaven-module-kit-v2', 'assets/outpost/farhaven-module-kit-v4.png', { frameWidth: 627, frameHeight: 627 });

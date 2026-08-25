@@ -121,17 +121,11 @@ export class OutpostScene extends Phaser.Scene {
     const labelY = layout.id === 'scanner' ? layout.y - layout.height * 0.72 : layout.y + layout.height * 0.72;
     const text = built
       ? guided ? `${facility.name.toUpperCase()} · NÄCHSTER SCHRITT\nWERKSTATT ÖFFNEN` : `${facility.name.toUpperCase()}\nANTIPPEN · ÖFFNEN`
-      : buildReady ? `${facility.name.toUpperCase()} · BAUBEREIT\nANTIPPEN · ERRICHTEN` : `NÄCHSTER AUSBAU · ${facility.name.toUpperCase()}\n${this.compactCost(layout.id)} AUS EXPEDITIONEN`;
+      : buildReady ? `${facility.name.toUpperCase()} · BAUBEREIT\nANTIPPEN · ERRICHTEN` : guided ? `NÄCHSTER AUSBAU · ${facility.name.toUpperCase()}\nANTIPPEN · KOSTEN ANSEHEN` : '';
     const label = this.add.text(layout.x, labelY, text, {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: buildReady || guided && built ? '#ffe0a0' : built ? '#f3e2bd' : '#9eb5bc', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
     }).setOrigin(0.5);
     label.setAlpha(built || guided ? 1 : 0.78);
-  }
-
-  private compactCost(id: FacilityId): string {
-    return Object.entries(FACILITIES[id].cost)
-      .map(([kind, amount]) => `${amount} ${kind === 'alloys' ? 'LEG' : kind === 'data' ? 'DAT' : 'REL'}`)
-      .join(' · ');
   }
 
   private addModuleTarget(layout: ModuleLayout): void {

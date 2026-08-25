@@ -109,6 +109,7 @@
             <label>HÜLLE <b id="hull-value">100 / 100</b><span><i id="hull-bar"></i></span></label>
             <label>FRACHT <b id="cargo-value">0 / 6</b><span><i id="cargo-bar"></i></span></label>
           </div>
+          <div id="cargo-breakdown" aria-label="Fracht nach Ressource"></div>
           <div id="signal-list" class="signal-list" aria-label="Klassifizierte Signale"></div>
           <div id="expedition-log" class="expedition-log" aria-live="polite"></div>
         </section>
@@ -124,7 +125,7 @@
           <button id="combat-prompt-fire" type="button"><span>✹</span><b>SALVE</b><small>Feuer frei</small></button>
         </section>
         <section id="return-moment" hidden aria-live="polite" aria-label="Fracht in Farhaven gesichert">
-          <small>FARHAVEN · ANKUNFT</small><strong id="return-title"></strong><p id="return-copy"></p>
+          <small>FARHAVEN · ANKUNFT</small><strong id="return-title"></strong><div id="return-resources"></div><p id="return-copy"></p>
           <button id="close-return-moment" type="button">WEITER</button>
         </section>
         <section id="flight-control" hidden aria-label="Flugsteuerung">

@@ -25,7 +25,7 @@ Der aktuelle spielbare Prototyp enthält:
 - drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven auch während des Flugs und sichtbare Waffen-VFX
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Der Kern und gebaute Räume bilden eine zusammenhängende Top-down-Station ohne technische Hilfskästen
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
-- drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
+- drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise
 - eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; Rumpfideen bleiben unveränderliche visuelle Studien
 - getrennte, mobile Raumansichten für die Farhaven-Bereiche: Übersicht, kurzer Raumstatus, eine Hauptaktion
 - persistente Ausbauten, Schiffsdaten und laufende Expeditionen über `localStorage`; ein Reload setzt den Flug am letzten Ort fort
@@ -61,6 +61,7 @@ npm run build
 ```text
 src/domain/exploration/  Scan-, Signal-, Cargo- und Expeditionsregeln
 src/domain/outpost/      Einrichtungen, Ressourcen und Ausbauten
+src/domain/resources/    Gemeinsame Namen, Icons, Quellen und Verwendungshinweise
 src/app/                 Save v2 und Spielablauf
 src/game/scenes/         Farhaven- und Expeditionsdarstellung
 docs/planning/           Produkt- und Produktionsplanung

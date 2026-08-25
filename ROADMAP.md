@@ -64,9 +64,9 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ GitHub-Pages-sichere Schiffsbilder und sichtbare echte Einbauten in der mobilen Werkstatt
 - ✅ Mobile Expeditionshinweise liegen dezent an den Rändern statt übereinander in der Kartenmitte
 - ✅ Künftige Farhaven-Module bleiben als ruhige, physisch angedockte Vorschau erkennbar
-- 🚧 Einheitliche Ressourcensprache mit vollständigen Namen und eigenen Icons
-- 🚧 Dieselben Ressourcen-Icons auf Expeditionen, in Fracht und bei Preisen
-- 🚧 Verständliche Hinweise, wo Ressourcen gefunden und wofür sie verwendet werden
+- ✅ Einheitliche Ressourcensprache mit vollständigen Namen und eigenen ImageGen-Icons
+- ✅ Dieselben Ressourcen-Icons auf Expeditionen, in Fracht und bei Preisen
+- ✅ Verständliche Hinweise, wo Ressourcen gefunden und wofür sie verwendet werden
 - 🧪 Ersten Zehn-Minuten-Ablauf mit neuen Spielern ohne Hilfestellung testen
 - ⬜ Reibungspunkte aus mindestens drei Tests beheben
 
@@ -157,7 +157,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 ## 4. Empfohlene Umsetzungsreihenfolge in Bulks
 
-1. 🚧 **Bulk A – Verständliche Ressourcen:** Namen, Icons, Quellen, Fracht und Preise durchgängig verbinden.
+1. ✅ **Bulk A – Verständliche Ressourcen:** Namen, Icons, Quellen, Fracht und Preise durchgängig verbinden.
 2. 🧪 **Bulk B – Zehn-Minuten-UX:** drei externe Tests, Sackgassen und unklare Ziele beseitigen.
 3. ⬜ **Bulk C – Explorationstiefe:** zweiter Sektor, Ereignisse, neutraler Kontakt und Fundprotokoll.
 4. ⬜ **Bulk D – Sechs echte Schiffs-Upgrades:** organische Bauteile, Funktionen und VFX gemeinsam bauen.

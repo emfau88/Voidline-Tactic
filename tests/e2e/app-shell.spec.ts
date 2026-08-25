@@ -42,11 +42,15 @@ test('offers a confirmed developer reset back to the ship choice', async ({ page
 });
 
 test('presents the Farhaven outpost and a compact launch flow', async ({ page }) => {
+  await expect(page.locator('#resource-strip')).toContainText('LEGIERUNGEN');
+  await expect(page.locator('#resource-strip')).toContainText('DATEN');
+  await expect(page.locator('#resource-strip')).toContainText('RELIKTE');
+  await expect(page.locator('#resource-strip img[src*="resource-alloys-v1.png"]')).toBeVisible();
   await expect(page.locator('#launch-button')).toContainText('NAHES WRACK SICHERN');
   await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
-  await expect(page.locator('#facility-upgrade-button')).toContainText('4 LEGIERUNGEN SICHERN');
+  await expect(page.locator('#facility-upgrade-button')).toContainText('4 Legierungen SICHERN');
   await expect(page.locator('#game-root canvas')).toBeVisible();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
 });
@@ -77,7 +81,7 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   })));
   await page.reload();
   await openFacility(page, 'hangar');
-  await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 LEGIERUNGEN');
+  await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 Legierungen');
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
   await expect(page.locator('#facility-panel')).toBeHidden();
@@ -118,6 +122,8 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
+  await expect(page.locator('#signal-list [data-resource="alloys"]')).toHaveCount(1);
+  await expect(page.locator('#cargo-breakdown [data-resource="alloys"]')).toHaveCount(1);
   await expect(page.locator('#expedition-log')).toContainText('klassifiziert');
 
   const layout = await page.evaluate(() => {
