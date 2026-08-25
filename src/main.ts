@@ -235,9 +235,11 @@ function renderOutpost(): void {
       : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
         ? ['ZWEITE SCHICHT', 'ZWEI ECHOS UNTERSUCHEN', 'Sichere Laterne · riskante Liturgie']
         : ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste'];
-  launch.querySelector('span')!.textContent = next[0];
-  launch.querySelector('strong')!.textContent = next[1];
-  launch.querySelector('small')!.textContent = next[2];
+  // Farhaven itself is the menu. Keep this only as a compact departure control;
+  // the current task lives on the station rather than covering it as a large HUD card.
+  launch.querySelector('span')!.textContent = 'EXPEDITION';
+  launch.querySelector('strong')!.textContent = 'ASCHSAUM STARTEN';
+  launch.querySelector('small')!.textContent = `${next[0]} · ${next[1]}`;
   renderFacilityPanel();
 }
 

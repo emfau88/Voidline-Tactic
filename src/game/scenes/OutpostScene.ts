@@ -5,7 +5,6 @@ import { FIRST_FIELD_UPGRADE_ID, SECOND_FIELD_UPGRADE_ID } from '../../domain/sh
 
 type Point = Readonly<{ x: number; y: number }>;
 type ModuleLayout = Readonly<{ id: FacilityId; x: number; y: number; width: number; height: number; accent: number }>;
-type FutureSocket = Readonly<{ x: number; y: number; label: string }>;
 
 const MODULE_ACCENTS: Record<FacilityId, number> = {
   hangar: 0xd5ad68,
@@ -38,12 +37,18 @@ export class OutpostScene extends Phaser.Scene {
     const height = this.scale.height;
     const profile = getProfile();
     const guidedFacility = this.guidedFacility();
-    const unit = Math.min(width / 1500, height / 760);
-    const center: Point = { x: width * 0.53, y: height * 0.51 };
-    const coreWidth = 232 * unit;
-    const coreHeight = 232 * unit;
-    const armX = 246 * unit;
-    const armY = 160 * unit;
+    const unit = Math.min(width / 1540, height / 790);
+    const center: Point = { x: width * 0.5, y: height * 0.51 };
+    // Farhaven starts as a command core, not a finished ring station. Every room
+    // is positioned from the same collar-to-collar bridge measurement below.
+    const coreWidth = 214 * unit;
+    const coreHeight = 214 * unit;
+    const bridgeLength = 58 * unit;
+    const scannerSize = 164 * unit;
+    const laborSize = 170 * unit;
+    const hangarWidth = 196 * unit;
+    const hangarHeight = 148 * unit;
+    const navigationSize = 166 * unit;
 
     this.tweens.killAll();
     this.children.removeAll();
@@ -51,61 +56,37 @@ export class OutpostScene extends Phaser.Scene {
     this.drawSpace(width, height, unit);
 
     const board = this.add.graphics();
-    const boardWidth = 720 * unit;
-    const boardHeight = 520 * unit;
+    const boardWidth = 760 * unit;
+    const boardHeight = 570 * unit;
     board.fillStyle(0x07111c, 0.82);
     board.fillRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
     board.lineStyle(Math.max(1, 1.4 * unit), 0x2a5b68, 0.52);
     board.strokeRoundedRect(center.x - boardWidth / 2, center.y - boardHeight / 2, boardWidth, boardHeight, 30 * unit);
-    this.drawBoardMarks(board, center, boardWidth, boardHeight, unit);
 
     const layouts: ModuleLayout[] = [
-      { id: 'scanner', x: center.x, y: center.y - armY, width: 188 * unit, height: 150 * unit, accent: MODULE_ACCENTS.scanner },
-      { id: 'labor', x: center.x - armX, y: center.y, width: 204 * unit, height: 160 * unit, accent: MODULE_ACCENTS.labor },
-      { id: 'hangar', x: center.x + armX, y: center.y, width: 226 * unit, height: 170 * unit, accent: MODULE_ACCENTS.hangar },
-      { id: 'navigation', x: center.x, y: center.y + armY, width: 196 * unit, height: 160 * unit, accent: MODULE_ACCENTS.navigation },
+      { id: 'scanner', x: center.x, y: center.y - coreHeight / 2 - bridgeLength - scannerSize / 2, width: scannerSize, height: scannerSize, accent: MODULE_ACCENTS.scanner },
+      { id: 'labor', x: center.x - coreWidth / 2 - bridgeLength - laborSize / 2, y: center.y, width: laborSize, height: laborSize, accent: MODULE_ACCENTS.labor },
+      { id: 'hangar', x: center.x + coreWidth / 2 + bridgeLength + hangarWidth / 2, y: center.y, width: hangarWidth, height: hangarHeight, accent: MODULE_ACCENTS.hangar },
+      { id: 'navigation', x: center.x, y: center.y + coreHeight / 2 + bridgeLength + navigationSize / 2, width: navigationSize, height: navigationSize, accent: MODULE_ACCENTS.navigation },
     ];
 
     const graphics = this.add.graphics();
-    for (const layout of layouts) this.drawConnector(graphics, center, layout, coreWidth, coreHeight, profile.facilities[layout.id] > 0);
+    for (const layout of layouts) {
+      const built = profile.facilities[layout.id] > 0;
+      this.drawConnector(graphics, center, layout, coreWidth, coreHeight, built || layout.id === guidedFacility, built);
+    }
     this.drawCore(graphics, center, coreWidth, coreHeight, unit);
     for (const layout of layouts) {
       const built = profile.facilities[layout.id] > 0;
-      this.drawModule(graphics, layout, built, unit);
-      this.addModuleLabel(layout, built, layout.id === guidedFacility, unit);
-      if (layout.id === guidedFacility) this.drawGuidanceRing(graphics, layout, unit);
+      const guided = layout.id === guidedFacility;
+      this.drawModule(graphics, layout, built, guided);
+      this.addModuleLabel(layout, built, guided, unit);
       this.addModuleTarget(layout);
     }
-
-    const futureSockets: FutureSocket[] = [
-      { x: center.x - armX * .72, y: center.y - armY * .72, label: 'SPÄTER · RAFFINERIE' },
-      { x: center.x + armX * .72, y: center.y - armY * .72, label: 'SPÄTER · VERTEIDIGUNG' },
-      { x: center.x - armX * .72, y: center.y + armY * .72, label: 'SPÄTER · LAGER' },
-      { x: center.x + armX * .72, y: center.y + armY * .72, label: 'SPÄTER · DROHNENHUB' },
-    ];
-    for (const socket of futureSockets) this.drawFutureSocket(graphics, socket, center, unit);
-    this.addStationTraffic(center, armX, armY, unit);
 
     this.add.text(center.x, center.y + coreHeight * 0.63, 'FARHAVEN · KERNPLATTE', {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: '#e9d6ac', fontStyle: 'bold', letterSpacing: 1.3,
     }).setOrigin(0.5);
-    this.add.text(center.x, center.y - boardHeight * 0.44, 'FARHAVEN · BERÜHRE EINEN ANDOCKPLATZ', {
-      fontFamily: 'Arial', fontSize: Math.max(7, 8 * unit), color: '#8ccbd8', fontStyle: 'bold', letterSpacing: 1.05,
-    }).setOrigin(0.5).setAlpha(0.9);
-  }
-
-  private drawFutureSocket(graphics: Phaser.GameObjects.Graphics, socket: FutureSocket, center: Point, unit: number): void {
-    graphics.lineStyle(Math.max(4, 7 * unit), 0x091723, .92);
-    graphics.lineBetween(center.x + (socket.x - center.x) * .56, center.y + (socket.y - center.y) * .56, socket.x, socket.y);
-    graphics.lineStyle(Math.max(1, unit), 0x4e7582, .5);
-    graphics.lineBetween(center.x + (socket.x - center.x) * .56, center.y + (socket.y - center.y) * .56, socket.x, socket.y);
-    graphics.fillStyle(0x091722, .84);
-    graphics.fillCircle(socket.x, socket.y, Math.max(18, 27 * unit));
-    graphics.lineStyle(Math.max(1, 1.2 * unit), 0x4e8191, .58);
-    graphics.strokeCircle(socket.x, socket.y, Math.max(18, 27 * unit));
-    this.add.text(socket.x, socket.y + Math.max(29, 38 * unit), socket.label, {
-      fontFamily: 'Arial', fontSize: Math.max(6, 6.5 * unit), color: '#7894a0', fontStyle: 'bold', align: 'center', letterSpacing: .5,
-    }).setOrigin(.5).setAlpha(.78);
   }
 
   private drawSpace(width: number, height: number, unit: number): void {
@@ -126,26 +107,14 @@ export class OutpostScene extends Phaser.Scene {
     }
   }
 
-  private drawBoardMarks(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
-    graphics.lineStyle(Math.max(1, unit), 0x28525f, 0.24);
-    for (let column = -2; column <= 2; column += 1) {
-      const x = center.x + column * width * 0.16;
-      graphics.lineBetween(x, center.y - height * 0.44, x, center.y + height * 0.44);
-    }
-    for (let row = -1; row <= 1; row += 1) {
-      const y = center.y + row * height * 0.25;
-      graphics.lineBetween(center.x - width * 0.44, y, center.x + width * 0.44, y);
-    }
-  }
-
   private drawCore(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
     graphics.fillStyle(0x5fcce2, .1);
     graphics.fillCircle(center.x, center.y, width * .52);
-    const core = this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height).setAlpha(.9);
-    this.tweens.add({ targets: core, scale: { from: .985, to: 1.015 }, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height).setAlpha(.94);
   }
 
-  private drawConnector(graphics: Phaser.GameObjects.Graphics, center: Point, layout: ModuleLayout, coreWidth: number, coreHeight: number, built: boolean): void {
+  private drawConnector(graphics: Phaser.GameObjects.Graphics, center: Point, layout: ModuleLayout, coreWidth: number, coreHeight: number, visible: boolean, built: boolean): void {
+    if (!visible) return;
     const horizontal = Math.abs(layout.x - center.x) > Math.abs(layout.y - center.y);
     const start: Point = horizontal
       ? { x: center.x + Math.sign(layout.x - center.x) * coreWidth / 2, y: center.y }
@@ -153,50 +122,35 @@ export class OutpostScene extends Phaser.Scene {
     const end: Point = horizontal
       ? { x: layout.x - Math.sign(layout.x - center.x) * layout.width / 2, y: layout.y }
       : { x: layout.x, y: layout.y - Math.sign(layout.y - center.y) * layout.height / 2 };
-    graphics.lineStyle(Math.max(7, Math.min(layout.width, layout.height) * 0.11), 0x091723, 1);
-    graphics.lineBetween(start.x, start.y, end.x, end.y);
-    graphics.lineStyle(Math.max(1, Math.min(layout.width, layout.height) * 0.025), built ? layout.accent : 0x517282, built ? 0.84 : 0.5);
-    graphics.lineBetween(start.x, start.y, end.x, end.y);
-    graphics.fillStyle(built ? layout.accent : 0x517282, built ? 0.94 : 0.54);
-    graphics.fillCircle(end.x, end.y, Math.max(4, Math.min(layout.width, layout.height) * 0.07));
+    const thickness = Math.max(12, Math.min(layout.width, layout.height) * .16);
+    const length = horizontal ? Math.abs(end.x - start.x) : Math.abs(end.y - start.y);
+    const left = horizontal ? Math.min(start.x, end.x) : start.x - thickness / 2;
+    const top = horizontal ? start.y - thickness / 2 : Math.min(start.y, end.y);
+    const corridorWidth = horizontal ? length : thickness;
+    const corridorHeight = horizontal ? thickness : length;
+    graphics.fillStyle(0x0a1923, .98);
+    graphics.fillRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .36);
+    graphics.lineStyle(Math.max(1, thickness * .09), built ? layout.accent : 0x476776, built ? .52 : .28);
+    graphics.strokeRoundedRect(left, top, corridorWidth, corridorHeight, thickness * .36);
+    const lightSize = Math.max(2, thickness * .14);
+    graphics.fillStyle(built ? layout.accent : 0x52727d, built ? .8 : .36);
+    for (const fraction of [.28, .72]) {
+      const lightX = horizontal ? left + corridorWidth * fraction : left + corridorWidth / 2;
+      const lightY = horizontal ? top + corridorHeight / 2 : top + corridorHeight * fraction;
+      graphics.fillRoundedRect(lightX - lightSize / 2, lightY - lightSize / 2, lightSize, lightSize, 1);
+    }
   }
 
-  private drawModule(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, built: boolean, unit: number): void {
-    const { id, x, y, width, height, accent } = layout;
-    const left = x - width / 2;
-    const top = y - height / 2;
-    const corner = 13 * unit;
-    graphics.fillStyle(built ? 0x102531 : 0x0a151e, built ? 1 : 0.74);
-    graphics.fillRoundedRect(left, top, width, height, corner);
-    graphics.lineStyle(Math.max(1, 1.5 * unit), built ? accent : 0x4d6674, built ? 0.96 : 0.66);
-    graphics.strokeRoundedRect(left, top, width, height, corner);
-    if (!built) {
-      this.drawBuildSocket(graphics, layout, unit);
-      return;
+  private drawModule(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, built: boolean, guided: boolean): void {
+    if (!built && !guided) return;
+    const { id, x, y, width, height } = layout;
+    if (built) {
+      graphics.fillStyle(0x03080d, .42);
+      graphics.fillEllipse(x, y + height * .12, width * .82, height * .4);
     }
-    graphics.fillStyle(0x07131d, .42);
-    graphics.fillRoundedRect(left, top, width, height, corner);
-    const spriteSize = Math.max(width, height) * .94;
-    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize).setAlpha(.9);
+    const spriteSize = Math.max(width, height) * 1.02;
+    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize).setAlpha(built ? .94 : .16);
     if (id === 'hangar') module.setFlipX(true);
-    this.tweens.add({ targets: module, alpha: { from: .9, to: 1 }, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-  }
-
-  private drawBuildSocket(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, unit: number): void {
-    const { x, y, width, height, accent } = layout;
-    const insetX = width * 0.16;
-    const insetY = height * 0.21;
-    graphics.lineStyle(Math.max(1, unit), accent, 0.44);
-    const dash = Math.max(9, 13 * unit);
-    for (let offset = -width / 2 + insetX; offset < width / 2 - insetX; offset += dash * 1.75) {
-      graphics.lineBetween(x + offset, y - height / 2 + insetY, x + Math.min(offset + dash, width / 2 - insetX), y - height / 2 + insetY);
-      graphics.lineBetween(x + offset, y + height / 2 - insetY, x + Math.min(offset + dash, width / 2 - insetX), y + height / 2 - insetY);
-    }
-    graphics.lineStyle(Math.max(1, unit), 0x6d8997, 0.5);
-    graphics.lineBetween(x - width * 0.27, y, x + width * 0.27, y);
-    graphics.lineBetween(x, y - height * 0.28, x, y + height * 0.28);
-    graphics.fillStyle(accent, 0.52);
-    graphics.fillCircle(x, y, Math.max(5, 7 * unit));
   }
 
   private moduleFrame(id: FacilityId): number {
@@ -204,15 +158,15 @@ export class OutpostScene extends Phaser.Scene {
   }
 
   private addModuleLabel(layout: ModuleLayout, built: boolean, guided: boolean, unit: number): void {
+    if (!built && !guided) return;
     const facility = FACILITIES[layout.id];
     const labelY = layout.id === 'scanner' ? layout.y - layout.height * 0.72 : layout.y + layout.height * 0.72;
     const state = built ? 'ANTIPPEN · ÖFFNEN' : `ANTIPPEN · BAUEN · ${this.compactCost(layout.id)}`;
-    const prefix = guided ? '✦ DEIN NÄCHSTER SCHRITT ✦\n' : '';
+    const prefix = guided ? 'NÄCHSTER SCHRITT\n' : '';
     const label = this.add.text(layout.x, labelY, `${prefix}${facility.name.toUpperCase()}\n${state}`, {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: guided ? '#ffe0a0' : built ? '#f3e2bd' : '#b7d2da', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
     }).setOrigin(0.5);
-    label.setAlpha(built || guided ? 1 : 0.88);
-    if (guided) this.tweens.add({ targets: label, alpha: { from: .62, to: 1 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    label.setAlpha(built || guided ? 1 : 0.78);
   }
 
   private compactCost(id: FacilityId): string {
@@ -246,25 +200,4 @@ export class OutpostScene extends Phaser.Scene {
     return undefined;
   }
 
-  private drawGuidanceRing(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, unit: number): void {
-    const radius = Math.max(layout.width, layout.height) * .58;
-    const ring = this.add.circle(layout.x, layout.y, radius, 0xecc471, .07);
-    ring.setStrokeStyle(Math.max(1.5, 2.2 * unit), 0xf0cb7a, .94);
-    this.tweens.add({ targets: ring, scale: { from: .94, to: 1.08 }, alpha: { from: .3, to: .9 }, duration: 1250, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    graphics.lineStyle(Math.max(1, unit), 0xf0cb7a, .28);
-    graphics.strokeCircle(layout.x, layout.y, radius * .82);
-  }
-
-  private addStationTraffic(center: Point, armX: number, armY: number, unit: number): void {
-    const routes: readonly [Point, Point][] = [
-      [{ x: center.x - armX * .82, y: center.y - armY * .08 }, { x: center.x - armX * .2, y: center.y - armY * .02 }],
-      [{ x: center.x + armX * .16, y: center.y + armY * .06 }, { x: center.x + armX * .86, y: center.y + armY * .02 }],
-      [{ x: center.x - armX * .06, y: center.y + armY * .14 }, { x: center.x - armX * .02, y: center.y + armY * .82 }],
-    ];
-    for (const [start, end] of routes.slice(0, 2)) {
-      const drone = this.add.circle(start.x, start.y, Math.max(2, 3 * unit), 0x8ee8f2, .86);
-      drone.setStrokeStyle(Math.max(1, unit * .7), 0xf2c276, .65);
-      this.tweens.add({ targets: drone, x: end.x, y: end.y, duration: 2600, delay: Math.random() * 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    }
-  }
 }
