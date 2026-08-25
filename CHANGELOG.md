@@ -34,6 +34,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 - klare Niederlage bei Hülle 0: Farhaven birgt das Schiff, ungesicherte Fracht bleibt draußen
 - strikte Frachtraumprüfung auch für mehrteilige Funde; ein Fund kann den Frachtraum nicht mehr überfüllen
 - Farhaven als direkte Stationsoberfläche: alte Bereichsleiste entfernt, vier aktive Andockplätze und vier spätere Steckplätze um die Kernplatte angeordnet
+- illustrierter Farhaven-Kern und ein transparentes, direkt andockbares Raum-Kit für Hangar, Scannerkapelle, Reliktlabor und Sternenwerk
 
 #### Changed
 

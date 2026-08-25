@@ -23,7 +23,7 @@ Der aktuelle spielbare Prototyp enthält:
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven
 - drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven auch während des Flugs und sichtbare Waffen-VFX
-- Farhaven als direkte, nahezu vollflächige Stationsoberfläche: Kernmodul, vier unmittelbar antippbare Andockplätze und vier klar als spätere Erweiterungen erkennbare Steckplätze
+- Farhaven als direkte, nahezu vollflächige Stationsoberfläche: ein illustrierter Kern mit vier standardisierten Docks, vier unmittelbar antippbare Raumassets und vier klar als spätere Erweiterungen erkennbare Steckplätze
 - drei dauerhafte Ressourcen: Legierungen, Daten und Relikte
 - eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; Rumpfideen bleiben unveränderliche visuelle Studien
 - getrennte, mobile Raumansichten für die Farhaven-Bereiche: Übersicht, kurzer Raumstatus, eine Hauptaktion

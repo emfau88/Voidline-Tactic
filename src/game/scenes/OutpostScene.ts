@@ -38,10 +38,10 @@ export class OutpostScene extends Phaser.Scene {
     const profile = getProfile();
     const unit = Math.min(width / 1500, height / 760);
     const center: Point = { x: width * 0.53, y: height * 0.51 };
-    const coreWidth = 198 * unit;
-    const coreHeight = 128 * unit;
-    const armX = 236 * unit;
-    const armY = 138 * unit;
+    const coreWidth = 270 * unit;
+    const coreHeight = 270 * unit;
+    const armX = 280 * unit;
+    const armY = 180 * unit;
 
     this.tweens.killAll();
     this.children.removeAll();
@@ -58,10 +58,10 @@ export class OutpostScene extends Phaser.Scene {
     this.drawBoardMarks(board, center, boardWidth, boardHeight, unit);
 
     const layouts: ModuleLayout[] = [
-      { id: 'scanner', x: center.x, y: center.y - armY, width: 136 * unit, height: 88 * unit, accent: MODULE_ACCENTS.scanner },
-      { id: 'labor', x: center.x - armX, y: center.y, width: 154 * unit, height: 92 * unit, accent: MODULE_ACCENTS.labor },
-      { id: 'hangar', x: center.x + armX, y: center.y, width: 182 * unit, height: 104 * unit, accent: MODULE_ACCENTS.hangar },
-      { id: 'navigation', x: center.x, y: center.y + armY, width: 146 * unit, height: 92 * unit, accent: MODULE_ACCENTS.navigation },
+      { id: 'scanner', x: center.x, y: center.y - armY, width: 208 * unit, height: 168 * unit, accent: MODULE_ACCENTS.scanner },
+      { id: 'labor', x: center.x - armX, y: center.y, width: 224 * unit, height: 178 * unit, accent: MODULE_ACCENTS.labor },
+      { id: 'hangar', x: center.x + armX, y: center.y, width: 254 * unit, height: 190 * unit, accent: MODULE_ACCENTS.hangar },
+      { id: 'navigation', x: center.x, y: center.y + armY, width: 216 * unit, height: 176 * unit, accent: MODULE_ACCENTS.navigation },
     ];
 
     const graphics = this.add.graphics();
@@ -81,6 +81,7 @@ export class OutpostScene extends Phaser.Scene {
       { x: center.x + armX * .72, y: center.y + armY * .72, label: 'SPÄTER · DROHNENHUB' },
     ];
     for (const socket of futureSockets) this.drawFutureSocket(graphics, socket, center, unit);
+    this.addStationTraffic(center, armX, armY, unit);
 
     this.add.text(center.x, center.y + coreHeight * 0.63, 'FARHAVEN · KERNPLATTE', {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: '#e9d6ac', fontStyle: 'bold', letterSpacing: 1.3,
@@ -135,26 +136,10 @@ export class OutpostScene extends Phaser.Scene {
   }
 
   private drawCore(graphics: Phaser.GameObjects.Graphics, center: Point, width: number, height: number, unit: number): void {
-    const x = center.x - width / 2;
-    const y = center.y - height / 2;
-    graphics.fillStyle(0x0b202c, 1);
-    graphics.fillRoundedRect(x, y, width, height, 22 * unit);
-    graphics.lineStyle(Math.max(1.5, 2 * unit), 0x73cad5, 0.86);
-    graphics.strokeRoundedRect(x, y, width, height, 22 * unit);
-    graphics.fillStyle(0x122f3c, 1);
-    graphics.fillRoundedRect(x + width * 0.11, y + height * 0.14, width * 0.78, height * 0.72, 14 * unit);
-    graphics.lineStyle(Math.max(1, unit), 0x497e89, 0.9);
-    graphics.strokeRoundedRect(x + width * 0.11, y + height * 0.14, width * 0.78, height * 0.72, 14 * unit);
-    const reactor = this.add.circle(center.x, center.y, 22 * unit, 0xd8ad60, 0.9);
-    reactor.setStrokeStyle(Math.max(1, unit), 0xffe0a0, 0.86);
-    this.add.circle(center.x, center.y, 10 * unit, 0xffe0a0, 0.72);
-    this.tweens.add({ targets: reactor, alpha: { from: 0.58, to: 1 }, scale: { from: 0.92, to: 1.06 }, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    for (let index = -2; index <= 2; index += 1) {
-      if (index === 0) continue;
-      graphics.fillStyle(0x78ddeb, 0.76);
-      graphics.fillRoundedRect(center.x + index * width * 0.14 - 4 * unit, center.y - height * 0.25, 8 * unit, 13 * unit, 2 * unit);
-      graphics.fillRoundedRect(center.x + index * width * 0.14 - 4 * unit, center.y + height * 0.15, 8 * unit, 13 * unit, 2 * unit);
-    }
+    graphics.fillStyle(0x5fcce2, .1);
+    graphics.fillCircle(center.x, center.y, width * .52);
+    const core = this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height);
+    this.tweens.add({ targets: core, scale: { from: .985, to: 1.015 }, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
 
   private drawConnector(graphics: Phaser.GameObjects.Graphics, center: Point, layout: ModuleLayout, coreWidth: number, coreHeight: number, built: boolean): void {
@@ -186,8 +171,10 @@ export class OutpostScene extends Phaser.Scene {
       this.drawBuildSocket(graphics, layout, unit);
       return;
     }
-    const spriteSize = Math.min(width, height) * 0.9;
-    this.add.image(x, y, 'farhaven-module-kit-v1', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize);
+    const spriteSize = Math.max(width, height) * 1.05;
+    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id)).setDisplaySize(spriteSize, spriteSize);
+    if (id === 'hangar') module.setFlipX(true);
+    this.tweens.add({ targets: module, alpha: { from: .9, to: 1 }, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
 
   private drawBuildSocket(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, unit: number): void {
@@ -239,5 +226,18 @@ export class OutpostScene extends Phaser.Scene {
       this.game.canvas.style.cursor = 'default';
     });
     target.on('pointerdown', () => this.game.events.emit('farhaven:facility-selected', layout.id));
+  }
+
+  private addStationTraffic(center: Point, armX: number, armY: number, unit: number): void {
+    const routes: readonly [Point, Point][] = [
+      [{ x: center.x - armX * .82, y: center.y - armY * .08 }, { x: center.x - armX * .2, y: center.y - armY * .02 }],
+      [{ x: center.x + armX * .16, y: center.y + armY * .06 }, { x: center.x + armX * .86, y: center.y + armY * .02 }],
+      [{ x: center.x - armX * .06, y: center.y + armY * .14 }, { x: center.x - armX * .02, y: center.y + armY * .82 }],
+    ];
+    for (const [start, end] of routes) {
+      const drone = this.add.circle(start.x, start.y, Math.max(2, 3 * unit), 0x8ee8f2, .86);
+      drone.setStrokeStyle(Math.max(1, unit * .7), 0xf2c276, .65);
+      this.tweens.add({ targets: drone, x: end.x, y: end.y, duration: 2600, delay: Math.random() * 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    }
   }
 }
