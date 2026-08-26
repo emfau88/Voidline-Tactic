@@ -417,7 +417,13 @@ export class ExpeditionScene extends Phaser.Scene {
         const dy = to.y - core.y;
         trail.clear(); trail.lineStyle(radius * 0.82, color, 0.68); trail.lineBetween(core.x, core.y, core.x - dx * 0.16, core.y - dy * 0.16);
       },
-      onComplete: () => { trail.destroy(); core.destroy(); glow.destroy(); if (impact) this.spawnImpact(to, color, destroyed); },
+      onComplete: () => {
+        trail.destroy();
+        core.destroy();
+        glow.destroy();
+        if (impact) this.spawnImpact(to, color, destroyed);
+        else this.spawnContactFlash(to, color);
+      },
     });
   }
 
@@ -446,17 +452,47 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   private spawnImpact(position: Vector2, color: number, destroyed: boolean): void {
-    const burst = this.add.graphics().setDepth(12);
-    burst.fillStyle(color, 0.72); burst.fillCircle(position.x, position.y, destroyed ? 34 : 20);
-    burst.fillStyle(0xfff1cb, 0.94); burst.fillCircle(position.x, position.y, destroyed ? 15 : 8);
-    burst.lineStyle(2, color, 0.9);
+    // Keep the whole hit effect anchored to the target. The previous sparks
+    // travelled away from the contact and read like ricocheting projectiles.
+    const impact = this.add.container(position.x, position.y).setDepth(12).setScale(0.68);
+    const burst = this.add.graphics();
+    burst.fillStyle(color, 0.58); burst.fillCircle(0, 0, destroyed ? 32 : 19);
+    burst.fillStyle(0xfff1cb, 0.96); burst.fillCircle(0, 0, destroyed ? 13 : 7);
+    burst.lineStyle(destroyed ? 3 : 2, color, 0.88);
+    burst.strokeCircle(0, 0, destroyed ? 44 : 27);
     const count = destroyed ? 16 : 9;
     for (let index = 0; index < count; index += 1) {
       const angle = index / count * Math.PI * 2 + Math.PI / 8;
-      const spark = this.add.circle(position.x, position.y, destroyed ? 3 : 2, index % 2 ? 0xffd58b : color, 0.95).setDepth(13);
-      this.tweens.add({ targets: spark, x: position.x + Math.cos(angle) * (destroyed ? 78 : 38), y: position.y + Math.sin(angle) * (destroyed ? 78 : 38), alpha: 0, scale: 0.2, duration: destroyed ? 620 : 340, ease: 'Cubic.Out', onComplete: () => spark.destroy() });
+      const inner = destroyed ? 28 : 17;
+      const outer = inner + (index % 3 === 0 ? 16 : 9);
+      burst.lineStyle(index % 2 ? 2 : 1, index % 2 ? 0xffd58b : color, 0.86);
+      burst.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
     }
-    this.tweens.add({ targets: burst, alpha: 0, scale: destroyed ? 1.8 : 1.35, duration: destroyed ? 510 : 260, ease: 'Quad.Out', onComplete: () => burst.destroy() });
+    impact.add(burst);
+    this.tweens.add({
+      targets: impact,
+      alpha: 0,
+      scale: destroyed ? 1.65 : 1.22,
+      duration: destroyed ? 500 : 240,
+      ease: 'Quad.Out',
+      onComplete: () => impact.destroy(),
+    });
+  }
+
+  private spawnContactFlash(position: Vector2, color: number): void {
+    const contact = this.add.container(position.x, position.y).setDepth(12).setScale(0.7);
+    const core = this.add.circle(0, 0, 5, 0xfff1cb, 0.96);
+    const ring = this.add.graphics();
+    ring.lineStyle(2, color, 0.82); ring.strokeCircle(0, 0, 10);
+    contact.add([ring, core]);
+    this.tweens.add({
+      targets: contact,
+      alpha: 0,
+      scale: 1.45,
+      duration: 125,
+      ease: 'Quad.Out',
+      onComplete: () => contact.destroy(),
+    });
   }
 
   private showDummyRespawn(position: Vector2): void {
