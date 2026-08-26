@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { getProfile, subscribe } from '../../app/gameFlow';
 import { canUpgrade } from '../../domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from '../../domain/outpost/types';
+import { SHIP_VARIANTS } from '../../domain/ship/types';
 
 type Point = Readonly<{ x: number; y: number }>;
 type ModuleLayout = Readonly<{ id: FacilityId; x: number; y: number; width: number; height: number; accent: number }>;
@@ -78,6 +79,7 @@ export class OutpostScene extends Phaser.Scene {
       this.addModuleLabel(layout, built, guided, buildReady, unit);
       this.addModuleTarget(layout);
     }
+    this.addDockedShip(center, layouts.find((layout) => layout.id === 'hangar')!, unit);
 
   }
 
@@ -94,6 +96,34 @@ export class OutpostScene extends Phaser.Scene {
 
   private drawCore(center: Point, width: number, height: number): void {
     this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height).setAlpha(.94);
+  }
+
+  /** The chosen hull exists before a hangar: it starts at Farhaven's temporary emergency berth. */
+  private addDockedShip(center: Point, hangar: ModuleLayout, unit: number): void {
+    const ship = getProfile().ship;
+    if (!ship) return;
+    const inHangar = getProfile().facilities.hangar > 0;
+    const position = inHangar
+      ? { x: hangar.x - hangar.width * .1, y: hangar.y + hangar.height * .03 }
+      : { x: center.x + 76 * unit, y: center.y + 92 * unit };
+    const berth = this.add.graphics().setDepth(5);
+    if (!inHangar) {
+      berth.lineStyle(Math.max(1, unit * 2), 0x8cdae4, .64);
+      berth.lineBetween(center.x + 53 * unit, center.y + 66 * unit, position.x - 14 * unit, position.y - 11 * unit);
+      berth.lineBetween(center.x + 72 * unit, center.y + 72 * unit, position.x + 14 * unit, position.y + 11 * unit);
+      berth.fillStyle(0xf1c56f, .82); berth.fillCircle(position.x - 13 * unit, position.y - 11 * unit, Math.max(1.6, unit * 3));
+      berth.fillCircle(position.x + 13 * unit, position.y + 11 * unit, Math.max(1.6, unit * 3));
+    }
+    const craft = this.add.image(position.x, position.y, SHIP_VARIANTS[ship.variant].assetKey)
+      .setName('farhaven-player-ship')
+      .setDisplaySize(76 * unit, 76 * unit)
+      .setDepth(6)
+      .setRotation(inHangar ? 0 : -.34);
+    if (!inHangar) {
+      this.add.text(position.x, position.y + 46 * unit, `NOTDOCK · ${SHIP_VARIANTS[ship.variant].name.toUpperCase()}`, {
+        fontFamily: 'Arial', fontSize: Math.max(6, 7 * unit), color: '#c6edf1', fontStyle: 'bold', letterSpacing: Math.max(.15, unit * .45),
+      }).setOrigin(.5).setDepth(7);
+    }
   }
 
   private drawModule(graphics: Phaser.GameObjects.Graphics, layout: ModuleLayout, built: boolean, guided: boolean, buildReady: boolean): void {
@@ -175,6 +205,14 @@ export class OutpostScene extends Phaser.Scene {
         this.tweens.add({ targets: clamp, alpha: 0, scale: 1.25, duration: 420, onComplete: () => clamp.destroy() });
       },
     });
+    if (facilityId === 'hangar') {
+      const craft = this.children.getByName('farhaven-player-ship') as Phaser.GameObjects.Image | null;
+      if (craft) {
+        const targetX = craft.x; const targetY = craft.y;
+        craft.setPosition(layout.x - layout.width * .82, layout.y + layout.height * .04).setAlpha(.15);
+        this.tweens.add({ targets: craft, x: targetX, y: targetY, alpha: 1, duration: 880, delay: 160, ease: 'Cubic.InOut' });
+      }
+    }
   }
 
 }

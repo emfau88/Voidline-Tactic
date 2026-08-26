@@ -131,7 +131,9 @@ function renderFacilityPanel(): void {
   required<HTMLElement>('facility-copy').textContent = selectedFacility === 'hangar'
     ? level
       ? `${SHIP_VARIANTS[getProfile().ship?.variant ?? 'aster-vale'].name} ist sicher angedockt. Verwalte hier die echten Einbauten.`
-      : 'Ein freier Dockplatz für dein Schiff. Baue ihn mit gesicherten Legierungen.'
+      : profile.expeditionCount === 0
+        ? `${SHIP_VARIANTS[getProfile().ship?.variant ?? 'aster-vale'].name} liegt am provisorischen Notdock. Die Bergungsreserve reicht noch nicht für einen sicheren Hangar.`
+        : 'Dein Schiff wartet noch am Notdock. Baue den Hangar mit den gesicherten Legierungen.'
     : selectedFacility === 'scanner'
       ? level ? 'Die Kapelle lauscht auf ferne Echos.' : 'Dein nächster Ausbau für besser lesbare Signale.'
       : selectedFacility === 'labor'
@@ -144,7 +146,9 @@ function renderFacilityPanel(): void {
     ? selectedFacility === 'hangar'
       ? 'Dein Schiff und seine echten Einbauten sind hier sichtbar verankert.'
       : `Dieser Raum ist verbunden. ${facility.effect}`
-    : `Dieser Anschluss gehört zu Farhaven. Baue ihn, sobald du ${upgradeCost(selectedFacility).toLowerCase()} gesichert hast.`;
+    : selectedFacility === 'hangar' && profile.expeditionCount === 0
+      ? 'Farhaven hält 2 Legierungen als Bergungsreserve. Das nahe Routenwrack liefert die fehlenden Platten für den Hangar.'
+      : `Dieser Anschluss gehört zu Farhaven. Baue ihn, sobald du ${upgradeCost(selectedFacility).toLowerCase()} gesichert hast.`;
   const openShipyard = required<HTMLButtonElement>('open-shipyard-button');
   openShipyard.hidden = !isHangar || !level || !getProfile().ship;
   openShipyard.textContent = '✧  WERKSTATT ÖFFNEN';
@@ -239,7 +243,7 @@ function playReturnMoment(cargo: Cargo): void {
   const hangarReady = !getProfile().facilities.hangar && getProfile().resources.alloys >= hangarCost;
   required<HTMLElement>('return-title').textContent = 'FRACHT GESICHERT';
   required<HTMLElement>('return-resources').innerHTML = resourceEntries(cargo).map(([kind, amount]) => resourceAmountMarkup(kind, amount)).join('');
-  required<HTMLElement>('return-copy').textContent = hangarReady ? 'Die Legierungen reichen jetzt für den Hangar – öffne den Dockbereich rechts.' : 'Die Dockkrallen lösen sich. Farhaven wächst mit jedem Fund.';
+  required<HTMLElement>('return-copy').textContent = hangarReady ? 'Bergungsreserve und Routenwrack reichen jetzt für den Hangar. Öffne den leuchtenden Dockbereich und verbinde ihn.' : 'Die Dockkrallen lösen sich. Farhaven wächst mit jedem Fund.';
   required<HTMLElement>('return-moment').hidden = false;
 }
 
@@ -410,7 +414,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-va
     // accidentally opens the dock located behind the confirmation card.
     outpostTapShieldUntil = Date.now() + 220;
     if (chooseStartingShip(variant)) {
-      toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} IST NUN DEIN SCHIFF.`);
+      toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} LIEGT AM NOTDOCK · FARHAVEN BRAUCHT EINEN HANGAR.`);
       // The screen transition itself owns the next frame. Clear any room that
       // could have been selected by a stale canvas pointer before revealing the
       // Farhaven launch control.

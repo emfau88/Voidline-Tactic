@@ -55,6 +55,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 - ✅ Schiffswahl → erste Expedition → Wrack → Rückkehr
 - ✅ Hangar als erstes sichtbares Farhaven-Modul
+- ✅ Gewähltes Schiff am Notdock sichtbar; Hangar als verständliche erste Heimkehr-Belohnung mit Dock- und Einflugmoment
 - ✅ Zweite Expedition mit Daten, Relikt und Erzader
 - ✅ Erster echter Einbau: Minenlaser
 - ✅ Aktiver Rohstoffabbau und begrenzter Frachtraum
