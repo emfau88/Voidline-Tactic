@@ -21,6 +21,7 @@ Der aktuelle spielbare Prototyp enthält:
 - ein sichtbares, sanft pulsierendes Xenogate: Nach Routenkern und Bau des funktionalen Sternenwerks freiwillig anfliegen und **Veloria Rift** erkunden
 - sieben freigestellte ImageGen-Storyassets für den ersten Handlungsbogen: versiegeltes und aktiviertes Xenogate, Aschenplünderer, Routenreliquie, Mönchslaterne, Schneideliturgie und Routenader
 - einen geführten ersten 10-Minuten-Loop mit kontextuellem Expeditionsdock: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
+- ein lebendiges Spielerschiff in Farhaven: sichtbarer Anflug, ruhiger Notdock-Schwebeflug, dezente Triebwerke, antippbarer Hangarzugang, echtes Andocken nach dem Hangarbau und sichtbare Entladung gesicherter Ressourcen
 - eine zweite Expeditionsschicht mit echter Tempowahl: Mönchslaterne plus sicheres Wandererarchiv oder die schnellere Schneideliturgie gegen Hüllenschaden
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs

@@ -120,10 +120,11 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Warmer Kern mit organisch angedocktem Hangar, Scanner, Labor und Sternenwerk
 - ✅ Module erscheinen erst nach ihrem Bau physisch an der Station
 - ✅ Direkte Modulinteraktion und kontextbezogene Raumansichten
+- ✅ Spielerschiff fliegt sichtbar ein, schwebt am Notdock und öffnet per Antippen den Hangar
 - ⬜ Level-2-Ausbaustufen mit sichtbaren Formänderungen
 - ⬜ Lager, Raffinerie, Werkstatt, Wohnbereich und Drohnenhub
 - ⬜ Kleine Frachtdrohnen, Reparaturdrohnen und Dockverkehr als Ambient-Leben
-- ⬜ Bau-Moment mit Anflug, Andocken und kurzer Einweihungsanimation
+- ✅ Bau-Moment mit Modulanflug, Schiffsandocken und kurzer Einweihungsanimation
 - ⬜ Station zeigt zurückgebrachte Fracht und aktuelle Arbeiten sichtbar
 - ⬜ Späte Silhouette: vom beschädigten Außenposten zur Raumfestung
 - ⬜ Stationslayout auf kleinen Querformaten mit echten Geräten prüfen

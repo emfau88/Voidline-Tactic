@@ -54,6 +54,7 @@ let outpostTapShieldUntil = 0;
 let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
+let pendingVisualCargo: Cargo | undefined;
 
 const DISCOVERY_NAMES: Readonly<Record<string, string>> = {
   'echo-wreck': 'Reliquie der Versorgungsroute',
@@ -262,7 +263,12 @@ function playConstructionMoment(facilityId: FacilityId): void {
 
 function playReturnMoment(cargo: Cargo): void {
   const total = cargo.alloys + cargo.data + cargo.relics;
-  if (!total) { toast('Farhaven empfängt dich. Keine Fracht im Laderaum.'); return; }
+  if (!total) {
+    pendingVisualCargo = undefined;
+    toast('Farhaven empfängt dich. Keine Fracht im Laderaum.');
+    return;
+  }
+  pendingVisualCargo = cargo;
   const hangarCost = FACILITIES.hangar.cost.alloys ?? Number.POSITIVE_INFINITY;
   const hangarReady = !getProfile().facilities.hangar && getProfile().resources.alloys >= hangarCost;
   required<HTMLElement>('return-title').textContent = 'FRACHT GESICHERT';
@@ -609,7 +615,11 @@ function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponM
 bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponMode());
 bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
-required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => { required<HTMLElement>('return-moment').hidden = true; });
+required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => {
+  required<HTMLElement>('return-moment').hidden = true;
+  if (pendingVisualCargo) game.events.emit('farhaven:cargo-unload', pendingVisualCargo);
+  pendingVisualCargo = undefined;
+});
 required<HTMLButtonElement>('reset-button').addEventListener('click', () => {
   if (!window.confirm('Entwickler-Reset: Schiff, Ressourcen, Ausbauten und laufende Expedition wirklich zurücksetzen?')) return;
   const wasExpedition = shell.dataset.screen === 'expedition';

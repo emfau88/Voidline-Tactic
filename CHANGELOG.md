@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Farhaven zeigt das gewählte Schiff nun als lebendiges Stationsobjekt mit Anflug, ruhigem Notdock-Schweben, dezenten Triebwerken, direktem Hangarzugang, Hangar-Andocksequenz und sichtbarer Ressourcenentladung nach der Rückkehr.
+
 ### Farhaven Pivot – 2026-08-24
 
 #### Added
