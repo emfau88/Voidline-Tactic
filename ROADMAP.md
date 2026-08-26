@@ -148,6 +148,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 ### M8 — Präsentation, Audio und Veröffentlichung
 
+- ✅ Erste Map-Sprache: Story-Fundorte und das Xenogate sind als freigestellte Spielobjekte statt als Code-Marker lesbar
 - ⬜ Finale Map-Sprache: Hintergrunddeko, Interaktionen und seltene Funde klar trennen
 - ⬜ Cohesive VFX-Sprache für Scan, Bergung, Abbau, Treffer und Sprung
 - ⬜ Musikschichten für Farhaven, ruhige Exploration, Gefahr und fremde Regionen

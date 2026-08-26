@@ -121,7 +121,7 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   await startExpedition(page);
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
   await page.getByRole('button', { name: /SCANNEN/ }).click();
-  await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
+  await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
   await expect(page.locator('#signal-list [data-resource="alloys"]')).toHaveCount(1);
   await expect(page.locator('#cargo-breakdown [data-resource="alloys"]')).toHaveCount(1);
   await expect(page.locator('#expedition-log')).toContainText('klassifiziert');
@@ -154,7 +154,7 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await page.reload();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
-  await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
+  await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
 });
 
 test('keeps combat test contacts out of the first story expedition', async ({ page }) => {

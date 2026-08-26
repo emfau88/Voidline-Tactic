@@ -26,7 +26,13 @@ export class BootScene extends Phaser.Scene {
     this.load.image('battlefield-nebula-v1', 'assets/backgrounds/battlefield-nebula-v2.jpg');
     this.load.image('ashen-fringe-v1', 'assets/backgrounds/ashen-fringe-v1.png');
     this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.webp');
-    this.load.image('wormhole-gate-v3', 'assets/objects/wormhole-gate-v3.webp');
+    this.load.image('wormhole-gate-sealed-v4', 'assets/objects/wormhole-gate-sealed-v4.png');
+    this.load.image('wormhole-gate-active-v4', 'assets/objects/wormhole-gate-active-v4.png');
+    this.load.image('ash-reaver-v2', 'assets/story/ash-reaver-v2.png');
+    this.load.image('route-reliquary-v1', 'assets/story/route-reliquary-v1.png');
+    this.load.image('monk-lantern-v1', 'assets/story/monk-lantern-v1.png');
+    this.load.image('cutting-liturgy-v1', 'assets/story/cutting-liturgy-v1.png');
+    this.load.image('route-vein-v1', 'assets/story/route-vein-v1.png');
     this.load.image('resource-alloys-v1', 'assets/ui/resource-alloys-v1.png');
     this.load.image('resource-data-v1', 'assets/ui/resource-data-v1.png');
     this.load.image('resource-relics-v1', 'assets/ui/resource-relics-v1.png');

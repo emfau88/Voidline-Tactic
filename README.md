@@ -18,6 +18,7 @@ Der aktuelle spielbare Prototyp enthält:
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
 - ein sichtbares, sanft pulsierendes Xenogate: Nach dem Bergen und Heimbringen des Routenkerns aus dem Aschsaum freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
+- sieben freigestellte ImageGen-Storyassets für den ersten Handlungsbogen: versiegeltes und aktiviertes Xenogate, Aschenplünderer, Routenreliquie, Mönchslaterne, Schneideliturgie und Routenader
 - einen geführten ersten 10-Minuten-Loop mit kontextuellem Expeditionsdock: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
 - eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache

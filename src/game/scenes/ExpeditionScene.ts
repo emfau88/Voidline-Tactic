@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { rewardForSignal } from '../../domain/exploration/expeditionEngine';
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
-import { getExpedition, getProfile, getSelectedTargetId, tickExpedition } from '../../app/gameFlow';
+import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
 import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
 import type { ExpeditionState, SignalKind, Vector2, WeaponMode } from '../../domain/exploration/types';
 import { SHIP_VARIANTS, type ShipUpgradeId } from '../../domain/ship/types';
@@ -20,6 +20,13 @@ const ASTER_MODULE_ART: Partial<Record<ShipUpgradeId, string>> = {
 const DEFAULT_EXPEDITION_ZOOM = 1.1;
 const MIN_EXPEDITION_ZOOM = 0.82;
 const MAX_EXPEDITION_ZOOM = 1.7;
+const STORY_SIGNAL_ART: Readonly<Partial<Record<string, string>>> = {
+  'echo-wreck': 'route-reliquary-v1',
+  'raider-cache': 'route-reliquary-v1',
+  'monk-lantern': 'monk-lantern-v1',
+  'cutting-liturgy': 'cutting-liturgy-v1',
+  'black-vein': 'route-vein-v1',
+};
 
 interface WeaponFireEvent {
   readonly weapon: WeaponMode;
@@ -105,24 +112,21 @@ export class ExpeditionScene extends Phaser.Scene {
   private addWormholeGate(): void {
     const x = WORMHOLE_POSITION.x;
     const y = WORMHOLE_POSITION.y;
-    const glow = this.add.image(x, y, 'wormhole-gate-v3').setDisplaySize(254, 254).setAlpha(0.24).setBlendMode(Phaser.BlendModes.ADD).setDepth(2);
-    const gate = this.add.image(x, y, 'wormhole-gate-v3').setDisplaySize(236, 236).setDepth(3).setInteractive({ useHandCursor: true });
-    const portalMaskSource = this.make.graphics({ x: 0, y: 0 });
-    portalMaskSource.fillStyle(0xffffff); portalMaskSource.fillCircle(x, y, 119);
-    const portalMask = portalMaskSource.createGeometryMask();
-    glow.setMask(portalMask);
-    gate.setMask(portalMask);
+    const active = isXenogateUnlocked();
+    const key = active ? 'wormhole-gate-active-v4' : 'wormhole-gate-sealed-v4';
+    const glow = this.add.image(x, y, key).setDisplaySize(270, 270).setAlpha(active ? 0.3 : 0.11).setBlendMode(Phaser.BlendModes.ADD).setDepth(2);
+    const gate = this.add.image(x, y, key).setDisplaySize(252, 252).setDepth(3).setInteractive({ useHandCursor: true });
     gate.on('pointerdown', () => this.game.events.emit('farhaven:wormhole-selected'));
-    this.tweens.add({ targets: glow, angle: 360, duration: 12_000, repeat: -1, ease: 'Linear' });
-    this.tweens.add({ targets: gate, scaleX: gate.scaleX * 1.035, scaleY: gate.scaleY * 1.035, duration: 1_650, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    this.tweens.add({ targets: glow, scaleX: glow.scaleX * 1.06, scaleY: glow.scaleY * 1.06, duration: 1_650, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    this.tweens.add({ targets: glow, angle: active ? 360 : -180, duration: active ? 12_000 : 22_000, repeat: -1, ease: 'Linear' });
+    this.tweens.add({ targets: gate, scaleX: gate.scaleX * (active ? 1.035 : 1.012), scaleY: gate.scaleY * (active ? 1.035 : 1.012), duration: active ? 1_650 : 3_200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    this.tweens.add({ targets: glow, scaleX: glow.scaleX * (active ? 1.06 : 1.025), scaleY: glow.scaleY * (active ? 1.06 : 1.025), duration: active ? 1_650 : 3_200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
     const frame = this.add.graphics().setDepth(4);
     this.drawCornerFrame(frame, WORMHOLE_POSITION, 137, 19, 0xb881f4, 0.9);
     const labelBack = this.add.graphics().setDepth(4);
     labelBack.fillStyle(0x0c101d, 0.88); labelBack.fillRoundedRect(x - 74, y + 136, 148, 32, 8);
     labelBack.lineStyle(1, 0xa879e4, 0.78); labelBack.strokeRoundedRect(x - 74, y + 136, 148, 32, 8);
-    this.add.text(x, y + 141, 'XENOGATE · VELORIA', { fontFamily: 'Arial', fontSize: 9, color: '#eee0ff', fontStyle: 'bold', letterSpacing: 0.65 }).setOrigin(0.5, 0).setDepth(5);
-    this.add.text(x, y + 153, 'TIPPE FÜR KURS · AM TOR DURCHQUEREN', { fontFamily: 'Arial', fontSize: 6, color: '#b9d9dc', letterSpacing: 0.25 }).setOrigin(0.5, 0).setDepth(5);
+    this.add.text(x, y + 141, active ? 'XENOGATE · VELORIA' : 'XENOGATE · VERSIEGELT', { fontFamily: 'Arial', fontSize: 9, color: '#eee0ff', fontStyle: 'bold', letterSpacing: 0.65 }).setOrigin(0.5, 0).setDepth(5);
+    this.add.text(x, y + 153, active ? 'TIPPE FÜR KURS · AM TOR DURCHQUEREN' : 'DIE VERLORENE ROUTE KÖNNTE ES ÖFFNEN', { fontFamily: 'Arial', fontSize: 6, color: '#b9d9dc', letterSpacing: 0.25 }).setOrigin(0.5, 0).setDepth(5);
   }
 
   public update(_time: number, delta: number): void {
@@ -175,7 +179,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.addResourceDirectionHints(expedition);
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
-      const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 'ship-enemy-destroyer-v1' : 'ship-enemy-patrol-v1');
+      const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1');
       const hostileHeight = hostile.kind === 'raider' ? 118 : 96;
       hostileArt.setDisplaySize(hostileArt.width / hostileArt.height * hostileHeight, hostileHeight)
         .setRotation(hostile.heading);
@@ -281,31 +285,39 @@ export class ExpeditionScene extends Phaser.Scene {
     const action = guarded ? 'BEUTE GESCHÜTZT' : signal.kind === 'wreck' ? 'BERGEN' : signal.kind === 'vein' ? 'ABBAU' : signal.kind === 'anomaly' ? 'DEUTEN' : 'ANTWORTEN';
     const marker = this.add.container(signal.position.x, signal.position.y).setSize(120, 120).setInteractive({ useHandCursor: true });
     const art = this.add.graphics();
-    art.fillStyle(0x07121c, 0.9); art.fillRoundedRect(-26, -30, 52, 52, 9);
-    art.lineStyle(2, color, 0.94); art.strokeRoundedRect(-26, -30, 52, 52, 9);
-    this.drawCornerFrame(art, { x: 0, y: -4 }, 33, 10, color, 0.76);
-    if (signal.kind === 'wreck') {
+    const storyArt = STORY_SIGNAL_ART[signal.id];
+    if (storyArt) {
+      art.fillStyle(color, 0.12); art.fillCircle(0, -3, 38);
+      art.lineStyle(1, color, 0.55); art.strokeCircle(0, -3, 34);
+    } else {
+      art.fillStyle(0x07121c, 0.9); art.fillRoundedRect(-26, -30, 52, 52, 9);
+      art.lineStyle(2, color, 0.94); art.strokeRoundedRect(-26, -30, 52, 52, 9);
+      this.drawCornerFrame(art, { x: 0, y: -4 }, 33, 10, color, 0.76);
+    }
+    if (!storyArt && signal.kind === 'wreck') {
       art.fillStyle(color, 0.82); art.fillTriangle(-12, -14, 0, -24, 5, -8); art.fillTriangle(-3, 2, 13, -12, 16, 10);
       art.lineStyle(2, 0xdaf6f7, 0.86); art.lineBetween(-15, 8, -4, -1); art.lineBetween(-4, -1, 6, 9);
-    } else if (signal.kind === 'vein') {
+    } else if (!storyArt && signal.kind === 'vein') {
       art.fillStyle(color, 0.88); art.fillTriangle(-14, 11, -8, -19, -1, 11); art.fillTriangle(-2, 11, 5, -25, 14, 11);
       art.lineStyle(1, 0xffe2a1, 0.9); art.lineBetween(-17, 14, 17, 14);
-    } else if (signal.kind === 'anomaly') {
+    } else if (!storyArt && signal.kind === 'anomaly') {
       art.lineStyle(3, color, 0.96); art.strokeTriangle(0, -24, 16, -4, 0, 16); art.strokeTriangle(0, -16, -16, 4, 0, 24);
       art.fillStyle(0xf0d0ff, 0.85); art.fillRect(-2, -4, 4, 8);
-    } else {
+    } else if (!storyArt) {
       art.fillStyle(color, 0.92); art.fillTriangle(0, -24, -11, 10, 11, 10);
       art.lineStyle(2, 0xffecbc, 0.94); art.lineBetween(-16, 15, 16, 15); art.lineBetween(-10, 21, 10, 21);
     }
+    const labelY = storyArt ? 42 : 30;
     const labelBack = this.add.graphics();
-    labelBack.fillStyle(0x07131d, 0.88); labelBack.fillRoundedRect(-60, 30, 120, 40, 7);
-    labelBack.lineStyle(1, color, 0.62); labelBack.strokeRoundedRect(-60, 30, 120, 40, 7);
-    const label = this.add.text(0, 34, signal.name.toUpperCase(), { fontFamily: 'Arial', fontSize: 9, color: '#e6f4f3', align: 'center', fontStyle: 'bold', wordWrap: { width: 112 } }).setOrigin(0.5, 0);
+    labelBack.fillStyle(0x07131d, 0.88); labelBack.fillRoundedRect(-60, labelY, 120, 40, 7);
+    labelBack.lineStyle(1, color, 0.62); labelBack.strokeRoundedRect(-60, labelY, 120, 40, 7);
+    const label = this.add.text(0, labelY + 4, signal.name.toUpperCase(), { fontFamily: 'Arial', fontSize: 9, color: '#e6f4f3', align: 'center', fontStyle: 'bold', wordWrap: { width: 112 } }).setOrigin(0.5, 0);
     const reward = rewardForSignal(signal);
     const resource = RESOURCE_PRESENTATION[reward.kind];
-    const rewardIcon = this.add.image(-42, 59, resource.textureKey).setDisplaySize(12, 12);
-    const actionLabel = this.add.text(-33, 58, `${reward.amount} ${resource.name.toUpperCase()} · ${action}`, { fontFamily: 'Arial', fontSize: 6, color: resource.color, align: 'left', fontStyle: 'bold', letterSpacing: 0.2 }).setOrigin(0, 0);
-    marker.add([art, labelBack, label, rewardIcon, actionLabel]);
+    const rewardIcon = this.add.image(-42, labelY + 29, resource.textureKey).setDisplaySize(12, 12);
+    const actionLabel = this.add.text(-33, labelY + 28, `${reward.amount} ${resource.name.toUpperCase()} · ${action}`, { fontFamily: 'Arial', fontSize: 6, color: resource.color, align: 'left', fontStyle: 'bold', letterSpacing: 0.2 }).setOrigin(0, 0);
+    const image = storyArt ? this.add.image(0, -3, storyArt).setDisplaySize(signal.kind === 'anomaly' ? 84 : 76, signal.kind === 'anomaly' ? 84 : 76) : undefined;
+    marker.add(image ? [art, image, labelBack, label, rewardIcon, actionLabel] : [art, labelBack, label, rewardIcon, actionLabel]);
     marker.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
     this.signalLayer?.add(marker);
   }
