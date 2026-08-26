@@ -22,7 +22,7 @@ Der aktuelle spielbare Prototyp enthält:
 - eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs
-- einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen gehören nur noch zur separaten Testkarte.
+- einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen existieren nur noch im internen Test-Szenario, nicht im Spielsektor.
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Der Kern und gebaute Räume bilden eine zusammenhängende Top-down-Station ohne technische Hilfskästen
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
 - drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise
