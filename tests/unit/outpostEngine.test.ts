@@ -42,4 +42,20 @@ describe('outpost progression', () => {
     expect(upgraded.resources).toEqual({ alloys: 0, data: 0, relics: 0 });
     expect(upgraded.ship?.upgrades).toContain(SECOND_FIELD_UPGRADE_ID);
   });
+
+  it('installs rail and torpedo systems as genuine later hangar upgrades', () => {
+    const prepared = {
+      ...DEFAULT_PROFILE,
+      resources: { alloys: 7, data: 1, relics: 1 },
+      facilities: { ...DEFAULT_PROFILE.facilities, hangar: 1 },
+      ship: { ...newShip('aster-vale'), upgrades: [FIRST_FIELD_UPGRADE_ID, SECOND_FIELD_UPGRADE_ID] },
+    };
+    expect(canPurchaseShipUpgrade(prepared, 'rail-lance')).toBe(true);
+    const lanced = purchaseShipUpgrade(prepared, 'rail-lance');
+    expect(lanced.resources).toEqual({ alloys: 3, data: 0, relics: 1 });
+    expect(canPurchaseShipUpgrade(lanced, 'torpedo-rack')).toBe(true);
+    const armed = purchaseShipUpgrade(lanced, 'torpedo-rack');
+    expect(armed.resources).toEqual({ alloys: 0, data: 0, relics: 0 });
+    expect(armed.ship?.upgrades).toEqual(expect.arrayContaining(['rail-lance', 'torpedo-rack']));
+  });
 });

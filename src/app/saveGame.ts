@@ -1,5 +1,5 @@
 import { DEFAULT_PROFILE, type FarhavenProfile } from '../domain/outpost/types';
-import { isFieldUpgrade, isShipUpgrade, isShipVariant, type ShipState } from '../domain/ship/types';
+import { isFieldUpgrade, isFoundationUpgrade, isShipUpgrade, isShipVariant, type ShipState } from '../domain/ship/types';
 import type { ExpeditionState } from '../domain/exploration/types';
 
 const STORAGE_KEY = 'voidline-farhaven-save-v2';
@@ -9,14 +9,14 @@ function numberOr(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : fallback;
 }
 
-function shipOrUndefined(value: unknown): ShipState | undefined {
+function shipOrUndefined(value: unknown, allowExpandedUpgrades: boolean): ShipState | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const candidate = value as { variant?: unknown; upgrades?: unknown };
   if (!isShipVariant(candidate.variant)) return undefined;
-  // Early visual prototypes were briefly saved like real ship systems. They are
-  // previews only: importing an old save must never turn them into gameplay power.
+  // Version 2 briefly saved visual prototypes like real systems. Old saves retain
+  // only the two upgrades that could genuinely be earned at that time.
   const upgrades = Array.isArray(candidate.upgrades)
-    ? candidate.upgrades.filter(isShipUpgrade).filter(isFieldUpgrade)
+    ? candidate.upgrades.filter(isShipUpgrade).filter(allowExpandedUpgrades ? isFieldUpgrade : isFoundationUpgrade)
     : [];
   return { variant: candidate.variant, upgrades: [...new Set(upgrades)] };
 }
@@ -24,10 +24,11 @@ function shipOrUndefined(value: unknown): ShipState | undefined {
 export function loadProfile(): FarhavenProfile {
   if (typeof window === 'undefined') return DEFAULT_PROFILE;
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<FarhavenProfile> | null;
-    if (!parsed || parsed.version !== 2) return DEFAULT_PROFILE;
+    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as (Omit<Partial<FarhavenProfile>, 'version'> & { version?: unknown }) | null;
+    const storedVersion = parsed?.version;
+    if (!parsed || (storedVersion !== 2 && storedVersion !== 3)) return DEFAULT_PROFILE;
     return {
-      version: 2,
+      version: 3,
       resources: {
         alloys: numberOr(parsed.resources?.alloys, DEFAULT_PROFILE.resources.alloys),
         data: numberOr(parsed.resources?.data, DEFAULT_PROFILE.resources.data),
@@ -40,7 +41,7 @@ export function loadProfile(): FarhavenProfile {
         navigation: Math.min(1, numberOr(parsed.facilities?.navigation, 0)),
       },
       expeditionCount: numberOr(parsed.expeditionCount, 0),
-      ship: shipOrUndefined(parsed.ship),
+      ship: shipOrUndefined(parsed.ship, storedVersion === 3),
     };
   } catch {
     return DEFAULT_PROFILE;

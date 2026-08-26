@@ -4,7 +4,7 @@ import type { ShipState } from '../ship/types';
 export type FacilityId = 'hangar' | 'scanner' | 'labor' | 'navigation';
 
 export interface FarhavenProfile {
-  readonly version: 2;
+  readonly version: 3;
   readonly resources: Cargo;
   readonly facilities: Readonly<Record<FacilityId, number>>;
   readonly expeditionCount: number;
@@ -27,7 +27,7 @@ export const FACILITIES: Record<FacilityId, FacilityDefinition> = {
 };
 
 export const DEFAULT_PROFILE: FarhavenProfile = {
-  version: 2,
+  version: 3,
   resources: { alloys: 2, data: 1, relics: 0 },
   facilities: { hangar: 0, scanner: 0, labor: 0, navigation: 0 },
   expeditionCount: 0,

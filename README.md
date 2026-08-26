@@ -26,7 +26,7 @@ Der aktuelle spielbare Prototyp enthält:
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Der Kern und gebaute Räume bilden eine zusammenhängende Top-down-Station ohne technische Hilfskästen
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
 - drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise
-- eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: echte Einbauten stehen zuerst; Rumpfideen bleiben unveränderliche visuelle Studien
+- eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: vier echte Einbauten (Frachtrücken, Minenlaser, Rail-Lanze, Torpedorack) stehen zuerst; Rumpfideen bleiben unveränderliche visuelle Studien
 - getrennte, mobile Raumansichten für die Farhaven-Bereiche: Übersicht, kurzer Raumstatus, eine Hauptaktion
 - persistente Ausbauten, Schiffsdaten und laufende Expeditionen über `localStorage`; ein Reload setzt den Flug am letzten Ort fort
 - strikte Frachtraumgrenzen und ein klarer Niederlagenzustand: Bei Hülle 0 wird das Schiff geborgen, ungesicherte Fracht geht verloren

@@ -505,7 +505,14 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
   if (!button) return;
   const upgradeId = button.dataset.shipUpgrade as ShipUpgradeId;
   if (isFieldUpgrade(upgradeId)) {
-    if (purchaseFieldUpgrade(upgradeId)) toast(upgradeId === FIRST_FIELD_UPGRADE_ID ? 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE' : 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN');
+    if (purchaseFieldUpgrade(upgradeId)) {
+      const message: Record<ShipUpgradeId, string> = {
+        'broadband-array': '', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
+        'rail-lance': 'RAIL-LANZE EINGEBAUT · PRIMÄRWAFFE AUF LANZE UMGESTELLT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
+        'side-turrets': '', 'salvage-claws': '', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
+      };
+      toast(message[upgradeId]);
+    }
     else toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
   }
   renderShipyard();
