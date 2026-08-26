@@ -55,6 +55,7 @@ let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
 let pendingVisualCargo: Cargo | undefined;
+let coreInfoOpen = false;
 
 const DISCOVERY_NAMES: Readonly<Record<string, string>> = {
   'echo-wreck': 'Reliquie der Versorgungsroute',
@@ -132,8 +133,26 @@ function upgradeCost(facilityId: FacilityId): string {
 }
 
 function openFacility(facilityId: FacilityId): void {
+  coreInfoOpen = false;
   selectedFacility = facilityId;
   renderFacilityPanel();
+  facilityPanel.hidden = false;
+  updateOutpostChrome();
+}
+
+function openCoreInfo(): void {
+  coreInfoOpen = true;
+  selectedFacility = undefined;
+  required<HTMLElement>('facility-kicker').textContent = 'FARHAVEN · KERNMODUL';
+  required<HTMLElement>('facility-title').textContent = 'Der Warmkern';
+  const stage = required<HTMLElement>('facility-stage-art');
+  stage.className = 'facility-art-core is-online';
+  required<HTMLElement>('facility-stage-badge').textContent = 'KERN ONLINE · 4 ANSCHLÜSSE';
+  required<HTMLElement>('facility-copy').textContent = 'Farhavens warmer Reaktorkern hält die Zuflucht, dein Schiff und die ersten Andockplätze am Rand der Voidline zusammen.';
+  required<HTMLElement>('facility-discovery').textContent = 'Jedes errichtete Modul dockt sichtbar an diesen Kern an. Der Hangar schützt dein Schiff; Scanner, Labor und Sternenwerk öffnen neue Wege nach draußen.';
+  required<HTMLElement>('facility-level').textContent = 'STABIL · DER KERN WÄCHST MIT FARHAVEN';
+  required<HTMLButtonElement>('open-shipyard-button').hidden = true;
+  required<HTMLButtonElement>('facility-upgrade-button').hidden = true;
   facilityPanel.hidden = false;
   updateOutpostChrome();
 }
@@ -299,7 +318,8 @@ function renderOutpost(): void {
   launch.querySelector('span')!.textContent = 'EXPEDITION';
   launch.querySelector('strong')!.textContent = 'ASCHSAUM STARTEN';
   launch.querySelector('small')!.textContent = `${next[0]} · ${next[1]}`;
-  renderFacilityPanel();
+  if (coreInfoOpen) openCoreInfo();
+  else renderFacilityPanel();
 }
 
 function updateOutpostChrome(): void {
@@ -485,6 +505,10 @@ game.events.on('farhaven:facility-selected', (facilityId: FacilityId) => {
   if (!facilityPanel.hidden || !shipyardPanel.hidden) return;
   openFacility(facilityId);
 });
+game.events.on('farhaven:core-selected', () => {
+  if (!facilityPanel.hidden || !shipyardPanel.hidden) return;
+  openCoreInfo();
+});
 game.events.on('farhaven:target-selected', (targetId: string) => {
   if (!selectHostile(targetId)) return;
   const target = getExpedition()?.hostiles.find((hostile) => hostile.id === targetId);
@@ -519,6 +543,7 @@ game.events.on('farhaven:wormhole-selected', () => {
 required<HTMLButtonElement>('close-facility-button').addEventListener('click', () => {
   facilityPanel.hidden = true;
   selectedFacility = undefined;
+  coreInfoOpen = false;
   updateOutpostChrome();
 });
 required<HTMLButtonElement>('facility-upgrade-button').addEventListener('click', () => {

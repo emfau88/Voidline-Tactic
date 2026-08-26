@@ -55,6 +55,20 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
 });
 
+test('lets the player inspect the Farhaven core as the station anchor', async ({ page }) => {
+  const canvas = page.locator('#game-root canvas');
+  // Phaser creates the station targets after its texture preload. On high-DPI
+  // mobile emulation the canvas is visible a few frames before those targets.
+  await page.waitForTimeout(450);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Expected the Farhaven canvas to be visible.');
+  await canvas.click({ position: { x: box.width / 2, y: box.height * .51 } });
+  await expect(page.getByRole('heading', { name: 'Der Warmkern' })).toBeVisible();
+  await expect(page.locator('#facility-stage-art')).toHaveClass(/facility-art-core/);
+  await expect(page.locator('#facility-level')).toContainText('KERN WÄCHST');
+  await expect(page.locator('#facility-upgrade-button')).toBeHidden();
+});
+
 test('keeps a Farhaven room focused on one readable mobile decision', async ({ page }) => {
   await openFacility(page, 'hangar');
   await expect(page.locator('#outpost-hud')).toBeHidden();

@@ -50,9 +50,9 @@ export class OutpostScene extends Phaser.Scene {
     const height = this.scale.height;
     const profile = getProfile();
     const guidedFacility = this.guidedFacility();
-    // Keep Farhaven the primary navigation object on a landscape phone without
-    // returning to the oversized, cropped station from the early prototype.
-    const unit = Math.min(width / 1120, height / 600, 1.55);
+    // Farhaven is the menu: give its actual modules enough visual weight on a
+    // landscape phone while keeping a hard cap for broad desktop windows.
+    const unit = Math.min(Math.min(width / 1120, height / 600) * 1.12, 1.55);
     const center: Point = { x: width * 0.5, y: height * 0.51 };
     this.stationCenter = center;
     this.stationUnit = unit;
@@ -83,6 +83,7 @@ export class OutpostScene extends Phaser.Scene {
 
     const graphics = this.add.graphics();
     this.drawCore(center, coreWidth, coreHeight);
+    this.addCoreTarget(center, coreWidth, coreHeight, unit);
     for (const layout of layouts) {
       const built = profile.facilities[layout.id] > 0;
       const guided = layout.id === guidedFacility;
@@ -107,7 +108,33 @@ export class OutpostScene extends Phaser.Scene {
   }
 
   private drawCore(center: Point, width: number, height: number): void {
-    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(width, height).setAlpha(.94);
+    this.add.image(center.x, center.y, 'farhaven-core-v2')
+      .setName('farhaven-core')
+      .setDisplaySize(width, height)
+      .setAlpha(.94);
+  }
+
+  private addCoreTarget(center: Point, width: number, height: number, unit: number): void {
+    const target = this.add.zone(center.x, center.y, width * .76, height * .76)
+      .setName('farhaven-core-target')
+      .setInteractive({ useHandCursor: true });
+    target.on('pointerover', () => {
+      target.setScale(1.035);
+      this.game.canvas.style.cursor = 'pointer';
+    });
+    target.on('pointerout', () => {
+      target.setScale(1);
+      this.game.canvas.style.cursor = 'default';
+    });
+    target.on('pointerdown', () => this.game.events.emit('farhaven:core-selected'));
+    this.add.text(center.x, center.y + height * .55, 'FARHAVEN-KERN\nANTIPPEN · STATUS', {
+      fontFamily: 'Arial',
+      fontSize: Math.max(6, 7.5 * unit),
+      color: '#f0d49a',
+      fontStyle: 'bold',
+      align: 'center',
+      lineSpacing: Math.max(1, unit),
+    }).setOrigin(.5).setDepth(4).setAlpha(.86);
   }
 
   /** The chosen hull exists before a hangar: it starts at Farhaven's temporary emergency berth. */

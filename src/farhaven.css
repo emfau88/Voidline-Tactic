@@ -86,6 +86,7 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #facility-stage { position: relative; min-height: 145px; margin: 12px 0 15px; overflow: hidden; border: 1px solid rgb(151 218 233 / 35%); border-radius: 15px; background: #080d15; box-shadow: inset 0 0 30px rgb(87 205 234 / 8%); }
 #facility-stage-art { width: 100%; height: clamp(102px, 16vh, 152px); background-image: url('/assets/outpost/farhaven-facility-interiors-v1.png'); background-size: 200% 200%; filter: saturate(.72) brightness(.82) contrast(.9); opacity: .88; }
 #facility-stage-art.facility-art-hangar { background-position: 0 0; } #facility-stage-art.facility-art-scanner { background-position: 100% 0; } #facility-stage-art.facility-art-labor { background-position: 0 100%; } #facility-stage-art.facility-art-navigation { background-position: 100% 100%; }
+#facility-stage-art.facility-art-core { background-image: url('/assets/outpost/farhaven-core-v2.png'); background-position: center; background-size: contain; background-repeat: no-repeat; filter: saturate(.85) brightness(.94) contrast(.92); }
 #facility-stage-art.is-blueprint { filter: grayscale(.55) saturate(.42) brightness(.48) contrast(.9); opacity: .58; }
 #facility-stage-art.is-build-ready { filter: sepia(.14) saturate(.78) brightness(.76) contrast(.94); opacity: .86; }
 #facility-stage::after { position: absolute; inset: auto 0 0; height: 44%; background: linear-gradient(transparent, rgb(4 10 17 / 78%)); content: ''; pointer-events: none; }

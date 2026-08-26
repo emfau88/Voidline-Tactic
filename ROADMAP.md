@@ -121,6 +121,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Module erscheinen erst nach ihrem Bau physisch an der Station
 - ✅ Direkte Modulinteraktion und kontextbezogene Raumansichten
 - ✅ Spielerschiff fliegt sichtbar ein, schwebt am Notdock und öffnet per Antippen den Hangar
+- ✅ Der antippbare Warmkern erklärt den Stationserhalt und die sichtbaren Anschlussplätze
 - ⬜ Level-2-Ausbaustufen mit sichtbaren Formänderungen
 - ⬜ Lager, Raffinerie, Werkstatt, Wohnbereich und Drohnenhub
 - ⬜ Kleine Frachtdrohnen, Reparaturdrohnen und Dockverkehr als Ambient-Leben
