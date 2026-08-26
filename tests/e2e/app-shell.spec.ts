@@ -211,6 +211,31 @@ test('removes legacy prototype weapons from an old save instead of activating th
   await expect(page.locator('#fire-button')).toBeDisabled();
 });
 
+test('keeps broadside, rail lance and torpedoes as separate expedition weapons', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 0, data: 0, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 4,
+    story: { routeTraceRecovered: true, discoveries: [] },
+    ship: { variant: 'aster-vale', upgrades: ['cargo-spine', 'mining-lasers', 'rail-lance', 'torpedo-rack'] },
+  })));
+  await page.reload();
+  await startExpedition(page);
+  await expect(page.locator('#fire-button')).toContainText('SALVE');
+  await expect(page.locator('#lance-button')).toContainText('LANZE');
+  await expect(page.locator('#ordnance-button')).toContainText('TORPEDO');
+  const controlsFit = await page.evaluate(() => {
+    const actions = document.querySelector<HTMLElement>('#expedition-actions')!.getBoundingClientRect();
+    const flight = document.querySelector<HTMLElement>('#flight-control')!.getBoundingClientRect();
+    return actions.right <= innerWidth
+      && actions.bottom <= innerHeight
+      && actions.top >= 0
+      && flight.right <= actions.left;
+  });
+  expect(controlsFit).toBe(true);
+});
+
 test('can pause and request a safe return', async ({ page }) => {
   await startExpedition(page);
   await page.locator('#pause-button').click();

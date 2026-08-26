@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Breitseite, Rail-Lanze und Torpedos bleiben nun als drei getrennte Expeditionsaktionen verfügbar; ein zusätzlicher Waffeneinbau ersetzt keine bereits montierte Waffe mehr.
+- Installierte Werkstattmodule erhalten explizite Runtime-Layer am Expeditionsschiff, sodass Werkstatt- und Flugdargestellung aus demselben gespeicherten Loadout folgen.
 - Farhaven zeigt das gewählte Schiff nun als lebendiges Stationsobjekt mit Anflug, ruhigem Notdock-Schweben, dezenten Triebwerken, direktem Hangarzugang, Hangar-Andocksequenz und sichtbarer Ressourcenentladung nach der Rückkehr.
 
 ### Farhaven Pivot – 2026-08-24

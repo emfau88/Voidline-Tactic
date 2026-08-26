@@ -88,8 +88,11 @@ function cargoTotal(): number {
 }
 
 function primaryWeaponMode(): WeaponMode {
-  const upgrades = getProfile().ship?.upgrades ?? [];
-  return upgrades.includes('rail-lance') && !upgrades.includes('side-turrets') ? 'rail' : 'broadside';
+  return 'broadside';
+}
+
+function lanceWeaponMode(): WeaponMode | undefined {
+  return getProfile().ship?.upgrades.includes('rail-lance') ? 'rail' : undefined;
 }
 
 function ordnanceWeaponMode(): WeaponMode | undefined {
@@ -372,6 +375,18 @@ function renderExpedition(): void {
   fire.disabled = !primaryReadiness.ready;
   fire.querySelector('span')!.textContent = weaponLabel(primary);
   fire.querySelector('small')!.textContent = primaryReadiness.reason;
+  const lance = required<HTMLButtonElement>('lance-button');
+  const lanceMode = lanceWeaponMode();
+  if (!lanceMode) {
+    lance.disabled = true;
+    lance.querySelector('span')!.textContent = 'LANZE';
+    lance.querySelector('small')!.textContent = 'Rail-Lanze fehlt';
+  } else {
+    const lanceReadiness = weaponReadiness(expedition, targetId, lanceMode);
+    lance.disabled = !lanceReadiness.ready;
+    lance.querySelector('span')!.textContent = weaponLabel(lanceMode);
+    lance.querySelector('small')!.textContent = lanceReadiness.reason;
+  }
   const ordnance = required<HTMLButtonElement>('ordnance-button');
   const ordnanceMode = ordnanceWeaponMode();
   if (!ordnanceMode) {
@@ -548,7 +563,7 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
     if (purchaseFieldUpgrade(upgradeId)) {
       const message: Record<ShipUpgradeId, string> = {
         'broadband-array': '', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
-        'rail-lance': 'RAIL-LANZE EINGEBAUT · PRIMÄRWAFFE AUF LANZE UMGESTELLT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
+        'rail-lance': 'RAIL-LANZE EINGEBAUT · ZUSÄTZLICHE FRONTWAFFE BEREIT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
         'side-turrets': '', 'salvage-claws': '', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
       };
       toast(message[upgradeId]);
@@ -613,6 +628,7 @@ function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponM
   });
 }
 bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponMode());
+bindFireControl(required<HTMLButtonElement>('lance-button'), lanceWeaponMode);
 bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => {

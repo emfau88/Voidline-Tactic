@@ -212,8 +212,7 @@ export class ExpeditionScene extends Phaser.Scene {
         this.drawCornerFrame(bracket, hostile.position, radius, 13, 0xffd98e, 0.94);
         bracket.lineStyle(1, 0xf8f0ca, 0.72);
         bracket.strokeRect(hostile.position.x - radius + 7, hostile.position.y - radius + 7, (radius - 7) * 2, (radius - 7) * 2);
-        const primary: WeaponMode = getProfile().ship?.upgrades.includes('rail-lance') && !getProfile().ship?.upgrades.includes('side-turrets') ? 'rail' : 'broadside';
-        const ready = weaponReadiness(expedition, hostile.id, primary);
+        const ready = weaponReadiness(expedition, hostile.id, 'broadside');
         bracket.lineStyle(2, ready.ready ? 0x8de6ca : 0xe0a06d, ready.ready ? 0.72 : 0.46);
         bracket.lineBetween(expedition.position.x, expedition.position.y, hostile.position.x, hostile.position.y);
         this.signalLayer?.add(bracket);
@@ -226,9 +225,8 @@ export class ExpeditionScene extends Phaser.Scene {
         warning.lineStyle(1, 0xffd3b5, 0.46); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 82 : 69);
         this.signalLayer?.add(warning);
       }
-      const selectedWeapon: WeaponMode = getProfile().ship?.upgrades.includes('rail-lance') && !getProfile().ship?.upgrades.includes('side-turrets') ? 'rail' : 'broadside';
       const state = selected
-        ? weaponReadiness(expedition, hostile.id, selectedWeapon).reason.toUpperCase()
+        ? weaponReadiness(expedition, hostile.id, 'broadside').reason.toUpperCase()
         : hostile.passive
         ? selected ? 'ZIEL MARKIERT · FEUER FREI' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
         : hostile.status === 'alert'
@@ -649,11 +647,11 @@ export class ExpeditionScene extends Phaser.Scene {
       }
       const asterArt = getProfile().ship?.variant === 'aster-vale' ? ASTER_MODULE_ART[upgrade] : undefined;
       if (asterArt) {
-        const layer = this.add.image(0, 0, asterArt).setDisplaySize(96, 144);
+        const layer = this.add.image(0, 0, asterArt).setName(`ship-upgrade-${upgrade}`).setDisplaySize(96, 144);
         if (upgrade === 'vector-tail') this.shipRig.addAt(layer, 0); else this.shipRig.add(layer);
         continue;
       }
-      const art = this.add.graphics();
+      const art = this.add.graphics().setName(`ship-upgrade-${upgrade}`);
       if (upgrade === 'broadband-array') {
         art.lineStyle(3, 0x7ee8f3, 0.95);
         art.lineBetween(-22, -42, -38, -63); art.lineBetween(22, -42, 38, -63);
@@ -692,7 +690,7 @@ export class ExpeditionScene extends Phaser.Scene {
 
   private addTorpedoRackArt(): void {
     if (!this.shipRig) return;
-    const rack = this.add.graphics();
+    const rack = this.add.graphics().setName('ship-upgrade-torpedo-rack');
     [-38, 38].forEach((x) => {
       rack.fillStyle(0x172531, 0.98); rack.fillRoundedRect(x - 10, 7, 20, 36, 6);
       rack.lineStyle(2, 0xc99a55, 0.94); rack.strokeRoundedRect(x - 10, 7, 20, 36, 6);
