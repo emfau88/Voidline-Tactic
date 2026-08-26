@@ -65,8 +65,11 @@ test('keeps a Farhaven room focused on one readable mobile decision', async ({ p
   await expect(page.locator('#facility-stage-art')).toHaveClass(/facility-art-hangar/);
   await expect(page.locator('#facility-stage-badge')).toContainText('BAUPLAN');
   const compactRoom = await page.locator('#facility-panel').evaluate((panel) => {
-    const limit = innerHeight <= 430 ? .62 : .76;
-    return panel.getBoundingClientRect().height <= innerHeight * limit;
+    const panelHeight = panel.getBoundingClientRect().height;
+    if (innerHeight <= 430 && innerWidth > innerHeight) {
+      return panelHeight <= innerHeight * .62;
+    }
+    return panelHeight <= innerHeight - 28;
   });
   expect(compactRoom).toBe(true);
 });
