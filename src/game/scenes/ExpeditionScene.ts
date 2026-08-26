@@ -63,6 +63,8 @@ export class ExpeditionScene extends Phaser.Scene {
   private pinchStartZoom = DEFAULT_EXPEDITION_ZOOM;
   private removePinchListeners?: () => void;
   private lastHull = 100;
+  private lastSignalRenderAt = 0;
+  private lastSignalState = '';
 
   public constructor() { super('expedition'); }
 
@@ -184,7 +186,15 @@ export class ExpeditionScene extends Phaser.Scene {
       engineFlame.fillCircle(nozzle.x, nozzle.y, index === 1 ? 3.2 : 2.2);
     });
     this.cameras.main.centerOn(expedition.position.x, expedition.position.y);
-    this.renderSignals(expedition);
+    // Signal markers are rich scene objects. Rebuilding them on every physics
+    // tick is wasteful on a phone; a scan still forces an immediate refresh
+    // through its changed state signature.
+    const signalState = `${expedition.signals.map((signal) => `${signal.id}:${signal.knowledge}`).join(',')}|${expedition.hostiles.map((hostile) => `${hostile.id}:${hostile.hull}:${hostile.status}`).join(',')}|${getSelectedTargetId() ?? ''}`;
+    if (signalState !== this.lastSignalState || this.time.now - this.lastSignalRenderAt >= 90) {
+      this.lastSignalState = signalState;
+      this.lastSignalRenderAt = this.time.now;
+      this.renderSignals(expedition);
+    }
   }
 
   private renderSignals(expedition: ExpeditionState): void {
@@ -381,6 +391,10 @@ export class ExpeditionScene extends Phaser.Scene {
       const tool = signal.kind === 'vein' ? ' · MINENLASER' : '';
       const text = this.add.text(0, 24, `${resource.name.toUpperCase()} · ${reward.amount}\n${Math.round(distance)}u · ${risk}${tool}`, { fontFamily: 'Arial', fontSize: 7, color: resource.color, align: 'center', fontStyle: 'bold', lineSpacing: 1 }).setOrigin(0.5);
       hint.add([halo, arrow, icon, text]);
+      // These are map markers, not screen effects. Keeping them in the same
+      // transient layer makes removeAll(true) reclaim them on the next render
+      // instead of leaving a trail at every former ship position.
+      this.signalLayer?.add(hint);
     }
   }
 
