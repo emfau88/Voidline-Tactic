@@ -8,33 +8,37 @@ Mobile-first 2D-Space-Explorer im Browser: Mit einem eigenen Schiff erkundest du
 
 ```text
 Rumpfwahl → erstes Wrack → Hangar → Frachtrücken → Zweite Schicht
-                                                  ├→ Notsignal (sicher) / Anomalie (riskant)
-                                                  └→ Minenlaser → Schwarze Ader → Xenogate
+                                                  ├→ Archiv (sicher) / Liturgie (riskant)
+                                                  └→ Minenlaser → Routenader → freie Bergung
+                                                                                 └→ Sternenwerk → Veloria
 ```
 
 Der aktuelle spielbare Prototyp enthält:
 
 - direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus; zwei Finger zoomen auf mobilen Karten frei hinein und heraus
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
-- Scans mit Kurssetzen direkt auf einen bestätigten Fundort
-- ein sichtbares, sanft pulsierendes Xenogate: Nach dem Bergen und Heimbringen des Routenkerns aus dem Aschsaum freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
+- Scans mit Kurssetzen direkt auf einen bestätigten Fundort sowie allgemeine Richtungshinweise mit Ressource, Menge, Entfernung, Risiko und benötigtem Werkzeug
+- ein sichtbares, sanft pulsierendes Xenogate: Nach Routenkern und Bau des funktionalen Sternenwerks freiwillig anfliegen und **Veloria Rift** erkunden
 - sieben freigestellte ImageGen-Storyassets für den ersten Handlungsbogen: versiegeltes und aktiviertes Xenogate, Aschenplünderer, Routenreliquie, Mönchslaterne, Schneideliturgie und Routenader
 - einen geführten ersten 10-Minuten-Loop mit kontextuellem Expeditionsdock: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
-- eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
+- eine zweite Expeditionsschicht mit echter Tempowahl: Mönchslaterne plus sicheres Wandererarchiv oder die schnellere Schneideliturgie gegen Hüllenschaden
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs
 - einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen existieren nur noch im internen Test-Szenario, nicht im Spielsektor.
+- wiederholbare freie Bergungsflüge mit erreichbaren Quellen für alle drei Ressourcen, einem leichten Glutkutter und einem schweren, umfliegbaren Gewölbewächter
+- angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Das gewählte Schiff liegt zunächst am sichtbaren Notdock des Kerns; der erste Hangar dockt später mit Bau- und Einflugmoment an die zusammenhängende Top-down-Station an
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
 - drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise
+- echte Funktionen für alle vier Level-1-Räume: Hangar erweitert Fracht, Scannerkapelle erhöht Reichweite, Reliktlabor dämpft Anomalieschaden und Sternenwerk öffnet Veloria
 - eine Schiffswahl mit kleinen Startvorteilen sowie eine aufgeräumte Hangarwerkstatt: vier echte Einbauten (Frachtrücken, Minenlaser, Rail-Lanze, Torpedorack) stehen zuerst; Rumpfideen bleiben unveränderliche visuelle Studien
 - getrennte, mobile Raumansichten für die Farhaven-Bereiche: Übersicht, kurzer Raumstatus, eine Hauptaktion
-- persistente Ausbauten, Schiffsdaten und laufende Expeditionen über `localStorage`; ein Reload setzt den Flug am letzten Ort fort
+- persistente Ausbauten, Schiffsdaten, Fundprotokoll und laufende Expeditionen über `localStorage`; ein Reload setzt den Flug am letzten Ort fort
 - strikte Frachtraumgrenzen und ein klarer Niederlagenzustand: Bei Hülle 0 wird das Schiff geborgen, ungesicherte Fracht geht verloren
 - einen bestätigten **TEST**-Reset in der Kopfzeile, der den lokalen Entwicklerstand vollständig auf die Rumpfwahl zurücksetzt
 - Touch-freundliche Querformat-PWA und taktische Pause
 
-Der erste Sektor erzählt jetzt die **verlorene Versorgungsroute**: Reliquie, Pilgerlaterne, Schneideliturgie und Routenader sind Teile derselben Spur; der Aschenplünderer bewacht optionale gestohlene Routenplatten. Exploration ist bewusst der Kern; Kampf ist kein Dauercombat-Loop. Flug kostet keine Energie: die sich schnell regenerierende **Systemladung** ist ausschließlich eine weiche Begrenzung für Scanner, Minenlaser und Waffen. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
+Der erste Sektor erzählt die **verlorene Versorgungsroute**: Reliquie, Pilgerlaterne, Archive und Routenader sind Teile derselben Spur; der Aschenplünderer bewacht optionale gestohlene Routenplatten. Exploration ist bewusst der Kern; Kampf ist kein Dauercombat-Loop. Flug kostet keine Energie: die sich schnell regenerierende **Systemladung** begrenzt nur Scanner, Minenlaser und Waffen. Veloria Rift besitzt inzwischen sechs fremde Funde, einen friedlichen Pilger, zwei optionale Wächter und drei eigene transparente Spielassets. Eine umfangreichere Fraktion und verzweigte Sektorhandlung bleiben der nächste Content-Ausbau.
 
 ## Entwicklungsstand
 
@@ -63,7 +67,7 @@ npm run build
 src/domain/exploration/  Scan-, Signal-, Cargo- und Expeditionsregeln
 src/domain/outpost/      Einrichtungen, Ressourcen und Ausbauten
 src/domain/resources/    Gemeinsame Namen, Icons, Quellen und Verwendungshinweise
-src/app/                 Save v2 und Spielablauf
+src/app/                 Save-Migration bis Profil v5 und Spielablauf
 src/game/scenes/         Farhaven- und Expeditionsdarstellung
 docs/planning/           Produkt- und Produktionsplanung
 ```

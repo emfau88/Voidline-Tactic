@@ -42,7 +42,9 @@ export class OutpostScene extends Phaser.Scene {
     const height = this.scale.height;
     const profile = getProfile();
     const guidedFacility = this.guidedFacility();
-    const unit = Math.min(width / 1540, height / 790);
+    // Keep Farhaven the primary navigation object on a landscape phone without
+    // returning to the oversized, cropped station from the early prototype.
+    const unit = Math.min(width / 1120, height / 600, 1.55);
     const center: Point = { x: width * 0.5, y: height * 0.51 };
     // Positions compensate for transparent padding inside the generated cut-outs.
     // Their painted docking collars touch directly; no debug line or synthetic
@@ -136,9 +138,9 @@ export class OutpostScene extends Phaser.Scene {
     const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id))
       .setName(`farhaven-module-${id}`)
       .setDisplaySize(spriteSize, spriteSize)
-      .setAlpha(built ? .96 : buildReady ? .38 : guided ? .25 : .18);
+      .setAlpha(built ? .96 : buildReady ? .5 : guided ? .37 : .26);
     if (id === 'hangar') module.setFlipX(true);
-    if (!built) module.setTint(buildReady ? 0xffdfa3 : guided ? 0x8fa9b1 : 0x55717b);
+    if (!built) module.setTint(buildReady ? 0xffdfa3 : guided ? 0xa4c0c7 : 0x6f8d96);
   }
 
   private moduleFrame(id: FacilityId): number | string {
@@ -148,11 +150,14 @@ export class OutpostScene extends Phaser.Scene {
   private addModuleLabel(layout: ModuleLayout, built: boolean, guided: boolean, buildReady: boolean, unit: number): void {
     if (!built && !guided) return;
     const facility = FACILITIES[layout.id];
-    const labelY = layout.id === 'scanner' ? layout.y - layout.height * 0.72 : layout.y + layout.height * 0.72;
+    // The upper scanner sits directly below the resource strip on landscape
+    // phones. Put its guidance beside the physical module instead of above it.
+    const labelX = layout.id === 'scanner' ? layout.x - layout.width * 0.9 : layout.x;
+    const labelY = layout.id === 'scanner' ? layout.y : layout.y + layout.height * 0.72;
     const text = built
       ? guided ? `${facility.name.toUpperCase()} · NÄCHSTER SCHRITT\nWERKSTATT ÖFFNEN` : `${facility.name.toUpperCase()}\nANTIPPEN · ÖFFNEN`
       : buildReady ? `${facility.name.toUpperCase()} · BAUBEREIT\nANTIPPEN · ERRICHTEN` : guided ? `NÄCHSTER AUSBAU · ${facility.name.toUpperCase()}\nANTIPPEN · KOSTEN ANSEHEN` : '';
-    const label = this.add.text(layout.x, labelY, text, {
+    const label = this.add.text(labelX, labelY, text, {
       fontFamily: 'Arial', fontSize: Math.max(8, 9 * unit), color: buildReady || guided && built ? '#ffe0a0' : built ? '#f3e2bd' : '#9eb5bc', fontStyle: 'bold', align: 'center', lineSpacing: Math.max(1, 2 * unit),
     }).setOrigin(0.5);
     label.setAlpha(built || guided ? 1 : 0.78);
@@ -175,6 +180,7 @@ export class OutpostScene extends Phaser.Scene {
   private guidedFacility(): FacilityId | undefined {
     const profile = getProfile();
     if (!profile.facilities.hangar) return 'hangar';
+    if (profile.story.routeTraceRecovered && !profile.facilities.navigation) return 'navigation';
     if (!profile.facilities.scanner) return 'scanner';
     if (!profile.facilities.labor) return 'labor';
     if (!profile.facilities.navigation) return 'navigation';

@@ -55,6 +55,26 @@ let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
 
+const DISCOVERY_NAMES: Readonly<Record<string, string>> = {
+  'echo-wreck': 'Reliquie der Versorgungsroute',
+  'monk-lantern': 'Mönchslaterne',
+  'cutting-liturgy': 'Schneideliturgie',
+  'wayfarer-archive': 'Wandererarchiv',
+  'black-vein': 'Routenader',
+  'raider-cache': 'Plündererkiste',
+  'drift-smelter': 'Treibende Schmelze',
+  'cold-archive': 'Kaltes Archiv',
+  'pilgrim-vigil': 'Pilgerwacht',
+  'working-vein': 'Offene Eisenader',
+  'skiff-cache': 'Glutkutter-Beute',
+  'veloria-husk': 'Schalenbarke',
+  'veloria-crystal': 'Resonanzader',
+  'veloria-choir': 'Der leise Chor',
+  'veloria-pilgrim': 'Schlafender Pilger',
+  'veloria-observatory': 'Spiegelobservatorium',
+  'veloria-cocoon': 'Versiegelter Kokon',
+};
+
 function required<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
   if (!element) throw new Error(`Missing #${id}`);
@@ -137,15 +157,19 @@ function renderFacilityPanel(): void {
     : selectedFacility === 'scanner'
       ? level ? 'Die Kapelle lauscht auf ferne Echos.' : 'Dein nächster Ausbau für besser lesbare Signale.'
       : selectedFacility === 'labor'
-        ? level ? 'Relikte können hier künftig zu neuen Systemen werden.' : 'Ein Platz, um seltene Relikte später zu verstehen.'
-        : level ? 'Die Routen nach draußen sind verzeichnet.' : 'Ein Ausbau für die späteren äußeren Sektoren.';
+        ? level ? 'Die Deutungsschirme dämpfen gefährliche Anomalien um 3 Hüllenschaden.' : 'Ein Platz, um seltene Relikte sicherer zu verstehen.'
+        : level ? 'Das Sternenwerk hält das Xenogate stabil nach Veloria ausgerichtet.' : 'Der Routenkern braucht dieses Modul, bevor sich das Xenogate öffnen kann.';
   required<HTMLElement>('facility-level').textContent = level
     ? `ONLINE · ${facility.effect}`
     : `FÜR DEN BAU · ${upgradeCost(selectedFacility)}`;
   required<HTMLElement>('facility-discovery').textContent = level
     ? selectedFacility === 'hangar'
       ? 'Dein Schiff und seine echten Einbauten sind hier sichtbar verankert.'
-      : `Dieser Raum ist verbunden. ${facility.effect}`
+      : selectedFacility === 'navigation'
+        ? profile.story.discoveries.length
+          ? `FUNDPROTOKOLL · ${profile.story.discoveries.map((id) => DISCOVERY_NAMES[id] ?? id).join(' · ')}`
+          : 'Das Fundprotokoll ist leer. Heimgebrachte Entdeckungen werden hier dauerhaft verzeichnet.'
+        : `Dieser Raum ist verbunden. ${facility.effect}`
     : selectedFacility === 'hangar' && profile.expeditionCount === 0
       ? 'Farhaven hält 2 Legierungen als Bergungsreserve. Das nahe Routenwrack liefert die fehlenden Platten für den Hangar.'
       : `Dieser Anschluss gehört zu Farhaven. Baue ihn, sobald du ${upgradeCost(selectedFacility).toLowerCase()} gesichert hast.`;
@@ -256,7 +280,11 @@ function renderOutpost(): void {
       ? ['HANGARWERKSTATT', 'FRACHTRÜCKEN EINBAUEN', 'Erst den echten Einbau im Hangar wählen']
       : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
         ? ['ZWEITE SCHICHT', 'ZWEI ECHOS UNTERSUCHEN', 'Sichere Laterne · riskante Liturgie']
-        : ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste'];
+        : !getProfile().story.routeTraceRecovered
+          ? ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste']
+          : !getProfile().facilities.navigation
+            ? ['FREIE BERGUNG', 'STERNENWERK VORBEREITEN', '2 Legierungen · 2 Daten']
+            : ['FREIE EXPEDITION', 'EIGENEN KURS WÄHLEN', 'Bergen · ausbauen · Veloria'];
   // Farhaven itself is the menu. Keep this only as a compact departure control;
   // the current task lives on the station rather than covering it as a large HUD card.
   launch.querySelector('span')!.textContent = 'EXPEDITION';
@@ -363,7 +391,9 @@ function renderExpedition(): void {
     const distance = Math.round(Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y));
     item.className = 'signal';
     const reward = rewardForSignal(signal);
-    item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${signal.description ?? ''}</small></span><span class="signal-reward" data-resource="${reward.kind}">${resourceIconMarkup(reward.kind)}<b>${reward.amount}</b><small>${distance}u</small></span>`;
+    const risk = signal.risk === 'high' ? 'HOHES RISIKO' : signal.risk === 'medium' ? 'MITTLERES RISIKO' : 'SICHER';
+    const requirement = signal.kind === 'vein' ? ' · MINENLASER' : signal.guardedBy ? ' · BEWACHT' : '';
+    item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${risk}${requirement} · ${signal.description ?? ''}</small></span><span class="signal-reward" data-resource="${reward.kind}">${resourceIconMarkup(reward.kind)}<b>${reward.amount}</b><small>${distance}u</small></span>`;
     return item;
   }));
 }
@@ -538,11 +568,19 @@ required<HTMLButtonElement>('interact-button').addEventListener('click', () => {
   const nearby = expedition?.signals.find((signal) => signal.knowledge === 'classified' && Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) <= 112);
   if (!nearby) return;
   if (nearby.kind === 'vein') {
-    if (mineVeinSignal(nearby.id)) game.events.emit('farhaven:mining-start', nearby.position);
+    const before = getExpedition()?.cargo[rewardForSignal(nearby).kind] ?? 0;
+    if (mineVeinSignal(nearby.id)) {
+      const reward = rewardForSignal(nearby);
+      game.events.emit('farhaven:mining-start', nearby.position);
+      if ((getExpedition()?.cargo[reward.kind] ?? before) > before) game.events.emit('farhaven:resource-collected', { kind: reward.kind, amount: reward.amount, position: nearby.position });
+    }
     return;
   }
+  const reward = rewardForSignal(nearby);
+  const before = getExpedition()?.cargo[reward.kind] ?? 0;
   investigateSignal(nearby.id);
   game.events.emit('farhaven:signal-action', { kind: nearby.kind, position: nearby.position });
+  if ((getExpedition()?.cargo[reward.kind] ?? before) > before) game.events.emit('farhaven:resource-collected', { kind: reward.kind, amount: reward.amount, position: nearby.position });
 });
 function fireSelectedWeapon(weapon: WeaponMode): void {
   const before = getExpedition();

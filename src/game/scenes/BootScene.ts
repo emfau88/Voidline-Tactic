@@ -33,6 +33,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('monk-lantern-v1', 'assets/story/monk-lantern-v1.png');
     this.load.image('cutting-liturgy-v1', 'assets/story/cutting-liturgy-v1.png');
     this.load.image('route-vein-v1', 'assets/story/route-vein-v1.png');
+    this.load.image('veloria-shell-barge-v1', 'assets/veloria/veloria-shell-barge-v1.png');
+    this.load.image('veloria-sentinel-v2', 'assets/veloria/veloria-sentinel-v2.png');
+    this.load.image('veloria-pilgrim-v2', 'assets/veloria/veloria-pilgrim-v2.png');
     this.load.image('resource-alloys-v1', 'assets/ui/resource-alloys-v1.png');
     this.load.image('resource-data-v1', 'assets/ui/resource-data-v1.png');
     this.load.image('resource-relics-v1', 'assets/ui/resource-relics-v1.png');

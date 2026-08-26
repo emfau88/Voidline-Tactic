@@ -113,8 +113,30 @@ describe('exploration engine', () => {
     const rift = enterWormhole(atGate);
     expect(rift.sectorId).toBe('veloria-rift');
     expect(rift.sectorName).toBe('Veloria Rift');
-    expect(rift.signals).toHaveLength(3);
-    expect(rift.hostiles).toHaveLength(0);
+    expect(rift.signals).toHaveLength(6);
+    expect(rift.signals.some((signal) => signal.reward?.kind === 'relics')).toBe(true);
+    expect(rift.hostiles).toHaveLength(2);
+  });
+
+  it('offers repeatable post-story sources for every core resource', () => {
+    const recovery = createExpedition(0, 4, 'recovery-run');
+    const rewards = recovery.signals.map(rewardForSignal);
+    expect(new Set(rewards.map((reward) => reward.kind))).toEqual(new Set(['alloys', 'data', 'relics']));
+    expect(recovery.hostiles.map((hostile) => hostile.kind)).toEqual(expect.arrayContaining(['patrol', 'sentinel']));
+  });
+
+  it('supports a safe slower data route and lets the Reliktlabor damp anomaly damage', () => {
+    const secondShift = createExpedition(0, 4, 'second-shift');
+    const archive = secondShift.signals.find((signal) => signal.id === 'wayfarer-archive')!;
+    const safe = investigate(scan({ ...secondShift, position: archive.position }), archive.id);
+    expect(safe.cargo.data).toBe(1);
+    expect(safe.hull).toBe(100);
+
+    const protectedRun = createExpedition(0, 4, 'second-shift', 3);
+    const liturgy = protectedRun.signals.find((signal) => signal.id === 'cutting-liturgy')!;
+    const protectedResult = investigate(scan({ ...protectedRun, position: liturgy.position }), liturgy.id);
+    expect(protectedResult.cargo.data).toBe(2);
+    expect(protectedResult.hull).toBe(97);
   });
 
   it('mines a classified vein only when the ship is close and has room', () => {
@@ -150,7 +172,10 @@ describe('exploration engine', () => {
 
   it('lets the telegraphed raider fire only after the player enters its guarded space', () => {
     const run = createExpedition(0, 4, 'mining-run');
-    const threatened = stepExpedition({ ...run, position: { x: 2_570, y: 1_470 } }, 40);
+    const warned = stepExpedition({ ...run, position: { x: 2_570, y: 1_470 } }, 40);
+    expect(warned.hostiles[0]?.status).toBe('alert');
+    expect(warned.hull).toBe(run.hull);
+    const threatened = stepExpedition(warned, 1_400);
     expect(threatened.hostiles[0]?.status).toBe('alert');
     expect(threatened.hull).toBeLessThan(run.hull);
     expect(threatened.log[0]).toContain('feuert');
@@ -159,7 +184,8 @@ describe('exploration engine', () => {
   it('can reduce the hull to zero, allowing the flow layer to resolve a real defeat', () => {
     const run = createExpedition(0, 4, 'mining-run');
     const exposed = { ...run, hull: 4, position: { x: 2_570, y: 1_470 } };
-    expect(stepExpedition(exposed, 40).hull).toBe(0);
+    const warned = stepExpedition(exposed, 40);
+    expect(stepExpedition(warned, 1_400).hull).toBe(0);
   });
 
   it('fires only when a hostile contact is in range', () => {

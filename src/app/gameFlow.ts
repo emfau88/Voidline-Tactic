@@ -43,16 +43,26 @@ function scenarioForProfile(): ExpeditionScenario {
   const upgrades = profile.ship?.upgrades ?? [];
   if (profile.expeditionCount === 0 || !upgrades.includes(FIRST_FIELD_UPGRADE_ID)) return 'first-wreck';
   if (!upgrades.includes(SECOND_FIELD_UPGRADE_ID)) return 'second-shift';
-  return 'mining-run';
+  if (!profile.story.routeTraceRecovered) return 'mining-run';
+  return 'recovery-run';
 }
 
 export function isXenogateUnlocked(): boolean {
-  return profile.story.routeTraceRecovered && (profile.ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID) ?? false);
+  return profile.story.routeTraceRecovered
+    && (profile.ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID) ?? false)
+    && profile.facilities.navigation > 0;
 }
 
 export function getPrologueObjective(): PrologueObjective {
   if (!profile.ship) return { kicker: 'ERSTE SCHICHT', title: 'RUMPF WÄHLEN', copy: 'Rufe die Aster Vale oder die Bramble nach Farhaven.' };
   if (expedition) {
+    if (expedition.sectorId === 'veloria-rift') {
+      const unresolved = expedition.signals.filter((signal) => signal.knowledge !== 'resolved');
+      const pilgrim = expedition.signals.find((signal) => signal.id === 'veloria-pilgrim');
+      if (unresolved.every((signal) => signal.knowledge === 'echo')) return { kicker: 'VELORIA RIFT', title: 'FREMDE ECHOS SCANNEN', copy: 'Diese Region folgt anderen Regeln. Scanne, bevor du dich einem Wesen, Wrack oder Feld näherst.' };
+      if (pilgrim?.knowledge === 'classified') return { kicker: 'ERSTER KONTAKT', title: 'DEM PILGER ANTWORTEN', copy: 'Der schlafende Pilger ist friedlich. Fliege heran und antworte, ohne die Wächterzone zu berühren.' };
+      return { kicker: 'VELORIA RIFT', title: 'EIGENEN KURS WÄHLEN', copy: `${unresolved.length} fremde Kontakte bleiben. Berge, deute oder meide sie und kehre durch das Xenogate nach Farhaven zurück.` };
+    }
     if (expedition.scenario === 'first-wreck') {
       const firstWreck = expedition.signals.find((signal) => signal.id === 'echo-wreck');
       if (firstWreck?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 1/5', title: 'DAS NAHE ECHO SCANNEN', copy: 'Ein Signal trägt Farhavens alte Versorgungskennung. Scanne es nordöstlich der Station.' };
@@ -62,8 +72,11 @@ export function getPrologueObjective(): PrologueObjective {
     if (expedition.scenario === 'second-shift') {
       const lantern = expedition.signals.find((signal) => signal.id === 'monk-lantern');
       const liturgy = expedition.signals.find((signal) => signal.id === 'cutting-liturgy');
-      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'ZWEI HÄLFTEN DER LITANEI', copy: 'Scanne die sichere Mönchslaterne und die riskante Schneideliturgie. Beide antworten auf die alte Route.' };
-      if (lantern?.knowledge !== 'resolved' || liturgy?.knowledge !== 'resolved') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'SICHER ODER RISKANT', copy: 'Die Laterne gibt ein Relikt sicher frei. Die Liturgie gibt Routendaten, kostet aber 6 Hülle.' };
+      const archive = expedition.signals.find((signal) => signal.id === 'wayfarer-archive');
+      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo' && archive?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'SICHER ODER SCHNELL', copy: 'Scanne drei Echos: Die Laterne birgt das Relikt. Daten erhältst du langsam und sicher im Archiv oder sofort aus der riskanten Liturgie.' };
+      const dataSecured = liturgy?.knowledge === 'resolved' || archive?.knowledge === 'resolved';
+      if (lantern?.knowledge !== 'resolved' || !dataSecured) return { kicker: 'VERLORENE ROUTE · 3/5', title: 'DEN EIGENEN WEG WÄHLEN', copy: 'Laterne: 1 Relikt. Wandererarchiv: 1 Daten sicher. Schneideliturgie: 2 Daten, aber 6 Hüllenschaden.' };
+      if (archive?.knowledge === 'resolved' && liturgy?.knowledge !== 'resolved') return { kicker: 'SICHERER WEG', title: 'DIE FUNDE HEIMBRINGEN', copy: 'Reliktkern und sicherer Datensatz ergänzen Farhavens Reserve. Kehre zurück; die riskante Liturgie darf unberührt bleiben.' };
       return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENBRECHER BAUEN', copy: 'Reliktkern und Datensätze reichen für einen Minenlaser. Er kann die versiegelte Routenader freilegen.' };
     }
     if (expedition.scenario === 'mining-run') {
@@ -73,6 +86,9 @@ export function getPrologueObjective(): PrologueObjective {
       if (vein?.knowledge !== 'resolved') return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN FREILEGEN', copy: 'Fliege zur Routenader und setze den Minenlaser ein. Der Verstärker ist der letzte Hinweis.' };
       if (cache?.knowledge !== 'resolved') return { kicker: 'OPTIONALE KONFRONTATION', title: 'PLÜNDERER ODER HEIMKEHR', copy: 'Der Routenverstärker ist gesichert. Die gestohlenen Platten hinter dem Aschenplünderer sind Bonusbeute, kein Zwang.' };
       return { kicker: 'VERLORENE ROUTE · 5/5', title: 'MIT DER GANZEN SPUR HEIMKEHREN', copy: 'Der Routenkern und die Plündererplatten sind gesichert. Farhaven kann das Xenogate lesen.' };
+    }
+    if (expedition.scenario === 'recovery-run') {
+      return { kicker: 'FREIE BERGUNG', title: 'WÄHLE DEINEN KURS', copy: 'Scanne nach Legierungen, Daten und Relikten. Sichere nur, was Farhaven für deinen nächsten Ausbau braucht.' };
     }
     return { kicker: 'EXPEDITION', title: 'EIN SIGNAL UNTERSUCHEN', copy: 'Scanne, positioniere dich und sichere einen Fund.' };
   }
@@ -91,7 +107,10 @@ export function getPrologueObjective(): PrologueObjective {
       ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' }
       : { kicker: 'ZWEITE SCHICHT', title: 'BAUPLAN FINDEN', copy: 'Mönchslaterne und Schneideliturgie liefern zusammen genau das Material für einen Minenlaser.' };
   }
-  if (!isXenogateUnlocked()) return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN HEIMBRINGEN', copy: 'Der Minenlaser ist bereit. Sichere die Routenader im Aschsaum und kehre mit dem Verstärker zurück.' };
+  if (!profile.story.routeTraceRecovered) return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN HEIMBRINGEN', copy: 'Der Minenlaser ist bereit. Sichere die Routenader im Aschsaum und kehre mit dem Verstärker zurück.' };
+  if (!profile.facilities.navigation) return canUpgrade(profile, 'navigation')
+    ? { kicker: 'VERLORENE ROUTE · 5/5', title: 'DAS STERNENWERK ERRICHTEN', copy: 'Farhaven besitzt Routenkern und Baumaterial. Baue das Sternenwerk und richte das Xenogate aus.' }
+    : { kicker: 'VERLORENE ROUTE · 5/5', title: 'MATERIAL FÜR DAS STERNENWERK', copy: 'Sichere zwei Legierungen und zwei Datensätze. Freie Bergungsflüge liefern beides.' };
   return { kicker: 'VERLORENE ROUTE · ABSCHLUSS', title: 'DAS XENOGATE ÖFFNEN', copy: 'Farhaven hat die verlorene Versorgungslinie rekonstruiert. Ihre Spur führt nach Veloria Rift.' };
 }
 
@@ -101,10 +120,12 @@ export function beginExpedition(): ExpeditionState {
   const cargoBonus = (profile.facilities.hangar ? 2 : 0)
     + (variant === 'bramble' ? 1 : 0)
     + (profile.ship?.upgrades.includes('cargo-spine') ? 2 : 0);
-  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile());
+  const hullRiskReduction = profile.facilities.labor ? 3 : 0;
+  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction);
   // A soft lock makes the first combat contact legible on mouse and touch alike.
   // It never fires for the player and can be overridden by tapping another ship.
   selectedTargetId = expedition.hostiles
+    .filter((hostile) => hostile.passive)
     .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - expedition!.position.x, hostile.position.y - expedition!.position.y) }))
     .sort((first, second) => first.distance - second.distance)[0]?.hostile.id;
   persistExpedition();
@@ -205,9 +226,13 @@ export function completeReturn(): void {
   const recoveredRouteTrace = expedition.scenario === 'mining-run'
     && expedition.signals.some((signal) => signal.id === 'black-vein' && signal.knowledge === 'resolved');
   pendingReturnCargo = finishExpedition(expedition).cargo;
+  const discoveries = expedition.signals.filter((signal) => signal.knowledge === 'resolved').map((signal) => signal.id);
   profile = {
     ...secureCargo(profile, pendingReturnCargo),
-    story: { routeTraceRecovered: profile.story.routeTraceRecovered || recoveredRouteTrace },
+    story: {
+      routeTraceRecovered: profile.story.routeTraceRecovered || recoveredRouteTrace,
+      discoveries: [...new Set([...profile.story.discoveries, ...discoveries])],
+    },
   };
   saveProfile(profile);
   expedition = undefined;

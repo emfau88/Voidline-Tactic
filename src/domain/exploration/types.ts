@@ -8,9 +8,9 @@ export type SignalKind = 'wreck' | 'vein' | 'anomaly' | 'distress';
 export type SignalKnowledge = 'echo' | 'classified' | 'resolved';
 export type ExpeditionStatus = 'active' | 'returning';
 export type SectorId = 'ashenscar' | 'veloria-rift';
-export type ExpeditionScenario = 'free' | 'first-wreck' | 'second-shift' | 'mining-run';
+export type ExpeditionScenario = 'free' | 'first-wreck' | 'second-shift' | 'mining-run' | 'recovery-run';
 export type WeaponMode = 'broadside' | 'rail' | 'torpedo' | 'orb';
-export type HostileKind = 'patrol' | 'raider';
+export type HostileKind = 'patrol' | 'raider' | 'sentinel';
 export type HostileStatus = 'patrol' | 'alert';
 
 export interface Cargo {
@@ -77,6 +77,7 @@ export interface ExpeditionState {
   readonly cargo: Cargo;
   readonly cargoCapacity: number;
   readonly scanRadius: number;
+  readonly hullRiskReduction?: number;
   readonly signals: readonly SignalState[];
   readonly hostiles: readonly HostileState[];
   readonly dummyRespawns: readonly DummyRespawnState[];

@@ -26,12 +26,12 @@ export function loadProfile(): FarhavenProfile {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as (Omit<Partial<FarhavenProfile>, 'version'> & { version?: unknown }) | null;
     const storedVersion = parsed?.version;
-    if (!parsed || (storedVersion !== 2 && storedVersion !== 3 && storedVersion !== 4)) return DEFAULT_PROFILE;
+    if (!parsed || (storedVersion !== 2 && storedVersion !== 3 && storedVersion !== 4 && storedVersion !== 5)) return DEFAULT_PROFILE;
     const expeditionCount = numberOr(parsed.expeditionCount, 0);
-    const ship = shipOrUndefined(parsed.ship, storedVersion === 3 || storedVersion === 4);
+    const ship = shipOrUndefined(parsed.ship, storedVersion === 3 || storedVersion === 4 || storedVersion === 5);
     const legacyRouteTrace = expeditionCount >= 3 && Boolean(ship?.upgrades.includes('mining-lasers'));
     return {
-      version: 4,
+      version: 5,
       resources: {
         alloys: numberOr(parsed.resources?.alloys, DEFAULT_PROFILE.resources.alloys),
         data: numberOr(parsed.resources?.data, DEFAULT_PROFILE.resources.data),
@@ -44,7 +44,12 @@ export function loadProfile(): FarhavenProfile {
         navigation: Math.min(1, numberOr(parsed.facilities?.navigation, 0)),
       },
       expeditionCount,
-      story: { routeTraceRecovered: storedVersion === 4 ? Boolean(parsed.story?.routeTraceRecovered) : legacyRouteTrace },
+      story: {
+        routeTraceRecovered: storedVersion === 4 || storedVersion === 5 ? Boolean(parsed.story?.routeTraceRecovered) : legacyRouteTrace,
+        discoveries: storedVersion === 5 && Array.isArray(parsed.story?.discoveries)
+          ? [...new Set(parsed.story.discoveries.filter((entry): entry is string => typeof entry === 'string'))]
+          : [],
+      },
       ship,
     };
   } catch {

@@ -24,6 +24,19 @@ const ASH_REAVER: HostileState = {
   patrolPhase: 0, heading: Math.PI / 2, hull: 4, maxHull: 4, attackCooldownMs: 0,
 };
 
+const RECOVERY_HOSTILES: readonly HostileState[] = [
+  {
+    id: 'cinder-skiff', name: 'Glutkutter', kind: 'patrol', passive: false, status: 'patrol',
+    position: { x: 2_980, y: 1_030 }, patrolCenter: { x: 2_980, y: 1_030 }, patrolRadius: 112,
+    patrolPhase: 0, heading: Math.PI / 2, hull: 3, maxHull: 3, attackCooldownMs: 0,
+  },
+  {
+    id: 'vault-sentinel', name: 'Gewölbewächter', kind: 'sentinel', passive: false, status: 'patrol',
+    position: { x: 1_210, y: 1_900 }, patrolCenter: { x: 1_210, y: 1_900 }, patrolRadius: 34,
+    patrolPhase: Math.PI, heading: 0, hull: 7, maxHull: 7, attackCooldownMs: 0,
+  },
+];
+
 const SIGNAL_DETAILS: Record<SignalKind, Pick<SignalState, 'name' | 'risk' | 'description'>> = {
   wreck: { name: 'Gebrochene Reliquie', risk: 'low', description: 'Ein Ordenswrack der verlorenen Farhaven-Versorgungsroute. Die Hülle ist offen, aber stabil.' },
   vein: { name: 'Schwarze Ader', risk: 'low', description: 'Unter der Staubwolke liegt ein eingekapselter Routenverstärker neben verdichteten Legierungen.' },
@@ -95,10 +108,14 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
       };
       return { ...hostile, status: 'patrol', position, patrolPhase, heading: patrolPhase + Math.PI, attackCooldownMs };
     }
+    if (hostile.status === 'patrol' && remaining < 420) {
+      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: 1_350 };
+    }
     if (remaining <= 430 && attackCooldownMs <= 0) {
-      playerHull = Math.max(0, playerHull - 4);
-      attackLogs.push(`${hostile.name} feuert eine kurze Salve. Hülle -4.`);
-      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: 2_900 };
+      const damage = hostile.kind === 'sentinel' ? 7 : 4;
+      playerHull = Math.max(0, playerHull - damage);
+      attackLogs.push(`${hostile.name} feuert eine angekündigte Salve. Hülle -${damage}.`);
+      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: hostile.kind === 'sentinel' ? 3_800 : 2_900 };
     }
     if (remaining < 330) return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs };
     const travel = Math.min(remaining - 330, deltaMs * (hostile.kind === 'raider' ? 0.052 : 0.038));
@@ -126,11 +143,19 @@ function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
   if (scenario === 'second-shift') return [
     { id: 'monk-lantern', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Mönchslaterne', classifiedDescription: 'Ein sanftes Pilgersignal. Der Reliktkern bewahrt die erste Hälfte einer Navigationslitanei — sicher zu bergen.', position: { x: 2_510, y: 1_235 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne wird geborgen. Ihr Reliktkern bewahrt die erste Hälfte der Routenlitanei.' } },
     { id: 'cutting-liturgy', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Schneideliturgie', classifiedDescription: 'Fremde Routinen halten die zweite Hälfte der Route fest. Ihre Nähe zerrt an der Hülle.', position: { x: 1_720, y: 1_240 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 6, text: 'Die Schneideliturgie wird entschlüsselt. Die zweite Routenhälfte nennt eine versiegelte Ader. Hülle -6.' } },
+    { id: 'wayfarer-archive', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Wandererarchiv', classifiedDescription: 'Ein beschädigtes, aber ungefährliches Archiv. Kleine Datenpakete können ohne Hüllenrisiko geborgen werden.', position: { x: 3_010, y: 1_780 }, knowledge: 'echo', risk: 'low', reward: { kind: 'data', amount: 1, text: 'Das Wandererarchiv gibt einen Datensatz frei. Der sichere Weg dauert länger, beschädigt aber die Hülle nicht.' } },
     blackVein,
   ];
   if (scenario === 'mining-run') return [
     blackVein,
     { id: 'raider-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Plündererkiste der Route', classifiedDescription: 'Der Aschenplünderer bewacht eine Kiste mit gestohlenen Routenplatten. Du darfst ihn meiden oder vertreiben.', position: { x: 2_920, y: 1_540 }, knowledge: 'echo', risk: 'high', guardedBy: 'ash-reaver', reward: { kind: 'alloys', amount: 3, text: 'Die Plündererkiste fällt auf. Gestohlene Routenplatten und drei Legierungen sind gesichert.' } },
+  ];
+  if (scenario === 'recovery-run') return [
+    { id: 'drift-smelter', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Treibende Schmelze', classifiedDescription: 'Ein aufgebrochener Lastkahn trägt noch verwertbare Legierungsplatten.', position: { x: 2_620, y: 970 }, knowledge: 'echo', risk: 'low', reward: { kind: 'alloys', amount: 2, text: 'Zwei Legierungen wandern aus der treibenden Schmelze in den Frachtraum.' } },
+    { id: 'cold-archive', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Kaltes Archiv', classifiedDescription: 'Ein stiller Datenspeicher mit geringer Feldspannung. Die Deutung kostet etwas Hülle.', position: { x: 1_460, y: 870 }, knowledge: 'echo', risk: 'medium', reward: { kind: 'data', amount: 2, hullCost: 2, text: 'Das kalte Archiv gibt zwei Datensätze frei. Hülle -2.' } },
+    { id: 'pilgrim-vigil', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Pilgerwacht', classifiedDescription: 'Eine verlassene Gebetskapsel bewahrt einen kleinen Reliktkern.', position: { x: 1_330, y: 1_900 }, knowledge: 'echo', risk: 'medium', guardedBy: 'vault-sentinel', reward: { kind: 'relics', amount: 1, text: 'Der Reliktkern der Pilgerwacht ist gesichert.' } },
+    { id: 'working-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Offene Eisenader', classifiedDescription: 'Eine wiederkehrende Abbaustelle für Farhavens Maschinen.', position: { x: 3_320, y: 2_020 }, knowledge: 'echo', risk: 'low', reward: { kind: 'alloys', amount: 3, text: 'Drei Legierungen werden aus der offenen Ader geschnitten.' } },
+    { id: 'skiff-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Glutkutter-Beute', classifiedDescription: 'Gestohlene Platten hinter der Patrouille. Kampf ist optional.', position: { x: 3_050, y: 1_090 }, knowledge: 'echo', risk: 'high', guardedBy: 'cinder-skiff', reward: { kind: 'alloys', amount: 3, text: 'Die Beute des Glutkutters ist gesichert: drei Legierungen.' } },
   ];
   return [
     firstWreck,
@@ -142,11 +167,12 @@ function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
 
 function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[] {
   if (scenario === 'mining-run') return [{ ...ASH_REAVER, position: { ...ASH_REAVER.position }, patrolCenter: { ...ASH_REAVER.patrolCenter } }];
+  if (scenario === 'recovery-run') return RECOVERY_HOSTILES.map((hostile) => ({ ...hostile, position: { ...hostile.position }, patrolCenter: { ...hostile.patrolCenter } }));
   // Practice drones are kept for the separate free/test scenario, never mixed into the story sector.
   return scenario === 'free' ? TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })) : [];
 }
 
-export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free'): ExpeditionState {
+export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0): ExpeditionState {
   return {
     sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
@@ -164,6 +190,7 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: Expedi
     cargo: { alloys: 0, data: 0, relics: 0 },
     cargoCapacity: 6 + cargoBonus,
     scanRadius: 560 + scanBonus,
+    hullRiskReduction,
     signals: scenarioSignals(scenario),
     hostiles: scenarioHostiles(scenario),
     dummyRespawns: [],
@@ -190,11 +217,17 @@ export function enterWormhole(state: ExpeditionState): ExpeditionState {
     velocity: { x: 0, y: 0 },
     course: undefined,
     signals: [
-      { id: 'veloria-husk', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Schalenbarke', classifiedDescription: 'Eine stumme, organische Barke treibt unter den Lichtern der Rift.', position: { x: 2_470, y: 1_180 }, knowledge: 'echo', risk: 'medium' },
-      { id: 'veloria-crystal', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Resonanzader', classifiedDescription: 'Kristallines Erz singt in einem fremden Takt.', position: { x: 1_500, y: 1_030 }, knowledge: 'echo', risk: 'low' },
-      { id: 'veloria-choir', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Der leise Chor', classifiedDescription: 'Ein Chor aus Lichtmustern erwartet eine Deutung.', position: { x: 1_680, y: 2_060 }, knowledge: 'echo', risk: 'high' },
+      { id: 'veloria-husk', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Schalenbarke', classifiedDescription: 'Eine stumme organische Barke trägt fremde, aber formbare Panzerplatten.', position: { x: 2_470, y: 1_180 }, knowledge: 'echo', risk: 'medium', reward: { kind: 'alloys', amount: 2, text: 'Zwei singende Legierungen lösen sich aus der Schalenbarke.' } },
+      { id: 'veloria-crystal', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Resonanzader', classifiedDescription: 'Kristallines Erz singt in einem fremden Takt.', position: { x: 1_500, y: 1_030 }, knowledge: 'echo', risk: 'low', reward: { kind: 'alloys', amount: 3, text: 'Die Resonanzader gibt drei leichte Legierungen frei.' } },
+      { id: 'veloria-choir', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Der leise Chor', classifiedDescription: 'Ein Chor aus Lichtmustern bietet Wissen gegen eine schmerzhafte Resonanz.', position: { x: 1_680, y: 2_060 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 4, text: 'Der Chor hinterlässt zwei fremde Datensätze. Hülle -4.' } },
+      { id: 'veloria-pilgrim', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Schlafender Pilger', classifiedDescription: 'Ein friedliches Wesen trägt einen abgestoßenen Reliktsplitter und reagiert auf sanften Funk.', position: { x: 2_860, y: 2_020 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Der Pilger antwortet mit Licht und überlässt Farhaven einen Reliktsplitter.' } },
+      { id: 'veloria-observatory', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Spiegelobservatorium', classifiedDescription: 'Eine tote Beobachtungsblüte speichert Kartenbilder der Rift.', position: { x: 3_300, y: 760 }, knowledge: 'echo', risk: 'medium', reward: { kind: 'data', amount: 1, text: 'Das Spiegelobservatorium gibt einen Datensatz mit fremden Sternkarten frei.' } },
+      { id: 'veloria-cocoon', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Versiegelter Kokon', classifiedDescription: 'Ein Wächter kreist um einen seltenen Reliktkern. Die Begegnung kann umflogen werden.', position: { x: 1_040, y: 1_780 }, knowledge: 'echo', risk: 'high', guardedBy: 'rift-sentinel', reward: { kind: 'relics', amount: 1, text: 'Der Kokon öffnet sich. Ein resonanter Reliktkern ist gesichert.' } },
     ],
-    hostiles: [],
+    hostiles: [
+      { id: 'rift-skimmer', name: 'Riftschimmer', kind: 'patrol', passive: false, status: 'patrol', position: { x: 3_180, y: 1_540 }, patrolCenter: { x: 3_180, y: 1_540 }, patrolRadius: 130, patrolPhase: 0, heading: Math.PI, hull: 3, maxHull: 3, attackCooldownMs: 0 },
+      { id: 'rift-sentinel', name: 'Kokonwächter', kind: 'sentinel', passive: false, status: 'patrol', position: { x: 1_090, y: 1_720 }, patrolCenter: { x: 1_090, y: 1_720 }, patrolRadius: 42, patrolPhase: Math.PI, heading: 0, hull: 8, maxHull: 8, attackCooldownMs: 0 },
+    ],
     dummyRespawns: [],
     log: ['Veloria Rift · Platzhalterkarte betreten. Scanne die fremden Echos und kehre mit deinen Funden zurück.'],
   };
@@ -299,12 +332,16 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
     return appendLog(state, `Zu wenig Frachtraum für diesen Fund (${reward.amount} Plätze nötig). Sichere erst deine Fracht in Farhaven.`);
   }
   const signals = state.signals.map((candidate) => candidate.id === signalId ? { ...candidate, knowledge: 'resolved' as const } : candidate);
+  const hullCost = Math.max(0, (reward.hullCost ?? 0) - (state.hullRiskReduction ?? 0));
+  const resultText = reward.hullCost
+    ? `${reward.text.replace(/\s*Hülle -\d+\.$/, '')} ${hullCost > 0 ? `Hülle -${hullCost}.` : 'Das Reliktlabor stabilisiert das Feld vollständig.'}`
+    : reward.text;
   return appendLog({
     ...state,
     signals,
-    hull: Math.max(0, state.hull - (reward.hullCost ?? 0)),
+    hull: Math.max(0, state.hull - hullCost),
     cargo: addCargo(state.cargo, reward.kind, reward.amount),
-  }, reward.text);
+  }, resultText);
 }
 
 export function mineVein(state: ExpeditionState, signalId: string): ExpeditionState {

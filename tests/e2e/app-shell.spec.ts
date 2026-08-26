@@ -91,6 +91,25 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
   await expect(page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ })).toBeVisible();
 });
 
+test('uses the Sternenwerk as the real gate to Veloria and shows the discovery log', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 2, data: 2, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 3,
+    story: { routeTraceRecovered: true, discoveries: ['echo-wreck', 'black-vein'] },
+    ship: { variant: 'aster-vale', upgrades: ['cargo-spine', 'mining-lasers'] },
+  })));
+  await page.reload();
+  await expect(page.locator('#objective-title')).toHaveText('DAS STERNENWERK ERRICHTEN');
+  await openFacility(page, 'navigation');
+  await page.getByRole('button', { name: /STERNENWERK ERRICHTEN/ }).click();
+  await openFacility(page, 'navigation');
+  await expect(page.locator('#facility-level')).toContainText('Richtet das Xenogate nach Veloria aus');
+  await expect(page.locator('#facility-discovery')).toContainText('Reliquie der Versorgungsroute');
+  await expect(page.locator('#objective-title')).toHaveText('DAS XENOGATE ÖFFNEN');
+});
+
 test('keeps visual hull ideas as previews and only installs real earned modules', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 2,

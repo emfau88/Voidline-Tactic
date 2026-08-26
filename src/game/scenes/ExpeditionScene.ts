@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { rewardForSignal } from '../../domain/exploration/expeditionEngine';
+import { rewardForSignal, weaponReadiness } from '../../domain/exploration/expeditionEngine';
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
 import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
@@ -26,6 +26,10 @@ const STORY_SIGNAL_ART: Readonly<Partial<Record<string, string>>> = {
   'monk-lantern': 'monk-lantern-v1',
   'cutting-liturgy': 'cutting-liturgy-v1',
   'black-vein': 'route-vein-v1',
+  'veloria-husk': 'veloria-shell-barge-v1',
+  'veloria-observatory': 'veloria-shell-barge-v1',
+  'veloria-pilgrim': 'veloria-pilgrim-v2',
+  'veloria-cocoon': 'veloria-pilgrim-v2',
 };
 
 interface WeaponFireEvent {
@@ -36,6 +40,12 @@ interface WeaponFireEvent {
     readonly position: Vector2;
     readonly destroyed: boolean;
   };
+}
+
+interface ResourceCollectedEvent {
+  readonly kind: keyof typeof RESOURCE_PRESENTATION;
+  readonly amount: number;
+  readonly position: Vector2;
 }
 
 export class ExpeditionScene extends Phaser.Scene {
@@ -52,6 +62,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private pinchStartDistance = 0;
   private pinchStartZoom = DEFAULT_EXPEDITION_ZOOM;
   private removePinchListeners?: () => void;
+  private lastHull = 100;
 
   public constructor() { super('expedition'); }
 
@@ -78,8 +89,10 @@ export class ExpeditionScene extends Phaser.Scene {
       this.homeLabel = this.add.text(2_100, 1_630, 'FARHAVEN · HEIMATHAFEN', { fontFamily: 'Arial', fontSize: 8, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75 }).setOrigin(0.5).setDepth(3);
       this.addWormholeGate();
     } else {
-      const riftTag = this.add.text(2_100, 1_410, 'VELORIA RIFT · KARTENSONDE 01', { fontFamily: 'Arial', fontSize: 10, color: '#d4b8fa', fontStyle: 'bold', letterSpacing: 1.2 }).setOrigin(0.5).setDepth(2);
-      this.tweens.add({ targets: riftTag, alpha: { from: 0.56, to: 0.95 }, duration: 1_900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+      const returnGlow = this.add.image(2_100, 1_570, 'wormhole-gate-active-v4').setDisplaySize(112, 112).setAlpha(0.3).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
+      this.add.image(2_100, 1_570, 'wormhole-gate-active-v4').setDisplaySize(96, 96).setAlpha(0.9).setDepth(2);
+      this.add.text(2_100, 1_635, 'XENOGATE · RÜCKWEG NACH FARHAVEN', { fontFamily: 'Arial', fontSize: 8, color: '#e7cef8', fontStyle: 'bold', letterSpacing: 0.7 }).setOrigin(0.5).setDepth(3);
+      this.tweens.add({ targets: returnGlow, angle: 360, duration: 12_000, repeat: -1, ease: 'Linear' });
     }
     const playerShip = getProfile().ship;
     const shipKey = playerShip ? SHIP_VARIANTS[playerShip.variant].assetKey : 'ship-player-frigate-v1';
@@ -95,6 +108,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.game.events.on('farhaven:weapon-fired', this.showWeaponFire, this);
     this.game.events.on('farhaven:mining-start', this.showMining, this);
     this.game.events.on('farhaven:signal-action', this.showSignalAction, this);
+    this.game.events.on('farhaven:resource-collected', this.showResourceCollected, this);
     this.game.events.on('farhaven:scan-pulse', this.showScanPulse, this);
     this.input.on('pointerdown', this.selectHostileAtPointer, this);
     this.bindPinchZoom();
@@ -102,11 +116,13 @@ export class ExpeditionScene extends Phaser.Scene {
       this.game.events.off('farhaven:weapon-fired', this.showWeaponFire, this);
       this.game.events.off('farhaven:mining-start', this.showMining, this);
       this.game.events.off('farhaven:signal-action', this.showSignalAction, this);
+      this.game.events.off('farhaven:resource-collected', this.showResourceCollected, this);
       this.game.events.off('farhaven:scan-pulse', this.showScanPulse, this);
       this.input.off('pointerdown', this.selectHostileAtPointer, this);
       this.removePinchListeners?.();
     });
     this.refresh();
+    this.lastHull = expedition?.hull ?? 100;
   }
 
   private addWormholeGate(): void {
@@ -138,6 +154,8 @@ export class ExpeditionScene extends Phaser.Scene {
     const expedition = getExpedition();
     if (!expedition || !this.shipRig || !this.signalLayer || !this.playerLabel || !this.engineFlame) return;
     const engineFlame = this.engineFlame;
+    if (expedition.hull < this.lastHull) this.showEnemyAttackIfApplicable(expedition);
+    this.lastHull = expedition.hull;
     this.shipRig.setPosition(expedition.position.x, expedition.position.y).setRotation(expedition.heading);
     this.playerLabel.setPosition(expedition.position.x, expedition.position.y + 48);
     this.homeLabel?.setVisible(Math.hypot(expedition.position.x - 2_100, expedition.position.y - 1_500) > 105);
@@ -179,8 +197,9 @@ export class ExpeditionScene extends Phaser.Scene {
     this.addResourceDirectionHints(expedition);
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
-      const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1');
-      const hostileHeight = hostile.kind === 'raider' ? 118 : 96;
+      const hostileKey = hostile.kind === 'sentinel' ? 'veloria-sentinel-v2' : hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1';
+      const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostileKey);
+      const hostileHeight = hostile.kind === 'sentinel' ? 126 : hostile.kind === 'raider' ? 118 : 96;
       hostileArt.setDisplaySize(hostileArt.width / hostileArt.height * hostileHeight, hostileHeight)
         .setRotation(hostile.heading);
       if (!this.contactsInitialized || !this.knownHostileIds.has(hostile.id)) {
@@ -193,17 +212,28 @@ export class ExpeditionScene extends Phaser.Scene {
         this.drawCornerFrame(bracket, hostile.position, radius, 13, 0xffd98e, 0.94);
         bracket.lineStyle(1, 0xf8f0ca, 0.72);
         bracket.strokeRect(hostile.position.x - radius + 7, hostile.position.y - radius + 7, (radius - 7) * 2, (radius - 7) * 2);
+        const primary: WeaponMode = getProfile().ship?.upgrades.includes('rail-lance') && !getProfile().ship?.upgrades.includes('side-turrets') ? 'rail' : 'broadside';
+        const ready = weaponReadiness(expedition, hostile.id, primary);
+        bracket.lineStyle(2, ready.ready ? 0x8de6ca : 0xe0a06d, ready.ready ? 0.72 : 0.46);
+        bracket.lineBetween(expedition.position.x, expedition.position.y, hostile.position.x, hostile.position.y);
         this.signalLayer?.add(bracket);
       }
       if (!hostile.passive && hostile.status === 'alert') {
         const warning = this.add.graphics();
-        warning.lineStyle(2, 0xf1796c, 0.78); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 71 : 58);
+        const charging = (hostile.attackCooldownMs ?? Number.POSITIVE_INFINITY) <= 1_350;
+        warning.lineStyle(charging ? 3 : 2, charging ? 0xffc36f : 0xf1796c, charging ? 0.94 : 0.66);
+        warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'sentinel' ? 82 : hostile.kind === 'raider' ? 71 : 58);
         warning.lineStyle(1, 0xffd3b5, 0.46); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 82 : 69);
         this.signalLayer?.add(warning);
       }
-      const state = hostile.passive
+      const selectedWeapon: WeaponMode = getProfile().ship?.upgrades.includes('rail-lance') && !getProfile().ship?.upgrades.includes('side-turrets') ? 'rail' : 'broadside';
+      const state = selected
+        ? weaponReadiness(expedition, hostile.id, selectedWeapon).reason.toUpperCase()
+        : hostile.passive
         ? selected ? 'ZIEL MARKIERT · FEUER FREI' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
-        : hostile.status === 'alert' ? 'ALARM' : 'PATROUILLE';
+        : hostile.status === 'alert'
+          ? (hostile.attackCooldownMs ?? 9_999) <= 1_350 ? `SALVE LÄDT · ${Math.max(0.1, (hostile.attackCooldownMs ?? 0) / 1000).toFixed(1)}s` : 'ALARM · FLUCHT MÖGLICH'
+          : 'PATROUILLE · UMGEHBAR';
       const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);
       this.signalLayer?.add(label);
@@ -322,20 +352,26 @@ export class ExpeditionScene extends Phaser.Scene {
     this.signalLayer?.add(marker);
   }
 
-  /** Keeps second-run rewards understandable even while their map markers are off-screen. */
+  /** Keeps a few relevant classified finds legible while their markers are off-screen. */
   private addResourceDirectionHints(expedition: ExpeditionState): void {
-    if (expedition.scenario !== 'second-shift') return;
-    for (const signal of expedition.signals) {
-      if (signal.knowledge !== 'classified') continue;
+    const candidates = expedition.signals
+      .filter((signal) => signal.knowledge === 'classified')
+      .map((signal) => ({ signal, distance: Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) }))
+      .filter(({ distance }) => distance >= 190)
+      .sort((first, second) => {
+        const firstOnCourse = expedition.course && Math.hypot(first.signal.position.x - expedition.course.x, first.signal.position.y - expedition.course.y) < 4;
+        const secondOnCourse = expedition.course && Math.hypot(second.signal.position.x - expedition.course.x, second.signal.position.y - expedition.course.y) < 4;
+        if (firstOnCourse !== secondOnCourse) return firstOnCourse ? -1 : 1;
+        return first.distance - second.distance;
+      })
+      .slice(0, 3);
+    for (const { signal, distance } of candidates) {
       const reward = rewardForSignal(signal);
-      if (reward.kind !== 'data' && reward.kind !== 'relics') continue;
       const dx = signal.position.x - expedition.position.x;
       const dy = signal.position.y - expedition.position.y;
-      const distance = Math.hypot(dx, dy);
-      if (distance < 145) continue;
       const resource = RESOURCE_PRESENTATION[reward.kind];
       const direction = Math.atan2(dy, dx);
-      const offset = Math.min(185, Math.max(112, distance * 0.22));
+      const offset = Math.min(205, Math.max(128, distance * 0.2));
       const x = expedition.position.x + Math.cos(direction) * offset;
       const y = expedition.position.y + Math.sin(direction) * offset;
       const hint = this.add.container(x, y).setDepth(9);
@@ -343,9 +379,31 @@ export class ExpeditionScene extends Phaser.Scene {
       const halo = this.add.circle(0, 0, 20, color, 0.13);
       const arrow = this.add.triangle(0, 0, 0, -14, -10, 9, 10, 9, color, 0.96).setRotation(direction + Math.PI / 2);
       const icon = this.add.image(0, -30, resource.textureKey).setDisplaySize(16, 16);
-      const text = this.add.text(0, 24, `${resource.name.toUpperCase()}\n${Math.round(distance)}u`, { fontFamily: 'Arial', fontSize: 7, color: resource.color, align: 'center', fontStyle: 'bold', lineSpacing: 1 }).setOrigin(0.5);
+      const risk = signal.risk === 'high' ? 'HOHES RISIKO' : signal.risk === 'medium' ? 'MITTLERES RISIKO' : 'SICHER';
+      const tool = signal.kind === 'vein' ? ' · MINENLASER' : '';
+      const text = this.add.text(0, 24, `${resource.name.toUpperCase()} · ${reward.amount}\n${Math.round(distance)}u · ${risk}${tool}`, { fontFamily: 'Arial', fontSize: 7, color: resource.color, align: 'center', fontStyle: 'bold', lineSpacing: 1 }).setOrigin(0.5);
       hint.add([halo, arrow, icon, text]);
     }
+  }
+
+  private showEnemyAttackIfApplicable(expedition: ExpeditionState): void {
+    const source = expedition.hostiles
+      .filter((hostile) => !hostile.passive && hostile.status === 'alert')
+      .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - expedition.position.x, hostile.position.y - expedition.position.y) }))
+      .filter(({ distance }) => distance <= 460)
+      .sort((first, second) => first.distance - second.distance)[0]?.hostile;
+    if (!source || !this.shipRig || !this.ship) return;
+    const bolt = this.add.circle(source.position.x, source.position.y, source.kind === 'sentinel' ? 7 : 5, 0xffd19b, 1).setDepth(13);
+    const glow = this.add.circle(source.position.x, source.position.y, source.kind === 'sentinel' ? 17 : 12, 0xf06c64, 0.38).setDepth(12);
+    this.tweens.add({
+      targets: [bolt, glow], x: expedition.position.x, y: expedition.position.y, duration: 240, ease: 'Quad.In',
+      onComplete: () => {
+        bolt.destroy(); glow.destroy();
+        this.spawnImpact(expedition.position, 0xf06c64, false);
+        this.ship?.setTint(0xff9b88);
+        this.time.delayedCall(120, () => this.ship?.clearTint());
+      },
+    });
   }
 
   private drawCornerFrame(graphics: Phaser.GameObjects.Graphics, center: Vector2, radius: number, arm: number, color: number, alpha: number): void {
@@ -560,6 +618,26 @@ export class ExpeditionScene extends Phaser.Scene {
       rite.lineStyle(1, 0xf0d6ff, 0.72); rite.lineBetween(this.shipRig.x, this.shipRig.y, action.position.x, action.position.y);
       this.tweens.add({ targets: rite, alpha: 0, duration: 750, ease: 'Quad.Out', onComplete: () => rite.destroy() });
     }
+  }
+
+  private showResourceCollected(event: ResourceCollectedEvent): void {
+    if (!this.shipRig) return;
+    const resource = RESOURCE_PRESENTATION[event.kind];
+    const token = this.add.container(event.position.x, event.position.y).setDepth(14);
+    const halo = this.add.circle(0, 0, 24, Phaser.Display.Color.HexStringToColor(resource.color).color, 0.24);
+    const icon = this.add.image(0, 0, resource.textureKey).setDisplaySize(24, 24);
+    const amount = this.add.text(0, 27, `+${event.amount} ${resource.name.toUpperCase()}`, { fontFamily: 'Arial', fontSize: 8, color: resource.color, fontStyle: 'bold' }).setOrigin(0.5);
+    token.add([halo, icon, amount]);
+    this.tweens.add({
+      targets: token,
+      x: this.shipRig.x,
+      y: this.shipRig.y,
+      scale: 0.55,
+      alpha: 0,
+      duration: 620,
+      ease: 'Cubic.In',
+      onComplete: () => token.destroy(),
+    });
   }
 
   private addShipUpgradeArt(upgrades: readonly ShipUpgradeId[]): void {

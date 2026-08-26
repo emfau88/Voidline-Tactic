@@ -4,11 +4,11 @@ import type { ShipState } from '../ship/types';
 export type FacilityId = 'hangar' | 'scanner' | 'labor' | 'navigation';
 
 export interface FarhavenProfile {
-  readonly version: 4;
+  readonly version: 5;
   readonly resources: Cargo;
   readonly facilities: Readonly<Record<FacilityId, number>>;
   readonly expeditionCount: number;
-  readonly story: { readonly routeTraceRecovered: boolean };
+  readonly story: { readonly routeTraceRecovered: boolean; readonly discoveries: readonly string[] };
   readonly ship?: ShipState;
 }
 
@@ -23,15 +23,15 @@ export interface FacilityDefinition {
 export const FACILITIES: Record<FacilityId, FacilityDefinition> = {
   hangar: { id: 'hangar', name: 'Hangar', subtitle: 'Schutz und Bergung', effect: '+2 Frachtraum in jeder Expedition', cost: { alloys: 4 } },
   scanner: { id: 'scanner', name: 'Scannerkapelle', subtitle: 'Fernsehen', effect: '+90 Scanreichweite', cost: { data: 3 } },
-  labor: { id: 'labor', name: 'Reliktlabor', subtitle: 'Deutung', effect: 'Bereitet seltene Relikte für spätere Systeme vor', cost: { relics: 2 } },
-  navigation: { id: 'navigation', name: 'Sternenwerk', subtitle: 'Weiter hinaus', effect: 'Öffnet später die äußeren Sektoren', cost: { data: 2, alloys: 2 } },
+  labor: { id: 'labor', name: 'Reliktlabor', subtitle: 'Deutung', effect: '-3 Hüllenschaden durch Anomalien', cost: { relics: 2 } },
+  navigation: { id: 'navigation', name: 'Sternenwerk', subtitle: 'Weiter hinaus', effect: 'Richtet das Xenogate nach Veloria aus', cost: { data: 2, alloys: 2 } },
 };
 
 export const DEFAULT_PROFILE: FarhavenProfile = {
-  version: 4,
+  version: 5,
   resources: { alloys: 2, data: 1, relics: 0 },
   facilities: { hangar: 0, scanner: 0, labor: 0, navigation: 0 },
   expeditionCount: 0,
-  story: { routeTraceRecovered: false },
+  story: { routeTraceRecovered: false, discoveries: [] },
   ship: undefined,
 };

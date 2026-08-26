@@ -1,6 +1,6 @@
 # Voidline: Farhaven — Produkt-Roadmap
 
-Stand: 25. August 2026
+Stand: 26. August 2026
 Status-Legende: ✅ fertig · 🚧 in Arbeit · ⬜ geplant · 🧪 validieren
 
 ## 1. Zielbild
@@ -48,7 +48,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Frachtraum-Limit und Niederlage bei null Hülle
 - ✅ Test-Prototypen von echten, speicherbaren Upgrades getrennt
 - ✅ Automatisierte Unit-, Browser- und Produktions-Build-Prüfungen
-- ⬜ Versionsmigration für künftige Spielstände
+- ✅ Versionsmigration von Profilständen 2–4 auf Profilversion 5
 - ⬜ Fehlertelemetrie für öffentliche Testversionen
 
 ### M1 — Die ersten zehn spielbaren Minuten
@@ -68,6 +68,9 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Einheitliche Ressourcensprache mit vollständigen Namen und eigenen ImageGen-Icons
 - ✅ Dieselben Ressourcen-Icons auf Expeditionen, in Fracht und bei Preisen
 - ✅ Verständliche Hinweise, wo Ressourcen gefunden und wofür sie verwendet werden
+- ✅ Allgemeine Richtungshinweise für bis zu drei klassifizierte Funde mit Ressource, Menge, Entfernung, Risiko und Werkzeug
+- ✅ Sicherer oder schneller Datenweg in der zweiten Expedition
+- ✅ Wiederholbarer Bergungsflug nach Abschluss der verlorenen Route
 - 🧪 Ersten Zehn-Minuten-Ablauf mit neuen Spielern ohne Hilfestellung testen
 - ⬜ Reibungspunkte aus mindestens drei Tests beheben
 
@@ -78,11 +81,11 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Erster Handlungsbogen „Die verlorene Versorgungsroute“: alle Kernfunde im Aschsaum führen zum Xenogate
 - ✅ Übungsdummies aus dem normalen Sektor entfernt; optionaler Aschenplünderer ist der erste echte Gegner
 - ✅ Wurmloch und erste Platzhalter-Region „Veloria Rift“
-- ⬜ Zweiten Sektor als echten, in sich stimmigen Spielraum ausarbeiten
-- ⬜ 12–15 kurze Entdeckungsereignisse mit kleinen Entscheidungen
-- ⬜ Fundprotokoll/Kodex für bereits entdeckte Orte und Objekte
+- 🚧 Veloria Rift als zweiten Spielraum mit sechs Funden, neutralem Kontakt und optionalen Wächtern ausarbeiten
+- 🚧 12–15 kurze Entdeckungsereignisse mit kleinen Entscheidungen
+- ✅ Persistentes Fundprotokoll im Sternenwerk für heimgebrachte Entdeckungen
 - ⬜ Scanner-Upgrades eröffnen neue Signalebenen statt nur größerer Reichweite
-- ⬜ Neutrale Begegnung: Händler, Pilger oder Bergungsschiff
+- ✅ Erste neutrale Begegnung: schlafender Veloria-Pilger
 - ⬜ Seltene Landmarke und ein sektorweites Geheimnis
 - ⬜ Wiederholbare, aber kuratierte Sektorvarianten
 
@@ -102,14 +105,14 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 - ✅ Ziele direkt in der offenen Karte antippbar
 - ✅ Manuelles Feuern während der Bewegung
-- ✅ Passive, wiederkehrende Testdummies
+- ✅ Passive, wiederkehrende Testdummies nur im getrennten Testscenario; keine Attrappen im Storysektor
 - ✅ Prototypen für Breitseite, Rail-Lanze, Torpedo und Energiekugel
 - ⬜ Waffenrollen, Reichweiten und Trefferfeedback sauber balancieren
-- ⬜ Gegnertelegraphen und Ausweichfenster statt überraschender Treffer
-- ⬜ Zwei echte Piratenschiffe mit unterscheidbarem Verhalten
+- ✅ Gegnertelegraphen und Ausweichfenster statt überraschender Soforttreffer
+- 🚧 Glutkutter und schwerer Gewölbe-/Kokonwächter als zusätzliche Gegnerrollen
 - ⬜ Enterhaken/Bergungsentscheidung als seltene Nahkampfoption
-- ⬜ Kampf kann vermieden, verlassen oder durch Kontakt ersetzt werden
-- ⬜ Besonderer Gegner als Abschluss des Vertical Slice
+- ✅ Kampfzonen können umflogen und nach Alarm wieder verlassen werden
+- 🚧 Schwerer Kokonwächter als besonderer Veloria-Kontakt
 - ⬜ Zielwert validieren: Kampf unter etwa 30 % der normalen Spielzeit
 
 ### M5 — Farhaven als lebende, wachsende Heimat
@@ -129,10 +132,11 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 - ✅ Drei Kernressourcen: Legierungen, Daten und Relikte
 - ✅ Ressourcen haben konsistente Quellen und erste konkrete Verwendungen
+- ✅ Wiederholbare Quellen für Legierungen, Daten und Relikte nach dem Prolog
 - ⬜ Raffinerie verwandelt Rohfunde in gezielte Baumaterialien
 - ⬜ Kostenkurve für die ersten 30 Minuten simulieren und testen
-- ⬜ Jeder Ausbau schaltet eine neue Handlungsmöglichkeit frei
-- ⬜ Keine Sackgassen: Mindestressourcen bleiben erneut beschaffbar
+- ✅ Hangar, Scannerkapelle, Reliktlabor und Sternenwerk verändern Expeditionen oder Sektorzugang
+- ✅ Keine Sackgassen: Mindestressourcen bleiben erneut beschaffbar
 - ⬜ Seltene Funde dienen Entdeckung und besonderen Systemen, nicht Grind
 - ⬜ Händler als freiwilliges Ventil gegen ungünstige Fundverteilung
 
@@ -163,9 +167,9 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 1. ✅ **Bulk A – Verständliche Ressourcen:** Namen, Icons, Quellen, Fracht und Preise durchgängig verbinden.
 2. 🧪 **Bulk B – Zehn-Minuten-UX:** drei externe Tests, Sackgassen und unklare Ziele beseitigen.
-3. ⬜ **Bulk C – Explorationstiefe:** zweiter Sektor, Ereignisse, neutraler Kontakt und Fundprotokoll.
+3. 🚧 **Bulk C – Explorationstiefe:** Veloria-Grundraum, sechs Ereignisse, neutraler Kontakt und Fundprotokoll stehen; Entscheidungen und Sektorgeheimnis werden noch vertieft.
 4. ⬜ **Bulk D – Sechs echte Schiffs-Upgrades:** organische Bauteile, Funktionen und VFX gemeinsam bauen.
-5. ⬜ **Bulk E – Kampf-Vertical-Slice:** zwei Gegnerrollen und ein besonderer Gegner, vollständig freiwillig.
+5. 🚧 **Bulk E – Kampf-Vertical-Slice:** zusätzliche Gegnerrollen, Vorwarnung, sichtbare Feindgeschosse und freiwillige Wächterzonen stehen; Balance und Abschlussgegner müssen validiert werden.
 6. ⬜ **Bulk F – Farhaven Level 2:** sichtbare Upgrades und Ambient-Leben erst auf dem validierten Loop.
 7. ⬜ **Bulk G – Polish/Release:** Audio, Lesbarkeit, Performance, Speicherung und Deployment.
 
