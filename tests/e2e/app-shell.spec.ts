@@ -157,23 +157,22 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
   await expect(page.locator('#signal-list')).toContainText('GEBROCHENE RELIQUIE');
 });
 
-test('offers an enabled manual broadside on mobile and desktop', async ({ page }) => {
+test('keeps combat test contacts out of the first story expedition', async ({ page }) => {
   await startExpedition(page);
   await expect(page.locator('#combat-prompt')).toHaveCount(0);
   await expect(page.locator('#fire-button')).toContainText('SALVE');
-  await expect(page.locator('#fire-button')).toBeEnabled();
-  await page.locator('#fire-button').click();
-  await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
+  await expect(page.locator('#fire-button')).toBeDisabled();
+  await expect(page.locator('#expedition-status')).toContainText('EXPLORATION');
 });
 
-test('lets the player select a practice dummy directly on the open map', async ({ page }) => {
+test('does not place practice dummies onto the story map', async ({ page }) => {
   await startExpedition(page);
   const canvas = page.locator('#game-root canvas');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Expected the expedition canvas to be visible.');
-  // Aschen-Attrappe: world (-220, -40) from the start, camera zoom 1.1.
+  // The former nearby practice-dummy location is now empty in the story sector.
   await canvas.click({ position: { x: box.width / 2 - 220 * 1.1, y: box.height / 2 - 40 * 1.1 } });
-  await expect(page.locator('#expedition-status')).toContainText('ASCHEN-ATTRAPPE');
+  await expect(page.locator('#expedition-status')).toContainText('EXPLORATION');
 });
 
 test('removes legacy prototype weapons from an old save instead of activating them', async ({ page }) => {
@@ -187,9 +186,7 @@ test('removes legacy prototype weapons from an old save instead of activating th
   await page.reload();
   await startExpedition(page);
   await expect(page.locator('#fire-button')).toContainText('SALVE');
-  await expect(page.locator('#fire-button')).toBeEnabled();
-  await page.locator('#fire-button').click();
-  await expect(page.locator('#expedition-log')).toContainText('Breitseite trifft');
+  await expect(page.locator('#fire-button')).toBeDisabled();
 });
 
 test('can pause and request a safe return', async ({ page }) => {

@@ -17,12 +17,12 @@ Der aktuelle spielbare Prototyp enthält:
 - direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus; zwei Finger zoomen auf mobilen Karten frei hinein und heraus
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort
-- ein sichtbares, sanft pulsierendes Xenogate: Nach drei sicheren Rückkehren und dem Minenlaser freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
+- ein sichtbares, sanft pulsierendes Xenogate: Nach dem Bergen und Heimbringen des Routenkerns aus dem Aschsaum freiwillig anfliegen, durchqueren und die separate Platzhalterkarte **Veloria Rift** erkunden
 - einen geführten ersten 10-Minuten-Loop mit kontextuellem Expeditionsdock: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
 - eine zweite Expeditionsschicht mit sicherer Mönchslaterne (Relikt) und riskanter Schneideliturgie (Daten gegen Hüllenschaden)
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs
-- drei passive, direkt antippbare Übungsdummies mit großen Zielzonen und einen optionalen, aktiven Aschenplünderer für freiwillige Kampf-Tests, manuelle Salven auch während des Flugs und sichtbare Waffen-VFX
+- einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen gehören nur noch zur separaten Testkarte.
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Der Kern und gebaute Räume bilden eine zusammenhängende Top-down-Station ohne technische Hilfskästen
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
 - drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise
@@ -33,7 +33,7 @@ Der aktuelle spielbare Prototyp enthält:
 - einen bestätigten **TEST**-Reset in der Kopfzeile, der den lokalen Entwicklerstand vollständig auf die Rumpfwahl zurücksetzt
 - Touch-freundliche Querformat-PWA und taktische Pause
 
-Exploration ist bewusst der Kern; Kampf ist derzeit ein optionaler, risikofreier Testbereich und kein Dauercombat-Loop. Flug kostet keine Energie: die sich schnell regenerierende **Systemladung** ist ausschließlich eine weiche Begrenzung für Scanner, Minenlaser und Waffen. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
+Der erste Sektor erzählt jetzt die **verlorene Versorgungsroute**: Reliquie, Pilgerlaterne, Schneideliturgie und Routenader sind Teile derselben Spur; der Aschenplünderer bewacht optionale gestohlene Routenplatten. Exploration ist bewusst der Kern; Kampf ist kein Dauercombat-Loop. Flug kostet keine Energie: die sich schnell regenerierende **Systemladung** ist ausschließlich eine weiche Begrenzung für Scanner, Minenlaser und Waffen. Veloria Rift ist bewusst als Kartensonde markiert: eigene Atmosphäre und Signale sind vorhanden, Fraktion, Gefahren und Progression folgen erst mit dem Content-Ausbau.
 
 ## Entwicklungsstand
 

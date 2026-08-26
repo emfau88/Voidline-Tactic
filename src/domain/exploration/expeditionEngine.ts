@@ -25,10 +25,10 @@ const ASH_REAVER: HostileState = {
 };
 
 const SIGNAL_DETAILS: Record<SignalKind, Pick<SignalState, 'name' | 'risk' | 'description'>> = {
-  wreck: { name: 'Gebrochene Reliquie', risk: 'low', description: 'Ein kleines Ordenswrack. Die Hülle ist offen, aber stabil.' },
-  vein: { name: 'Schwarze Ader', risk: 'low', description: 'Verdichtete Legierungen liegen knapp unter einer ruhigen Staubwolke.' },
-  anomaly: { name: 'Violette Liturgie', risk: 'high', description: 'Ein singendes Feld verzerrt die Scanner. Wertvolle Daten, aber hohe Belastung.' },
-  distress: { name: 'Laterne im Staub', risk: 'medium', description: 'Ein schwaches Notsignal. Seine Quelle reagiert nicht auf Standardfunk.' },
+  wreck: { name: 'Gebrochene Reliquie', risk: 'low', description: 'Ein Ordenswrack der verlorenen Farhaven-Versorgungsroute. Die Hülle ist offen, aber stabil.' },
+  vein: { name: 'Schwarze Ader', risk: 'low', description: 'Unter der Staubwolke liegt ein eingekapselter Routenverstärker neben verdichteten Legierungen.' },
+  anomaly: { name: 'Violette Liturgie', risk: 'high', description: 'Ein singendes Feld hält verschlüsselte Routendaten fest. Seine Nähe zerrt an der Hülle.' },
+  distress: { name: 'Laterne im Staub', risk: 'medium', description: 'Ein Pilgersignal der verlorenen Route. Seine Quelle reagiert nicht auf Standardfunk.' },
 };
 
 function distance(first: Vector2, second: Vector2): number {
@@ -48,10 +48,10 @@ function cargoTotal(cargo: Cargo): number {
 }
 
 const SIGNAL_REWARDS: Readonly<Record<SignalKind, NonNullable<SignalState['reward']>>> = {
-  wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: alte Platten und ein intakter Kreiselkern.' },
-  vein: { kind: 'alloys', amount: 3, text: 'Die Minenlaser lösen dunkle Legierungen aus der Ader.' },
-  anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in verwertbare Sternendaten.' },
-  distress: { kind: 'relics', amount: 1, text: 'Die Laterne erlischt. In ihrem Gehäuse liegt eine kleine Reliquie.' },
+  wreck: { kind: 'alloys', amount: 3, text: 'Bergung abgeschlossen: Farhaven-Platten und ein Kreiselkern tragen dieselbe Routenkennung wie das Xenogate.' },
+  vein: { kind: 'alloys', amount: 3, text: 'Die Minenlaser lösen Legierungen aus der Ader. Der freigelegte Routenverstärker antwortet auf Farhavens Kennung.' },
+  anomaly: { kind: 'data', amount: 2, text: 'Die Liturgie zerfällt in Routendaten: Die Versorgungslinie wurde in Richtung Xenogate umgeleitet. Hülle -6.' },
+  distress: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne erlischt. Ihr Reliktkern enthält die erste Hälfte einer alten Navigationslitanei.' },
 };
 
 export function rewardForSignal(signal: SignalState): NonNullable<SignalState['reward']> {
@@ -120,17 +120,17 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
 }
 
 function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
-  const firstWreck: SignalState = { id: 'echo-wreck', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Gebrochene Reliquie', classifiedDescription: 'Ein kleines Ordenswrack. Die Hülle ist offen, aber stabil.', position: { x: 2_520, y: 1_230 }, knowledge: 'echo', risk: 'low' };
-  const blackVein: SignalState = { id: 'black-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Schwarze Ader', classifiedDescription: 'Verdichtete Legierungen liegen knapp unter einer ruhigen Staubwolke.', position: { x: 2_520, y: 1_830 }, knowledge: 'echo', risk: 'low' };
+  const firstWreck: SignalState = { id: 'echo-wreck', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Reliquie der Versorgungsroute', classifiedDescription: 'Ein Ordenswrack mit Farhaven-Kennung. Seine Platten zeigen auf eine verlorene Route zum Xenogate.', position: { x: 2_520, y: 1_230 }, knowledge: 'echo', risk: 'low' };
+  const blackVein: SignalState = { id: 'black-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Routenader', classifiedDescription: 'Legierungen kapseln einen alten Routenverstärker ein. Der Minenlaser kann ihn freilegen.', position: { x: 2_520, y: 1_830 }, knowledge: 'echo', risk: 'low' };
   if (scenario === 'first-wreck') return [firstWreck];
   if (scenario === 'second-shift') return [
-    { id: 'monk-lantern', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Mönchslaterne', classifiedDescription: 'Ein sanftes Notsignal. Seine kleine Reliquie liegt offen und wirkt sicher.', position: { x: 2_510, y: 1_235 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne wird geborgen. Ein Reliktkern ist gesichert.' } },
-    { id: 'cutting-liturgy', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Schneideliturgie', classifiedDescription: 'Fremde Routinen zeichnen eine Bauanleitung für präzise Abbauausleger. Ihre Nähe zerrt an der Hülle.', position: { x: 1_720, y: 1_240 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 6, text: 'Die Schneideliturgie wird entschlüsselt. Zwei Datensätze für einen Minenlaser sind gesichert. Hülle -6.' } },
+    { id: 'monk-lantern', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Mönchslaterne', classifiedDescription: 'Ein sanftes Pilgersignal. Der Reliktkern bewahrt die erste Hälfte einer Navigationslitanei — sicher zu bergen.', position: { x: 2_510, y: 1_235 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne wird geborgen. Ihr Reliktkern bewahrt die erste Hälfte der Routenlitanei.' } },
+    { id: 'cutting-liturgy', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Schneideliturgie', classifiedDescription: 'Fremde Routinen halten die zweite Hälfte der Route fest. Ihre Nähe zerrt an der Hülle.', position: { x: 1_720, y: 1_240 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 6, text: 'Die Schneideliturgie wird entschlüsselt. Die zweite Routenhälfte nennt eine versiegelte Ader. Hülle -6.' } },
     blackVein,
   ];
   if (scenario === 'mining-run') return [
     blackVein,
-    { id: 'raider-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Versiegelte Plündererkiste', classifiedDescription: 'Eine schwere Kiste mit Daten und Legierungen. Der Aschenplünderer patrouilliert direkt daneben.', position: { x: 2_920, y: 1_540 }, knowledge: 'echo', risk: 'high', guardedBy: 'ash-reaver', reward: { kind: 'alloys', amount: 3, text: 'Die Plündererkiste fällt auf. Drei Legierungen sind als Bonusbeute gesichert.' } },
+    { id: 'raider-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Plündererkiste der Route', classifiedDescription: 'Der Aschenplünderer bewacht eine Kiste mit gestohlenen Routenplatten. Du darfst ihn meiden oder vertreiben.', position: { x: 2_920, y: 1_540 }, knowledge: 'echo', risk: 'high', guardedBy: 'ash-reaver', reward: { kind: 'alloys', amount: 3, text: 'Die Plündererkiste fällt auf. Gestohlene Routenplatten und drei Legierungen sind gesichert.' } },
   ];
   return [
     firstWreck,
@@ -142,7 +142,8 @@ function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
 
 function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[] {
   if (scenario === 'mining-run') return [{ ...ASH_REAVER, position: { ...ASH_REAVER.position }, patrolCenter: { ...ASH_REAVER.patrolCenter } }];
-  return TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } }));
+  // Practice drones are kept for the separate free/test scenario, never mixed into the story sector.
+  return scenario === 'free' ? TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })) : [];
 }
 
 export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free'): ExpeditionState {

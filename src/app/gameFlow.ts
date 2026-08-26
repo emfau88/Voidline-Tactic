@@ -47,7 +47,7 @@ function scenarioForProfile(): ExpeditionScenario {
 }
 
 export function isXenogateUnlocked(): boolean {
-  return profile.expeditionCount >= 3 && (profile.ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID) ?? false);
+  return profile.story.routeTraceRecovered && (profile.ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID) ?? false);
 }
 
 export function getPrologueObjective(): PrologueObjective {
@@ -55,24 +55,24 @@ export function getPrologueObjective(): PrologueObjective {
   if (expedition) {
     if (expedition.scenario === 'first-wreck') {
       const firstWreck = expedition.signals.find((signal) => signal.id === 'echo-wreck');
-      if (firstWreck?.knowledge === 'echo') return { kicker: 'ERSTE EXPEDITION · 1/4', title: 'DAS NAHE ECHO SCANNEN', copy: 'Der Scanner erreicht ein unbekanntes Signal direkt nordöstlich von Farhaven.' };
-      if (firstWreck?.knowledge === 'classified') return { kicker: 'ERSTE EXPEDITION · 2/4', title: 'ZUR GEBROCHENEN RELIQUIE', copy: 'Tippe das Signal auf der Karte an, fliege heran und sichere die Bergung.' };
-      return { kicker: 'ERSTE EXPEDITION · 3/4', title: 'FRACHT HEIMBRINGEN', copy: 'Die Legierungen sind im Frachtraum. Kehre jetzt nach Farhaven zurück.' };
+      if (firstWreck?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 1/5', title: 'DAS NAHE ECHO SCANNEN', copy: 'Ein Signal trägt Farhavens alte Versorgungskennung. Scanne es nordöstlich der Station.' };
+      if (firstWreck?.knowledge === 'classified') return { kicker: 'VERLORENE ROUTE · 2/5', title: 'DIE ROUTENRELIQUIE BERGEN', copy: 'Tippe den Fund an, fliege heran und sichere seine Platten und den Kreiselkern.' };
+      return { kicker: 'VERLORENE ROUTE · 3/5', title: 'DEN ERSTEN HINWEIS HEIMBRINGEN', copy: 'Die Bergung nennt das Xenogate. Kehre nach Farhaven zurück und sichere die Fracht.' };
     }
     if (expedition.scenario === 'second-shift') {
       const lantern = expedition.signals.find((signal) => signal.id === 'monk-lantern');
       const liturgy = expedition.signals.find((signal) => signal.id === 'cutting-liturgy');
-      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo') return { kicker: 'ZWEITE SCHICHT · 1/4', title: 'ZWEI ECHOS SCANNEN', copy: 'Eine sichere Mönchslaterne und eine riskante Schneideliturgie liegen in Scannerreichweite.' };
-      if (lantern?.knowledge !== 'resolved' || liturgy?.knowledge !== 'resolved') return { kicker: 'ZWEITE SCHICHT · 2/4', title: 'SICHER ODER RISKANT', copy: 'Berge die Mönchslaterne für ein Relikt und deute die Schneideliturgie für Minenlaser-Daten. Die Liturgie kostet 6 Hülle.' };
-      return { kicker: 'ZWEITE SCHICHT · 3/4', title: 'BAUPLAN HEIMBRINGEN', copy: 'Reliktkern und Datensätze liegen in der Fracht. Kehre für den Minenlaser nach Farhaven zurück.' };
+      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'ZWEI HÄLFTEN DER LITANEI', copy: 'Scanne die sichere Mönchslaterne und die riskante Schneideliturgie. Beide antworten auf die alte Route.' };
+      if (lantern?.knowledge !== 'resolved' || liturgy?.knowledge !== 'resolved') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'SICHER ODER RISKANT', copy: 'Die Laterne gibt ein Relikt sicher frei. Die Liturgie gibt Routendaten, kostet aber 6 Hülle.' };
+      return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENBRECHER BAUEN', copy: 'Reliktkern und Datensätze reichen für einen Minenlaser. Er kann die versiegelte Routenader freilegen.' };
     }
     if (expedition.scenario === 'mining-run') {
       const vein = expedition.signals.find((signal) => signal.id === 'black-vein');
       const cache = expedition.signals.find((signal) => signal.id === 'raider-cache');
-      if (vein?.knowledge === 'echo') return { kicker: 'DRITTE SCHICHT · 1/3', title: 'SCHWARZE ADER SCANNEN', copy: 'Der neue Minenlaser kann eine nahe Legierungsader erschließen.' };
-      if (vein?.knowledge !== 'resolved') return { kicker: 'DRITTE SCHICHT · 2/3', title: 'DIE ADER ABBAUEN', copy: 'Fliege an die Schwarze Ader heran und setze den Minenlaser ein.' };
-      if (cache?.knowledge !== 'resolved') return { kicker: 'OPTIONALE GEFAHR', title: 'PLÜNDERER ODER RÜCKKEHR', copy: 'Die Ader ist gesichert. Eine Plündererkiste wartet hinter dem Aschenplünderer – du darfst kämpfen oder jetzt heimkehren.' };
-      return { kicker: 'DRITTE SCHICHT · 3/3', title: 'MIT BONUSBEUTE HEIMKEHREN', copy: 'Die Ader und die Plündererkiste sind gesichert. Farhaven wartet.' };
+      if (vein?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DIE ROUTENADER SCANNEN', copy: 'Der Minenlaser kann einen Routenverstärker unter einer versiegelten Ader freilegen.' };
+      if (vein?.knowledge !== 'resolved') return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN FREILEGEN', copy: 'Fliege zur Routenader und setze den Minenlaser ein. Der Verstärker ist der letzte Hinweis.' };
+      if (cache?.knowledge !== 'resolved') return { kicker: 'OPTIONALE KONFRONTATION', title: 'PLÜNDERER ODER HEIMKEHR', copy: 'Der Routenverstärker ist gesichert. Die gestohlenen Platten hinter dem Aschenplünderer sind Bonusbeute, kein Zwang.' };
+      return { kicker: 'VERLORENE ROUTE · 5/5', title: 'MIT DER GANZEN SPUR HEIMKEHREN', copy: 'Der Routenkern und die Plündererplatten sind gesichert. Farhaven kann das Xenogate lesen.' };
     }
     return { kicker: 'EXPEDITION', title: 'EIN SIGNAL UNTERSUCHEN', copy: 'Scanne, positioniere dich und sichere einen Fund.' };
   }
@@ -91,8 +91,8 @@ export function getPrologueObjective(): PrologueObjective {
       ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' }
       : { kicker: 'ZWEITE SCHICHT', title: 'BAUPLAN FINDEN', copy: 'Mönchslaterne und Schneideliturgie liefern zusammen genau das Material für einen Minenlaser.' };
   }
-  if (!isXenogateUnlocked()) return { kicker: 'DRITTE SCHICHT', title: 'EINE ADER ERSCHLIESSEN', copy: 'Der Minenlaser ist bereit. Kehre in den Aschsaum zurück und sichere deine erste Schwarze Ader.' };
-  return { kicker: 'XENOGATE BEREIT', title: 'VELORIA RIFT DURCHQUEREN', copy: 'Drei Rückkehrer und der Minenlaser haben das Tor synchronisiert. Fliege zum Xenogate.' };
+  if (!isXenogateUnlocked()) return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN HEIMBRINGEN', copy: 'Der Minenlaser ist bereit. Sichere die Routenader im Aschsaum und kehre mit dem Verstärker zurück.' };
+  return { kicker: 'VERLORENE ROUTE · ABSCHLUSS', title: 'DAS XENOGATE ÖFFNEN', copy: 'Farhaven hat die verlorene Versorgungslinie rekonstruiert. Ihre Spur führt nach Veloria Rift.' };
 }
 
 export function beginExpedition(): ExpeditionState {
@@ -202,8 +202,13 @@ export function fireWeapons(targetId: string | undefined, weapon: WeaponMode): b
 
 export function completeReturn(): void {
   if (!expedition) return;
+  const recoveredRouteTrace = expedition.scenario === 'mining-run'
+    && expedition.signals.some((signal) => signal.id === 'black-vein' && signal.knowledge === 'resolved');
   pendingReturnCargo = finishExpedition(expedition).cargo;
-  profile = secureCargo(profile, pendingReturnCargo);
+  profile = {
+    ...secureCargo(profile, pendingReturnCargo),
+    story: { routeTraceRecovered: profile.story.routeTraceRecovered || recoveredRouteTrace },
+  };
   saveProfile(profile);
   expedition = undefined;
   selectedTargetId = undefined;

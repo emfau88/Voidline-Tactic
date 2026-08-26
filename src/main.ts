@@ -307,7 +307,7 @@ function renderExpedition(): void {
     interact.disabled = false;
   } else if (atWormhole) {
     interactLabel.textContent = 'VERSIEGELT';
-    interact.querySelector('small')!.textContent = 'Noch 3 Rückkehrer + Minenlaser';
+    interact.querySelector('small')!.textContent = 'Routenkern aus dem Aschsaum fehlt';
     interact.disabled = true;
   } else if (nearbyGuard) {
     interactLabel.textContent = 'BEUTE GESCHÜTZT';
@@ -350,7 +350,7 @@ function renderExpedition(): void {
     ? 'RÜCKKEHR LÄUFT'
     : expedition.sectorId === 'veloria-rift'
       ? 'VELORIA RIFT · KARTENSONDE'
-      : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : 'ZIEL AUF KARTE WÄHLEN';
+      : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : expedition.hostiles.length ? 'ZIEL AUF KARTE WÄHLEN' : 'EXPLORATION · SCANNEN';
   const list = required<HTMLElement>('signal-list');
   list.replaceChildren(...expedition.signals.filter((signal) => signal.knowledge === 'classified').map((signal) => {
     const item = document.createElement('button');
@@ -395,7 +395,7 @@ function startExpedition(): void {
   beginExpedition();
   game.scene.stop('outpost');
   game.scene.start('expedition');
-  toast('Aschsaum I erreicht. Steuere die Aster Vale mit dem Flugstick.');
+  toast('Aschsaum I erreicht. Suche die verlorene Versorgungsroute von Farhaven.');
 }
 
 required<HTMLButtonElement>('launch-button').addEventListener('click', startExpedition);
@@ -451,7 +451,7 @@ game.events.on('farhaven:wormhole-selected', () => {
   const expedition = getExpedition();
   if (!expedition || expedition.sectorId !== 'ashenscar') return;
   if (!isXenogateUnlocked()) {
-    toast('XENOGATE VERSIEGELT · Minenlaser einbauen und drei Expeditionen sicher zurückbringen.');
+    toast('XENOGATE VERSIEGELT · Der Routenkern aus der versiegelten Ader fehlt noch.');
     return;
   }
   if (canEnterWormhole(expedition)) {

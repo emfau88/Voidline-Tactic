@@ -74,6 +74,8 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 
 - ✅ Scanbare Echos mit Zuständen: unbekannt, klassifiziert, aufgelöst
 - ✅ Wracks, Adern, Anomalien und Notsignale als unterschiedliche Fundtypen
+- ✅ Erster Handlungsbogen „Die verlorene Versorgungsroute“: alle Kernfunde im Aschsaum führen zum Xenogate
+- ✅ Übungsdummies aus dem normalen Sektor entfernt; optionaler Aschenplünderer ist der erste echte Gegner
 - ✅ Wurmloch und erste Platzhalter-Region „Veloria Rift“
 - ⬜ Zweiten Sektor als echten, in sich stimmigen Spielraum ausarbeiten
 - ⬜ 12–15 kurze Entdeckungsereignisse mit kleinen Entscheidungen
