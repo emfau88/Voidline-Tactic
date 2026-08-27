@@ -67,11 +67,25 @@ let paused = false;
 let toastTimer: number | undefined;
 let selectedFacility: FacilityId | undefined;
 let outpostTapShieldUntil = 0;
+let outpostTapShieldTimer: number | undefined;
 let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
 let pendingVisualCargo: Cargo | undefined;
 let coreInfoOpen = false;
+
+function shieldOutpostTaps(durationMs: number, persistForNextScene = false): void {
+  outpostTapShieldUntil = Date.now() + durationMs;
+  if (persistForNextScene) game.registry.set('farhaven-outpost-input-unlock-at', outpostTapShieldUntil);
+  window.clearTimeout(outpostTapShieldTimer);
+  game.events.emit('farhaven:outpost-interaction-lock', true);
+  // Date comparisons inside a render are only a guard. This explicit release
+  // is the authority, so a late render can never leave the station locked.
+  outpostTapShieldTimer = window.setTimeout(() => {
+    outpostTapShieldUntil = 0;
+    if (shell.dataset.screen === 'outpost') updateOutpostChrome();
+  }, durationMs + 48);
+}
 
 const DISCOVERY_NAMES: Readonly<Record<string, string>> = {
   'echo-wreck': 'Reliquie der Versorgungsroute',
@@ -486,7 +500,6 @@ function startExpedition(): void {
   coreInfoOpen = false;
   facilityPanel.hidden = true;
   shipyardPanel.hidden = true;
-  outpostTapShieldUntil = Date.now() + 320;
   required<HTMLButtonElement>('pause-button').setAttribute('aria-pressed', 'false');
   beginExpedition();
   game.scene.stop('outpost');
@@ -504,7 +517,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-va
     // Phaser receives a pointer-up shortly after this DOM click on some browsers.
     // Keep the station targets closed for that short tail so choosing a hull never
     // accidentally opens the dock located behind the confirmation card.
-    outpostTapShieldUntil = Date.now() + 220;
+    shieldOutpostTaps(220);
     if (chooseStartingShip(variant)) {
       toast(`${SHIP_VARIANTS[variant].name.toUpperCase()} LIEGT AM NOTDOCK · FARHAVEN BRAUCHT EINEN HANGAR.`);
       // The screen transition itself owns the next frame. Clear any room that
@@ -753,8 +766,7 @@ subscribe(() => {
     coreInfoOpen = false;
     facilityPanel.hidden = true;
     shipyardPanel.hidden = true;
-    outpostTapShieldUntil = Date.now() + 1_050;
-    game.registry.set('farhaven-outpost-input-unlock-at', outpostTapShieldUntil);
+    shieldOutpostTaps(1_050, true);
     game.scene.stop('expedition');
     game.scene.start('outpost');
     if (resettingForDevelopment) {
