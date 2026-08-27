@@ -7,6 +7,9 @@ const MAX_LOG_ENTRIES = 4;
 const DUMMY_RESPAWN_MS = 2_700;
 const SYSTEM_RECHARGE_PER_MS = 0.012;
 const RETURN_TRAVEL_SPEED = 0.3;
+const WATCH_RADIUS = 560;
+const ALERT_RADIUS = 420;
+const ESCAPE_RADIUS = 780;
 export const WORMHOLE_POSITION: Vector2 = { x: 1_360, y: 1_320 };
 const WORMHOLE_ENTRY_RANGE = 170;
 
@@ -31,9 +34,14 @@ const RECOVERY_HOSTILES: readonly HostileState[] = [
     patrolPhase: 0, heading: Math.PI / 2, hull: 3, maxHull: 3, attackCooldownMs: 0,
   },
   {
-    id: 'vault-sentinel', name: 'Gewölbewächter', kind: 'sentinel', passive: false, status: 'patrol',
+    id: 'vault-sentinel', name: 'Reliquienwächter', kind: 'sentinel', passive: false, status: 'patrol',
     position: { x: 1_210, y: 1_900 }, patrolCenter: { x: 1_210, y: 1_900 }, patrolRadius: 34,
     patrolPhase: Math.PI, heading: 0, hull: 7, maxHull: 7, attackCooldownMs: 0,
+  },
+  {
+    id: 'ash-cantor', name: 'Aschenkantor', kind: 'guardian', passive: false, status: 'patrol',
+    position: { x: 1_055, y: 1_335 }, patrolCenter: { x: 1_055, y: 1_335 }, patrolRadius: 0,
+    patrolPhase: 0, heading: Math.PI / 2, hull: 14, maxHull: 14, attackCooldownMs: 0,
   },
 ];
 
@@ -84,8 +92,18 @@ function appendLog(state: ExpeditionState, entry: string): ExpeditionState {
 }
 
 function rechargeSystems(state: ExpeditionState, deltaMs: number): ExpeditionState {
-  if (deltaMs <= 0 || state.energy >= state.maxEnergy) return state;
-  return { ...state, energy: Math.min(state.maxEnergy, state.energy + deltaMs * SYSTEM_RECHARGE_PER_MS) };
+  if (deltaMs <= 0) return state;
+  const current = state.weaponCooldowns ?? { broadside: 0, rail: 0, torpedo: 0, orb: 0 };
+  return {
+    ...state,
+    energy: Math.min(state.maxEnergy, state.energy + deltaMs * SYSTEM_RECHARGE_PER_MS),
+    weaponCooldowns: {
+      broadside: Math.max(0, current.broadside - deltaMs),
+      rail: Math.max(0, current.rail - deltaMs),
+      torpedo: Math.max(0, current.torpedo - deltaMs),
+      orb: Math.max(0, current.orb - deltaMs),
+    },
+  };
 }
 
 function forwardVector(heading: number): Vector2 {
@@ -107,30 +125,41 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
     const dy = state.position.y - hostile.position.y;
     const remaining = Math.hypot(dx, dy);
     const attackCooldownMs = Math.max(0, (hostile.attackCooldownMs ?? 0) - deltaMs);
-    const alerted = hostile.status === 'alert' || remaining < 420;
-    if (!alerted || remaining > 780) {
+    const alertRadius = hostile.kind === 'guardian' ? 500 : ALERT_RADIUS;
+    const escapeRadius = hostile.kind === 'guardian' ? 860 : ESCAPE_RADIUS;
+    const alerted = hostile.status === 'alert' || remaining < alertRadius;
+    if (!alerted || remaining > escapeRadius) {
+      if (hostile.status === 'alert' && remaining > escapeRadius) attackLogs.push(`${hostile.name} bricht die Verfolgung ab.`);
       const patrolPhase = hostile.patrolPhase + deltaMs * 0.00034;
       const position = {
         x: hostile.patrolCenter.x + Math.cos(patrolPhase) * hostile.patrolRadius,
         y: hostile.patrolCenter.y + Math.sin(patrolPhase) * hostile.patrolRadius,
       };
-      return { ...hostile, status: 'patrol', position, patrolPhase, heading: patrolPhase + Math.PI, attackCooldownMs };
+      const status = remaining < WATCH_RADIUS ? 'watchful' as const : 'patrol' as const;
+      return { ...hostile, status, position, patrolPhase, heading: patrolPhase + Math.PI, attackCooldownMs };
     }
-    if (hostile.status === 'patrol' && remaining < 420) {
-      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: 1_350 };
+    if (hostile.status !== 'alert' && remaining < alertRadius) {
+      const warningMs = hostile.kind === 'guardian' ? 2_600 : hostile.kind === 'sentinel' ? 2_100 : hostile.kind === 'patrol' ? 1_050 : 1_350;
+      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: warningMs };
     }
-    if (remaining <= 430 && attackCooldownMs <= 0) {
-      const damage = hostile.kind === 'sentinel' ? 7 : 4;
+    if (remaining <= (hostile.kind === 'guardian' ? 500 : 430) && attackCooldownMs <= 0) {
+      const damage = hostile.kind === 'guardian' ? 11 : hostile.kind === 'sentinel' ? 8 : hostile.kind === 'patrol' ? 3 : 4;
       playerHull = Math.max(0, playerHull - damage);
-      attackLogs.push(`${hostile.name} feuert eine angekündigte Salve. Hülle -${damage}.`);
-      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: hostile.kind === 'sentinel' ? 3_800 : 2_900 };
+      attackLogs.push(`${hostile.name} ${hostile.kind === 'guardian' ? 'vollendet den Aschenchor' : hostile.kind === 'sentinel' ? 'entlädt seine Energiekugel' : hostile.kind === 'patrol' ? 'zieht eine schnelle Streusalve' : 'feuert eine angekündigte Salve'}. Hülle -${damage}.`);
+      return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: hostile.kind === 'guardian' ? 6_200 : hostile.kind === 'sentinel' ? 4_800 : hostile.kind === 'patrol' ? 2_250 : 2_900 };
     }
-    if (remaining < 330) return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs };
-    const travel = Math.min(remaining - 330, deltaMs * (hostile.kind === 'raider' ? 0.052 : 0.038));
+    if (hostile.kind === 'sentinel' || hostile.kind === 'guardian') return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs };
+    const desiredRange = hostile.kind === 'patrol' ? 285 : 330;
+    const approach = remaining > desiredRange ? Math.min(remaining - desiredRange, deltaMs * (hostile.kind === 'raider' ? 0.052 : 0.044)) : 0;
+    const orbit = hostile.kind === 'patrol' ? deltaMs * 0.025 : 0;
+    const side = hostile.id.length % 2 === 0 ? 1 : -1;
     return {
       ...hostile,
       status: 'alert',
-      position: { x: hostile.position.x + dx / remaining * travel, y: hostile.position.y + dy / remaining * travel },
+      position: {
+        x: hostile.position.x + dx / remaining * approach - dy / remaining * orbit * side,
+        y: hostile.position.y + dy / remaining * approach + dx / remaining * orbit * side,
+      },
       heading: Math.atan2(dy, dx) + Math.PI / 2,
       attackCooldownMs,
     };
@@ -161,9 +190,10 @@ function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
   if (scenario === 'recovery-run') return [
     { id: 'drift-smelter', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Treibende Schmelze', classifiedDescription: 'Ein aufgebrochener Lastkahn trägt noch verwertbare Legierungsplatten.', position: { x: 2_620, y: 970 }, knowledge: 'echo', risk: 'low', reward: { kind: 'alloys', amount: 2, text: 'Zwei Legierungen wandern aus der treibenden Schmelze in den Frachtraum.' } },
     { id: 'cold-archive', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Kaltes Archiv', classifiedDescription: 'Ein stiller Datenspeicher mit geringer Feldspannung. Die Deutung kostet etwas Hülle.', position: { x: 1_460, y: 870 }, knowledge: 'echo', risk: 'medium', reward: { kind: 'data', amount: 2, hullCost: 2, text: 'Das kalte Archiv gibt zwei Datensätze frei. Hülle -2.' } },
-    { id: 'pilgrim-vigil', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Pilgerwacht', classifiedDescription: 'Eine verlassene Gebetskapsel bewahrt einen kleinen Reliktkern.', position: { x: 1_330, y: 1_900 }, knowledge: 'echo', risk: 'medium', guardedBy: 'vault-sentinel', reward: { kind: 'relics', amount: 1, text: 'Der Reliktkern der Pilgerwacht ist gesichert.' } },
+    { id: 'pilgrim-vigil', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Pilgerwacht', classifiedDescription: 'Eine verlassene Gebetskapsel bewahrt einen kleinen Reliktkern. Der ortsfeste Reliquienwächter kontrolliert nur ihren direkten Raum.', position: { x: 1_330, y: 1_900 }, knowledge: 'echo', risk: 'medium', guardedBy: 'vault-sentinel', reward: { kind: 'relics', amount: 1, text: 'Der Reliktkern der Pilgerwacht ist gesichert.' } },
     { id: 'working-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Offene Eisenader', classifiedDescription: 'Eine wiederkehrende Abbaustelle für Farhavens Maschinen.', position: { x: 3_320, y: 2_020 }, knowledge: 'echo', risk: 'low', reward: { kind: 'alloys', amount: 3, text: 'Drei Legierungen werden aus der offenen Ader geschnitten.' } },
-    { id: 'skiff-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Glutkutter-Beute', classifiedDescription: 'Gestohlene Platten hinter der Patrouille. Kampf ist optional.', position: { x: 3_050, y: 1_090 }, knowledge: 'echo', risk: 'high', guardedBy: 'cinder-skiff', reward: { kind: 'alloys', amount: 3, text: 'Die Beute des Glutkutters ist gesichert: drei Legierungen.' } },
+    { id: 'skiff-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Glutkutter-Beute', classifiedDescription: 'Gestohlene Platten hinter einer schnellen Flankenpatrouille. Kampf ist optional; außerhalb ihrer Zone verliert sie das Interesse.', position: { x: 3_050, y: 1_090 }, knowledge: 'echo', risk: 'high', guardedBy: 'cinder-skiff', reward: { kind: 'alloys', amount: 3, text: 'Die Beute des Glutkutters ist gesichert: drei Legierungen.' } },
+    { id: 'cantor-reliquary', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Kantorenherz', classifiedDescription: 'Ein einzigartiger Reliktkern hinter dem Aschenkantor. Bekämpfe ihn – oder beruhige seine Liturgie mit der Breitbandarray aus kurzer Distanz.', position: { x: 905, y: 1_335 }, knowledge: 'echo', risk: 'high', guardedBy: 'ash-cantor', reward: { kind: 'relics', amount: 2, text: 'Das Kantorenherz ist gesichert. Farhaven archiviert seinen Bauplan als einzigartiges Wächterrelikt.' } },
   ];
   return [
     firstWreck,
@@ -180,7 +210,7 @@ function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[]
   return scenario === 'free' ? TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })) : [];
 }
 
-export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0, salvageBonus = 0): ExpeditionState {
+export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0, salvageBonus = 0, cantorBypass = false): ExpeditionState {
   return {
     sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
@@ -200,9 +230,11 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: Expedi
     scanRadius: 560 + scanBonus,
     hullRiskReduction,
     salvageBonus,
+    cantorBypass,
     signals: scenarioSignals(scenario),
     hostiles: scenarioHostiles(scenario),
     dummyRespawns: [],
+    weaponCooldowns: { broadside: 0, rail: 0, torpedo: 0, orb: 0 },
     log: ['Die Schleuse von Farhaven schließt sich hinter dir.'],
   };
 }
@@ -313,6 +345,8 @@ export function stepExpedition(state: ExpeditionState, deltaMs: number): Expedit
 export function scan(state: ExpeditionState): ExpeditionState {
   if (state.status !== 'active' || state.energy < 8) return appendLog(state, 'Scanner nicht bereit: mindestens 8 Systemladung erforderlich.');
   let found = 0;
+  const cantor = state.hostiles.find((hostile) => hostile.id === 'ash-cantor');
+  const cantorPacified = Boolean(state.cantorBypass && cantor && distance(cantor.position, state.position) <= 470);
   const signals = state.signals.map((signal) => {
     if (signal.knowledge !== 'echo' || distance(signal.position, state.position) > state.scanRadius) return signal;
     found += 1;
@@ -325,7 +359,9 @@ export function scan(state: ExpeditionState): ExpeditionState {
       knowledge: 'classified' as const,
     };
   });
-  return appendLog({ ...state, signals, energy: state.energy - 8 }, found > 0 ? `${found} Signal${found === 1 ? '' : 'e'} klassifiziert.` : 'Scan beendet. Nur Stille antwortet.');
+  return appendLog({ ...state, signals, hostiles: cantorPacified ? state.hostiles.filter((hostile) => hostile.id !== 'ash-cantor') : state.hostiles, energy: state.energy - 8 }, cantorPacified
+    ? 'Die Breitbandarray antwortet auf den Aschenchor. Der Kantor senkt seine Waffen und gleitet aus dem Kampfgebiet.'
+    : found > 0 ? `${found} Signal${found === 1 ? '' : 'e'} klassifiziert.` : 'Scan beendet. Nur Stille antwortet.');
 }
 
 export function investigate(state: ExpeditionState, signalId: string): ExpeditionState {
@@ -388,11 +424,11 @@ export interface WeaponReadiness {
   readonly reason: string;
 }
 
-const WEAPON_RULES: Record<WeaponMode, { energy: number; range: number; damage: number; name: string }> = {
-  broadside: { energy: 4, range: 430, damage: 1, name: 'Breitseite' },
-  rail: { energy: 10, range: 620, damage: 2, name: 'Rail-Lanze' },
-  torpedo: { energy: 13, range: 700, damage: 3, name: 'Torpedo' },
-  orb: { energy: 15, range: 500, damage: 2, name: 'Energiekugel' },
+const WEAPON_RULES: Record<WeaponMode, { energy: number; range: number; damage: number; cooldownMs: number; name: string }> = {
+  broadside: { energy: 4, range: 430, damage: 1, cooldownMs: 760, name: 'Breitseite' },
+  rail: { energy: 12, range: 620, damage: 2, cooldownMs: 2_350, name: 'Rail-Lanze' },
+  torpedo: { energy: 15, range: 700, damage: 3, cooldownMs: 3_100, name: 'Torpedo' },
+  orb: { energy: 16, range: 500, damage: 2, cooldownMs: 2_700, name: 'Energiekugel' },
 };
 
 export function weaponReadiness(state: ExpeditionState, targetId: string | undefined, weapon: WeaponMode): WeaponReadiness {
@@ -400,9 +436,12 @@ export function weaponReadiness(state: ExpeditionState, targetId: string | undef
   if (state.status !== 'active') return { ready: false, reason: 'Rückkehr aktiv' };
   if (!target) return { ready: false, reason: 'Ziel auf Karte antippen' };
   const rules = WEAPON_RULES[weapon];
+  const cooldown = state.weaponCooldowns?.[weapon] ?? 0;
+  if (cooldown > 0) return { ready: false, reason: `Lädt · ${(cooldown / 1000).toFixed(1)}s` };
   const targetDistance = distance(target.position, state.position);
   if (targetDistance > rules.range) return { ready: false, reason: `Außer Reichweite · ${Math.round(targetDistance)}u` };
   if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Systemladung · ${rules.energy} nötig` };
+  if (target.kind === 'guardian' && target.status === 'alert' && (target.attackCooldownMs ?? 0) > 2_600) return { ready: false, reason: `Chorschild aktiv · öffnet in ${(((target.attackCooldownMs ?? 0) - 2_600) / 1000).toFixed(1)}s` };
   // Practice contacts are there to test visible weapons, not to require a precise
   // maneuver before the first shot. Real opponents still demand positioning.
   if (target.passive) return { ready: true, reason: `Feuer frei · ${target.name}` };
@@ -428,7 +467,13 @@ export function fireWeapon(state: ExpeditionState, targetId: string | undefined,
   const result = ending
     ? target.passive ? `${target.name} zerfällt. Ein neues Prüfsignal wird vorbereitet.` : `${target.name} bricht in glühende Trümmer.`
     : target.passive ? `${rules.name} trifft ${target.name}. Keine Gegenwehr.` : `${rules.name} trifft ${target.name}. Alarmlichter erwachen.`;
-  return appendLog({ ...state, hostiles, dummyRespawns, energy: state.energy - rules.energy }, result);
+  return appendLog({
+    ...state,
+    hostiles,
+    dummyRespawns,
+    energy: state.energy - rules.energy,
+    weaponCooldowns: { ...(state.weaponCooldowns ?? { broadside: 0, rail: 0, torpedo: 0, orb: 0 }), [weapon]: rules.cooldownMs },
+  }, result);
 }
 
 export function firePrimary(state: ExpeditionState, targetId?: string): ExpeditionState {

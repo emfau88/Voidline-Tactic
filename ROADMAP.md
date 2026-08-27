@@ -1,6 +1,6 @@
 # Voidline: Farhaven — Produkt-Roadmap
 
-Stand: 26. August 2026
+Stand: 27. August 2026
 Status-Legende: ✅ fertig · 🚧 in Arbeit · ⬜ geplant · 🧪 validieren
 
 ## 1. Zielbild
@@ -107,12 +107,12 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Manuelles Feuern während der Bewegung
 - ✅ Passive, wiederkehrende Testdummies nur im getrennten Testscenario; keine Attrappen im Storysektor
 - ✅ Prototypen für Breitseite, Rail-Lanze, Torpedo und Energiekugel
-- ⬜ Waffenrollen, Reichweiten und Trefferfeedback sauber balancieren
+- ✅ Waffenrollen, Reichweiten, getrennte Cooldowns und Trefferfeedback als erster balancierbarer Stand
 - ✅ Gegnertelegraphen und Ausweichfenster statt überraschender Soforttreffer
-- 🚧 Glutkutter und schwerer Gewölbe-/Kokonwächter als zusätzliche Gegnerrollen
+- ✅ Glutkutter als Flankenjäger und Reliquienwächter als ortsfester Raumkontroll-Gegner
 - ⬜ Enterhaken/Bergungsentscheidung als seltene Nahkampfoption
 - ✅ Kampfzonen können umflogen und nach Alarm wieder verlassen werden
-- 🚧 Schwerer Kokonwächter als besonderer Veloria-Kontakt
+- ✅ Aschenkantor als besonderer Wächter mit Chorschild, eigenem Asset, einzigartiger Beute und kampfloser Breitband-Alternative
 - ⬜ Zielwert validieren: Kampf unter etwa 30 % der normalen Spielzeit
 
 ### M5 — Farhaven als lebende, wachsende Heimat
@@ -171,7 +171,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 2. 🧪 **Bulk B – Zehn-Minuten-UX:** drei externe Tests, Sackgassen und unklare Ziele beseitigen.
 3. 🚧 **Bulk C – Explorationstiefe:** Veloria-Grundraum, sechs Ereignisse, neutraler Kontakt und Fundprotokoll stehen; Entscheidungen und Sektorgeheimnis werden noch vertieft.
 4. 🚧 **Bulk D – Sechs echte Schiffs-Upgrades:** organische Bauteile und Funktionen stehen; die Einbau- und passiven System-VFX werden noch vervollständigt.
-5. 🚧 **Bulk E – Kampf-Vertical-Slice:** zusätzliche Gegnerrollen, Vorwarnung, sichtbare Feindgeschosse und freiwillige Wächterzonen stehen; Balance und Abschlussgegner müssen validiert werden.
+5. 🧪 **Bulk E – Kampf-Vertical-Slice:** Feuerkorridore, Cooldowns, Audio/VFX, zwei Gegnerrollen und der optionale Aschenkantor stehen; jetzt Mobile-Balance und Kampfanteil mit Spielern validieren.
 6. ⬜ **Bulk F – Farhaven Level 2:** sichtbare Upgrades und Ambient-Leben erst auf dem validierten Loop.
 7. ⬜ **Bulk G – Polish/Release:** Audio, Lesbarkeit, Performance, Speicherung und Deployment.
 

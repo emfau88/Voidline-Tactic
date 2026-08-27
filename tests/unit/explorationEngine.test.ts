@@ -197,6 +197,33 @@ describe('exploration engine', () => {
     expect(stepExpedition(warned, 1_400).hull).toBe(0);
   });
 
+  it('gives the recovery contacts distinct, avoidable combat roles', () => {
+    const run = createExpedition(0, 4, 'recovery-run');
+    const skiff = run.hostiles.find((hostile) => hostile.id === 'cinder-skiff')!;
+    const sentinel = run.hostiles.find((hostile) => hostile.id === 'vault-sentinel')!;
+    const skiffAlert = stepExpedition({ ...run, position: { x: skiff.position.x - 400, y: skiff.position.y } }, 40);
+    expect(skiffAlert.hostiles.find((hostile) => hostile.id === skiff.id)?.status).toBe('alert');
+    const sentinelAlert = stepExpedition({ ...run, position: { x: sentinel.position.x - 400, y: sentinel.position.y } }, 40);
+    const sentinelAfter = sentinelAlert.hostiles.find((hostile) => hostile.id === sentinel.id)!;
+    expect(sentinelAfter.status).toBe('alert');
+    expect(sentinelAfter.position).toEqual(sentinel.position);
+    const escaped = stepExpedition({ ...skiffAlert, position: { x: skiff.position.x - 900, y: skiff.position.y } }, 40);
+    expect(escaped.hostiles.find((hostile) => hostile.id === skiff.id)?.status).toBe('patrol');
+    expect(escaped.log[0]).toContain('bricht die Verfolgung ab');
+  });
+
+  it('offers combat or a broadband scan as alternatives at the Aschenkantor', () => {
+    const combatRun = createExpedition(0, 8, 'recovery-run');
+    expect(combatRun.hostiles.find((hostile) => hostile.id === 'ash-cantor')).toMatchObject({ kind: 'guardian', hull: 14 });
+    const cantor = combatRun.hostiles.find((hostile) => hostile.id === 'ash-cantor')!;
+    const bypassRun = createExpedition(0, 8, 'recovery-run', 0, 0, true);
+    const pacified = scan({ ...bypassRun, position: { x: cantor.position.x + 300, y: cantor.position.y } });
+    expect(pacified.hostiles.some((hostile) => hostile.id === 'ash-cantor')).toBe(false);
+    expect(pacified.log[0]).toContain('Breitbandarray');
+    const reward = pacified.signals.find((signal) => signal.id === 'cantor-reliquary');
+    expect(reward?.reward).toMatchObject({ kind: 'relics', amount: 2 });
+  });
+
   it('fires only when a hostile contact is in range', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;
@@ -232,6 +259,16 @@ describe('exploration engine', () => {
     const misaligned = { ...start, heading: Math.PI / 2 };
     expect(weaponReadiness(misaligned, target.id, 'rail').ready).toBe(true);
     expect(weaponReadiness(misaligned, target.id, 'broadside').ready).toBe(true);
+  });
+
+  it('enforces an individual cooldown and recharges it while the ship keeps moving', () => {
+    const start = createExpedition();
+    const target = start.hostiles[0]!;
+    const fired = fireWeapon(start, target.id, 'broadside');
+    expect(weaponReadiness(fired, target.id, 'broadside')).toMatchObject({ ready: false });
+    expect(weaponReadiness(fired, target.id, 'rail')).toMatchObject({ ready: true });
+    const recharged = stepExpedition({ ...fired, flightInput: { x: 1, y: 0 } }, 800);
+    expect(weaponReadiness(recharged, target.id, 'broadside')).toMatchObject({ ready: true });
   });
 
   it('respawns passive combat dummies after they are destroyed', () => {

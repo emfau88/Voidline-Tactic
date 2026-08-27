@@ -26,8 +26,10 @@ Der aktuelle spielbare Prototyp enthält:
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs
 - einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen existieren nur noch im internen Test-Szenario, nicht im Spielsektor.
-- wiederholbare freie Bergungsflüge mit erreichbaren Quellen für alle drei Ressourcen, einem leichten Glutkutter und einem schweren, umfliegbaren Gewölbewächter
-- angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit
+- wiederholbare freie Bergungsflüge mit erreichbaren Quellen für alle drei Ressourcen, einem flankierenden Glutkutter und einem schweren, umfliegbaren Reliquienwächter
+- angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit; Front- und Breitseitenkorridore erklären die Positionierung direkt auf der Karte
+- getrennte Waffenrhythmen für Breitseite, Rail-Lanze, Torpedo und Energiekugel mit Cooldowns, eigenen VFX/SFX und Desktop-Hotkeys 1/2/3
+- den optionalen Aschenkantor als besonderen Wächter: Kampf gegen Chorschild und Aschenchor oder eine kampflose Breitband-Scanlösung führen zum einzigartigen Kantorenherz
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Das gewählte Schiff liegt zunächst am sichtbaren Notdock des Kerns; der erste Hangar dockt später mit Bau- und Einflugmoment an die zusammenhängende Top-down-Station an
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an
 - drei dauerhafte Ressourcen mit eigenen ImageGen-Icons und vollständigen Namen: Legierungen, Daten und Relikte; dieselben Zeichen verbinden Fundorte, Fracht, Rückkehr und Ausbaupreise

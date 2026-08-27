@@ -18,6 +18,7 @@ Dieses Manifest dokumentiert Herkunft, Status und Runtime-Verwendung aller Produ
 | `ship-enemy-cruiser` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-cruiser-v1.png` | approved |
 | `ship-enemy-destroyer` | True-Top-down-Schiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/ships/enemy-destroyer-v1.png` | approved |
 | `battlefield-nebula` | 2:3 Environment Base | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 2 | `public/assets/backgrounds/battlefield-nebula-v2.jpg` | approved |
+| `ash-cantor` | transparentes True-Top-down-Wächterschiff | Projektowner; Built-in ImageGen unter Projektregie | originär erzeugt; vor kommerzieller Veröffentlichung final prüfen | Source 1 / Runtime 1 | `public/assets/story/ash-cantor-v1.png` | review |
 | `module-aegis-emitter` | transparentes Shield-Emitter-Layer | Projektowner; originäres SVG unter Projektregie | originär erstellt | Runtime 2 | `public/assets/modules/aegis-emitter-v1.svg` | approved |
 | `module-vector-drive` | transparentes Engine-Layer | Projektowner; originäres SVG unter Projektregie | originär erstellt | Runtime 2 | `public/assets/modules/vector-drive-v1.svg` | approved |
 

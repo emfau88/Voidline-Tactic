@@ -124,7 +124,8 @@ export function beginExpedition(): ExpeditionState {
     + (profile.ship?.upgrades.includes('cargo-spine') ? 2 : 0);
   const hullRiskReduction = profile.facilities.labor ? 3 : 0;
   const salvageBonus = profile.ship?.upgrades.includes('salvage-claws') ? 1 : 0;
-  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction, salvageBonus);
+  const cantorBypass = profile.ship?.upgrades.includes('broadband-array') ?? false;
+  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction, salvageBonus, cantorBypass);
   // A soft lock makes the first combat contact legible on mouse and touch alike.
   // It never fires for the player and can be overridden by tapping another ship.
   selectedTargetId = expedition.hostiles
@@ -212,6 +213,13 @@ export function selectHostile(targetId: string): boolean {
   persistExpedition();
   emit();
   return true;
+}
+
+export function clearSelectedHostile(): void {
+  if (!selectedTargetId) return;
+  selectedTargetId = undefined;
+  persistExpedition();
+  emit();
 }
 
 export function fireWeapons(targetId: string | undefined, weapon: WeaponMode): boolean {

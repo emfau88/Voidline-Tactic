@@ -107,6 +107,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.load.image('wormhole-gate-sealed-v4', 'assets/objects/wormhole-gate-sealed-v4.png');
     this.load.image('wormhole-gate-active-v4', 'assets/objects/wormhole-gate-active-v4.png');
     this.load.image('ash-reaver-v2', 'assets/story/ash-reaver-v2.png');
+    this.load.image('ash-cantor-v1', 'assets/story/ash-cantor-v1.png');
     this.load.image('route-reliquary-v1', 'assets/story/route-reliquary-v1.png');
     this.load.image('monk-lantern-v1', 'assets/story/monk-lantern-v1.png');
     this.load.image('cutting-liturgy-v1', 'assets/story/cutting-liturgy-v1.png');
@@ -255,9 +256,9 @@ export class ExpeditionScene extends Phaser.Scene {
     this.addResourceDirectionHints(expedition);
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
-      const hostileKey = hostile.kind === 'sentinel' ? 'veloria-sentinel-v2' : hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1';
+      const hostileKey = hostile.kind === 'guardian' ? 'ash-cantor-v1' : hostile.kind === 'sentinel' ? 'veloria-sentinel-v2' : hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1';
       const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostileKey);
-      const hostileHeight = hostile.kind === 'sentinel' ? 126 : hostile.kind === 'raider' ? 118 : 96;
+      const hostileHeight = hostile.kind === 'guardian' ? 184 : hostile.kind === 'sentinel' ? 126 : hostile.kind === 'raider' ? 118 : 96;
       hostileArt.setDisplaySize(hostileArt.width / hostileArt.height * hostileHeight, hostileHeight)
         .setRotation(hostile.heading);
       if (!this.contactsInitialized || !this.knownHostileIds.has(hostile.id)) {
@@ -266,20 +267,22 @@ export class ExpeditionScene extends Phaser.Scene {
       if (selected) {
         const bracket = this.add.graphics();
         bracket.lineStyle(2, 0xffd98e, 0.94);
-        const radius = hostile.kind === 'raider' ? 56 : 50;
+        const radius = hostile.kind === 'guardian' ? 82 : hostile.kind === 'raider' ? 56 : 50;
         this.drawCornerFrame(bracket, hostile.position, radius, 13, 0xffd98e, 0.94);
         bracket.lineStyle(1, 0xf8f0ca, 0.72);
         bracket.strokeRect(hostile.position.x - radius + 7, hostile.position.y - radius + 7, (radius - 7) * 2, (radius - 7) * 2);
         const ready = weaponReadiness(expedition, hostile.id, 'broadside');
         bracket.lineStyle(2, ready.ready ? 0x8de6ca : 0xe0a06d, ready.ready ? 0.72 : 0.46);
         bracket.lineBetween(expedition.position.x, expedition.position.y, hostile.position.x, hostile.position.y);
+        this.drawWeaponCorridors(bracket, expedition);
         this.signalLayer?.add(bracket);
       }
       if (!hostile.passive && hostile.status === 'alert') {
         const warning = this.add.graphics();
-        const charging = (hostile.attackCooldownMs ?? Number.POSITIVE_INFINITY) <= 1_350;
+        const chargeWindow = hostile.kind === 'guardian' ? 2_600 : hostile.kind === 'sentinel' ? 2_100 : hostile.kind === 'patrol' ? 1_050 : 1_350;
+        const charging = (hostile.attackCooldownMs ?? Number.POSITIVE_INFINITY) <= chargeWindow;
         warning.lineStyle(charging ? 3 : 2, charging ? 0xffc36f : 0xf1796c, charging ? 0.94 : 0.66);
-        warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'sentinel' ? 82 : hostile.kind === 'raider' ? 71 : 58);
+        warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'guardian' ? 112 : hostile.kind === 'sentinel' ? 82 : hostile.kind === 'raider' ? 71 : 58);
         warning.lineStyle(1, 0xffd3b5, 0.46); warning.strokeCircle(hostile.position.x, hostile.position.y, hostile.kind === 'raider' ? 82 : 69);
         this.signalLayer?.add(warning);
       }
@@ -288,8 +291,10 @@ export class ExpeditionScene extends Phaser.Scene {
         : hostile.passive
         ? selected ? 'ZIEL MARKIERT · FEUER FREI' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
         : hostile.status === 'alert'
-          ? (hostile.attackCooldownMs ?? 9_999) <= 1_350 ? `SALVE LÄDT · ${Math.max(0.1, (hostile.attackCooldownMs ?? 0) / 1000).toFixed(1)}s` : 'ALARM · FLUCHT MÖGLICH'
-          : 'PATROUILLE · UMGEHBAR';
+          ? (hostile.attackCooldownMs ?? 9_999) <= (hostile.kind === 'guardian' ? 2_600 : hostile.kind === 'sentinel' ? 2_100 : hostile.kind === 'patrol' ? 1_050 : 1_350)
+            ? `${hostile.kind === 'guardian' ? 'ASCHENCHOR' : hostile.kind === 'sentinel' ? 'ENERGIEKUGEL' : hostile.kind === 'patrol' ? 'STREUSALVE' : 'SALVE'} LÄDT · ${Math.max(0.1, (hostile.attackCooldownMs ?? 0) / 1000).toFixed(1)}s`
+            : 'ALARM · FLUCHT MÖGLICH'
+          : hostile.status === 'watchful' ? 'BEOBACHTET DICH · NOCH FRIEDLICH' : 'PATROUILLE · UMGEHBAR';
       const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);
       this.signalLayer?.add(label);
@@ -305,9 +310,22 @@ export class ExpeditionScene extends Phaser.Scene {
     const nearest = expedition.hostiles
       .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - world.x, hostile.position.y - world.y) }))
       .sort((first, second) => first.distance - second.distance)[0];
-    if (!nearest) return;
-    const hitRadius = nearest.hostile.kind === 'raider' ? 94 : 82;
+    if (!nearest) { this.game.events.emit('farhaven:target-cleared'); return; }
+    const hitRadius = nearest.hostile.kind === 'guardian' ? 132 : nearest.hostile.kind === 'raider' ? 94 : 82;
     if (nearest.distance <= hitRadius) this.game.events.emit('farhaven:target-selected', nearest.hostile.id);
+    else this.game.events.emit('farhaven:target-cleared');
+  }
+
+  private drawWeaponCorridors(graphics: Phaser.GameObjects.Graphics, expedition: ExpeditionState): void {
+    const forwardAngle = expedition.heading - Math.PI / 2;
+    const drawRay = (angle: number, length: number, color: number, alpha: number): void => {
+      graphics.lineStyle(2, color, alpha);
+      graphics.lineBetween(expedition.position.x, expedition.position.y, expedition.position.x + Math.cos(angle) * length, expedition.position.y + Math.sin(angle) * length);
+    };
+    // Front corridor for rail/torpedoes; the two shorter rays are the broadside windows.
+    drawRay(forwardAngle, 175, 0x8de6ca, 0.52);
+    drawRay(forwardAngle - Math.PI / 2, 132, 0xffd98e, 0.48);
+    drawRay(forwardAngle + Math.PI / 2, 132, 0xffd98e, 0.48);
   }
 
   private setExpeditionZoom(zoom: number): void {
@@ -479,10 +497,11 @@ export class ExpeditionScene extends Phaser.Scene {
       .filter(({ distance }) => distance <= 460)
       .sort((first, second) => first.distance - second.distance)[0]?.hostile;
     if (!source || !this.shipRig || !this.ship) return;
-    const bolt = this.add.circle(source.position.x, source.position.y, source.kind === 'sentinel' ? 7 : 5, 0xffd19b, 1).setDepth(13);
-    const glow = this.add.circle(source.position.x, source.position.y, source.kind === 'sentinel' ? 17 : 12, 0xf06c64, 0.38).setDepth(12);
+    const heavy = source.kind === 'sentinel' || source.kind === 'guardian';
+    const bolt = this.add.circle(source.position.x, source.position.y, source.kind === 'guardian' ? 19 : source.kind === 'sentinel' ? 13 : 5, heavy ? 0xcba4ff : 0xffd19b, 1).setDepth(13);
+    const glow = this.add.circle(source.position.x, source.position.y, source.kind === 'guardian' ? 44 : source.kind === 'sentinel' ? 30 : 12, heavy ? 0x8159d5 : 0xf06c64, 0.38).setDepth(12);
     this.tweens.add({
-      targets: [bolt, glow], x: expedition.position.x, y: expedition.position.y, duration: 240, ease: 'Quad.In',
+      targets: [bolt, glow], x: expedition.position.x, y: expedition.position.y, duration: source.kind === 'guardian' ? 560 : source.kind === 'sentinel' ? 430 : 240, ease: 'Quad.In',
       onComplete: () => {
         bolt.destroy(); glow.destroy();
         this.spawnImpact(expedition.position, 0xf06c64, false);
@@ -504,6 +523,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private showWeaponFire(event: WeaponFireEvent): void {
     if (!this.shipRig) return;
     const target = event.target.position;
+    this.cameras.main.shake(event.weapon === 'torpedo' ? 150 : event.weapon === 'rail' ? 110 : 75, event.weapon === 'torpedo' ? 0.0024 : 0.0013);
     if (event.weapon === 'broadside') {
       const forward = { x: Math.cos(this.shipRig.rotation - Math.PI / 2), y: Math.sin(this.shipRig.rotation - Math.PI / 2) };
       const toTarget = { x: target.x - this.shipRig.x, y: target.y - this.shipRig.y };

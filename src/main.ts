@@ -1,9 +1,10 @@
 import './farhaven.css';
 import Phaser from 'phaser';
 import { createGame } from './app/createGame';
-import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
+import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, clearSelectedHostile, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, ResourceKind, WeaponMode } from './domain/exploration/types';
+import { playWeaponSound } from './app/combatAudio';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { formatResourceCost, RESOURCE_ORDER, RESOURCE_PRESENTATION, resourceEntries, resourceSourceHint, type ResourceAmounts } from './domain/resources/presentation';
@@ -534,6 +535,7 @@ game.events.on('farhaven:target-selected', (targetId: string) => {
   const target = getExpedition()?.hostiles.find((hostile) => hostile.id === targetId);
   if (target) toast(`${target.name.toUpperCase()} MARKIERT · Positioniere dich für den Angriff.`);
 });
+game.events.on('farhaven:target-cleared', () => clearSelectedHostile());
 game.events.on('farhaven:signal-selected', (signalId: string) => {
   const signal = getExpedition()?.signals.find((entry) => entry.id === signalId);
   if (!signal || signal.knowledge !== 'classified') return;
@@ -656,6 +658,7 @@ function fireSelectedWeapon(weapon: WeaponMode): void {
   const target = before?.hostiles.find((hostile) => hostile.id === targetId);
   if (!before || !target) { toast('Wähle erst einen Kontakt direkt auf der Karte.'); return; }
   if (!fireWeapons(target.id, weapon)) { toast(weaponReadiness(before, target.id, weapon).reason); return; }
+  playWeaponSound(weapon);
   const destroyed = !getExpedition()?.hostiles.some((hostile) => hostile.id === target.id);
   game.events.emit('farhaven:weapon-fired', { weapon, target: { id: target.id, name: target.name, position: target.position, destroyed } });
 }
@@ -677,6 +680,13 @@ function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponM
 bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponMode());
 bindFireControl(required<HTMLButtonElement>('lance-button'), lanceWeaponMode);
 bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
+window.addEventListener('keydown', (event) => {
+  if (event.repeat || shell.dataset.screen !== 'expedition') return;
+  const weapon = event.code === 'Digit1' ? primaryWeaponMode() : event.code === 'Digit2' ? lanceWeaponMode() : event.code === 'Digit3' ? ordnanceWeaponMode() : undefined;
+  if (!weapon) return;
+  event.preventDefault();
+  fireSelectedWeapon(weapon);
+});
 required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => {
   required<HTMLElement>('return-moment').hidden = true;

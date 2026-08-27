@@ -10,8 +10,8 @@ export type ExpeditionStatus = 'active' | 'returning';
 export type SectorId = 'ashenscar' | 'veloria-rift';
 export type ExpeditionScenario = 'free' | 'first-wreck' | 'second-shift' | 'mining-run' | 'recovery-run';
 export type WeaponMode = 'broadside' | 'rail' | 'torpedo' | 'orb';
-export type HostileKind = 'patrol' | 'raider' | 'sentinel';
-export type HostileStatus = 'patrol' | 'alert';
+export type HostileKind = 'patrol' | 'raider' | 'sentinel' | 'guardian';
+export type HostileStatus = 'patrol' | 'watchful' | 'alert';
 
 export interface Cargo {
   readonly alloys: number;
@@ -52,6 +52,7 @@ export interface HostileState {
   readonly hull: number;
   readonly maxHull: number;
   readonly attackCooldownMs?: number;
+  readonly attackChargeMs?: number;
 }
 
 export interface DummyRespawnState {
@@ -79,9 +80,11 @@ export interface ExpeditionState {
   readonly scanRadius: number;
   readonly hullRiskReduction?: number;
   readonly salvageBonus?: number;
+  readonly cantorBypass?: boolean;
   readonly signals: readonly SignalState[];
   readonly hostiles: readonly HostileState[];
   readonly dummyRespawns: readonly DummyRespawnState[];
+  readonly weaponCooldowns?: Readonly<Record<WeaponMode, number>>;
   readonly log: readonly string[];
 }
 

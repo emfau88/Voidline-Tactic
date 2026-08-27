@@ -4,6 +4,11 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Der Kampf-Vertical-Slice besitzt nun abwählbare Karten-Ziele, sichtbare Front-/Breitseitenkorridore sowie die Zustände Patrouille, Beobachtung und Alarm mit klarer Fluchtgrenze.
+- Breitseite, Rail-Lanze, Torpedo und Energiekugel haben getrennte Cooldowns, laufende Bereitschaftstexte, Kameraimpulse, individuelle synthetische SFX und Desktop-Hotkeys 1/2/3.
+- Glutkutter und Reliquienwächter spielen sich unterschiedlich: schneller Flankenjäger gegen ortsfesten, schwer telegraphierten Raumkontroll-Gegner; ihre Beute bleibt optional.
+- Der neue Aschenkantor bewacht das einzigartige Kantorenherz mit Chorschild und schwerem Aschenchor. Eine Breitbandarray eröffnet aus kurzer Distanz eine kampflose Scan-Lösung.
+- Der Aschenkantor verwendet ein eigenständiges transparentes, orthografisches ImageGen-Spielasset.
 - Farhaven öffnet nun mit einem sichtbaren, warmen Startbild und lädt nur die Station zuerst; Kampagnen-, Kampf- und Modulassets werden erst beim Expeditionsstart nachgeladen.
 - Mobile Expeditionen starten rund 15 Prozent näher am Schiff. Nach einem Scan zeigt ein antippbarer Fundkompass Ressource, Beute, Reichweite und live fallende Distanz; der Scanpuls nennt seine tatsächliche Reichweite.
 - Der Hangar dockt deutlich langsamer und mit längerer Klammer-Glintsequenz an. Das eigene Schiff dreht sich danach in die gleiche Richtung wie das Schiff im Hangarasset.
