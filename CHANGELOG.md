@@ -4,6 +4,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Die kurze Touch-Sperre nach einer Rückkehr entsperrt Farhavens Stationsfläche nun garantiert. Ein echter Canvas-Touchtest prüft, dass der sichtbare Hangar anschließend wieder geöffnet und gebaut werden kann.
 - Farhavens Hangar verwendet nun das schiffsfreie Landedeck-Asset. Nur noch der tatsächlich gewählte, persistent aufgerüstete Spielerrumpf parkt darin; seine Position folgt der freien Landefläche statt einem eingebrannten Attrappenschiff.
 - Der Kampf-Vertical-Slice besitzt nun abwählbare Karten-Ziele, sichtbare Front-/Breitseitenkorridore sowie die Zustände Patrouille, Beobachtung und Alarm mit klarer Fluchtgrenze.
 - Breitseite, Rail-Lanze, Torpedo und Energiekugel haben getrennte Cooldowns, laufende Bereitschaftstexte, Kameraimpulse, individuelle synthetische SFX und Desktop-Hotkeys 1/2/3.

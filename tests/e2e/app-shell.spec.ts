@@ -10,6 +10,14 @@ async function startExpedition(page: import('@playwright/test').Page): Promise<v
   await page.locator('#launch-button').click();
 }
 
+async function tapHangarOnStation(page: import('@playwright/test').Page): Promise<void> {
+  const canvas = page.locator('#game-root canvas');
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Expected the Farhaven canvas to be visible.');
+  const unit = Math.min(Math.min(box.width / 1120, box.height / 600) * 1.12, 1.55);
+  await canvas.click({ position: { x: box.width * .5 + 174 * unit, y: box.height * .51 } });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => {
@@ -97,7 +105,9 @@ test('turns the hangar build into a visible Farhaven moment', async ({ page }) =
     ship: { variant: 'aster-vale', upgrades: [] },
   })));
   await page.reload();
-  await openFacility(page, 'hangar');
+  // Exercise the actual Phaser target a player touches, not the hidden DOM fallback.
+  await page.waitForTimeout(1_200);
+  await tapHangarOnStation(page);
   await expect(page.locator('#facility-level')).toHaveText('FÜR DEN BAU · 4 Legierungen');
   await page.getByRole('button', { name: /HANGAR ERRICHTEN/ }).click();
   await expect(page.locator('#construction-moment')).toContainText('HANGAR WIRD VERBUNDEN');
@@ -285,4 +295,10 @@ test('returns to a neutral Farhaven overview without reopening a prior station r
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
   await expect(page.locator('#facility-panel')).toBeHidden();
   await expect(page.locator('#shipyard-panel')).toBeHidden();
+  // Once the trailing return touch is safely gone, the station must always
+  // reactivate—even if the browser fired the original unlock timer early.
+  await page.waitForTimeout(1_150);
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-outpost-input', 'enabled');
+  await tapHangarOnStation(page);
+  await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
 });

@@ -23,7 +23,11 @@ export class OutpostScene extends Phaser.Scene {
   private stationCenter: Point = { x: 0, y: 0 };
   private stationUnit = 1;
   private readonly moduleLayouts = new Map<FacilityId, ModuleLayout>();
-  private readonly setInteractionLock = (locked: boolean): void => { this.input.enabled = !locked && Date.now() >= this.inputUnlockAt; };
+  private readonly setInteractionLock = (locked: boolean): void => {
+    const enabled = !locked && Date.now() >= this.inputUnlockAt;
+    this.input.enabled = enabled;
+    this.game.canvas.dataset.outpostInput = enabled ? 'enabled' : 'locked';
+  };
   private readonly animateBuiltFacility = (facilityId: FacilityId): void => this.playDockingAnimation(facilityId);
   private readonly animateCargoUnload = (cargo: Cargo): void => this.playCargoUnload(cargo);
 
@@ -34,9 +38,8 @@ export class OutpostScene extends Phaser.Scene {
     // A scene may be created while the final touch from an expedition action is
     // still active. Never let that touch open a random station module.
     this.inputUnlockAt = this.registry.get('farhaven-outpost-input-unlock-at') ?? 0;
-    this.input.enabled = Date.now() >= this.inputUnlockAt;
-    const remainingInputLock = Math.max(0, this.inputUnlockAt - Date.now());
-    if (remainingInputLock) this.time.delayedCall(remainingInputLock, () => this.setInteractionLock(false));
+    this.setInteractionLock(false);
+    this.unlockInputWhenReady();
     this.scale.on('resize', this.draw, this);
     this.game.events.on('farhaven:outpost-interaction-lock', this.setInteractionLock);
     this.game.events.on('farhaven:facility-built', this.animateBuiltFacility);
@@ -50,6 +53,16 @@ export class OutpostScene extends Phaser.Scene {
     });
     this.unsubscribe = subscribe(() => this.draw());
     this.draw();
+  }
+
+  /** A browser timer may fire a few milliseconds before Date.now reaches the lock deadline. */
+  private unlockInputWhenReady(): void {
+    const remaining = this.inputUnlockAt - Date.now();
+    if (remaining > 0) {
+      this.time.delayedCall(remaining + 16, () => this.unlockInputWhenReady());
+      return;
+    }
+    this.setInteractionLock(false);
   }
 
   private draw(): void {
