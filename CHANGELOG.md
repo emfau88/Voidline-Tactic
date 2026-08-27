@@ -4,6 +4,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Farhavens Hangar verwendet nun das schiffsfreie Landedeck-Asset. Nur noch der tatsächlich gewählte, persistent aufgerüstete Spielerrumpf parkt darin; seine Position folgt der freien Landefläche statt einem eingebrannten Attrappenschiff.
 - Der Kampf-Vertical-Slice besitzt nun abwählbare Karten-Ziele, sichtbare Front-/Breitseitenkorridore sowie die Zustände Patrouille, Beobachtung und Alarm mit klarer Fluchtgrenze.
 - Breitseite, Rail-Lanze, Torpedo und Energiekugel haben getrennte Cooldowns, laufende Bereitschaftstexte, Kameraimpulse, individuelle synthetische SFX und Desktop-Hotkeys 1/2/3.
 - Glutkutter und Reliquienwächter spielen sich unterschiedlich: schneller Flankenjäger gegen ortsfesten, schwer telegraphierten Raumkontroll-Gegner; ihre Beute bleibt optional.

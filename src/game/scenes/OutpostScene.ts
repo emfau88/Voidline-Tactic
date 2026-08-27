@@ -150,7 +150,7 @@ export class OutpostScene extends Phaser.Scene {
     if (!ship) return;
     const inHangar = getProfile().facilities.hangar > 0;
     const position = inHangar
-      ? { x: hangar.x - hangar.width * .1, y: hangar.y + hangar.height * .03 }
+      ? { x: hangar.x + hangar.width * .13, y: hangar.y }
       : { x: center.x + 60 * unit, y: center.y + 92 * unit };
     const berth = this.add.graphics().setDepth(5);
     if (!inHangar) {
@@ -179,8 +179,7 @@ export class OutpostScene extends Phaser.Scene {
     const craft = this.add.container(position.x, position.y, [exhaust, vessel])
       .setName('farhaven-player-craft')
       .setDepth(6)
-      // The hangar art faces its internal ship toward the open berth on the
-      // right; keep the player's vessel in the same readable orientation.
+      // The empty landing pad opens to the right; point the real hull outward.
       .setRotation(inHangar ? Math.PI / 2 : -.34);
     this.animateExhaust(exhaust);
     if (!this.hasPlayedShipArrival) {
@@ -282,11 +281,16 @@ export class OutpostScene extends Phaser.Scene {
       graphics.fillEllipse(x, y + height * .12, width * .82, height * .4);
     }
     const spriteSize = Math.max(width, height) * 1.02;
-    const module = this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id))
-      .setName(`farhaven-module-${id}`)
-      .setDisplaySize(spriteSize, spriteSize)
+    const module = id === 'hangar'
+      ? this.add.image(x, y, 'farhaven-hangar-module-v1')
+        // Source collar is at the top. Rotate it so the collar docks left to
+        // Farhaven and the empty landing pad opens toward space on the right.
+        .setDisplaySize(height * 1.02, width * 1.02)
+        .setRotation(-Math.PI / 2)
+      : this.add.image(x, y, 'farhaven-module-kit-v2', this.moduleFrame(id))
+        .setDisplaySize(spriteSize, spriteSize);
+    module.setName(`farhaven-module-${id}`)
       .setAlpha(built ? .96 : buildReady ? .5 : guided ? .37 : .26);
-    if (id === 'hangar') module.setFlipX(true);
     if (!built) module.setTint(buildReady ? 0xffdfa3 : guided ? 0xa4c0c7 : 0x6f8d96);
   }
 
@@ -366,8 +370,8 @@ export class OutpostScene extends Phaser.Scene {
       const craft = this.children.getByName('farhaven-player-craft') as Phaser.GameObjects.Container | null;
       if (craft) {
         this.tweens.killTweensOf(craft);
-        const targetX = layout.x - layout.width * .1;
-        const targetY = layout.y + layout.height * .03;
+        const targetX = layout.x + layout.width * .13;
+        const targetY = layout.y;
         craft.setPosition(this.stationCenter.x + 60 * this.stationUnit, this.stationCenter.y + 92 * this.stationUnit)
           .setRotation(-.34)
           .setAlpha(1);

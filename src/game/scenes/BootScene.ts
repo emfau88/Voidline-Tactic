@@ -17,6 +17,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('resource-relics-v1', 'assets/ui/resource-relics-v1.png');
     this.load.image('farhaven-core-v2', 'assets/outpost/farhaven-core-v2.png');
     this.load.image('farhaven-space-v1', 'assets/outpost/farhaven-space-v1.png');
+    // Unlike the original atlas frame, this hangar has an empty landing pad.
+    // The player's real, persistent hull is rendered there at runtime.
+    this.load.image('farhaven-hangar-module-v1', 'assets/outpost/farhaven-hangar-module-v1.png');
     this.load.spritesheet('farhaven-module-kit-v2', 'assets/outpost/farhaven-module-kit-v4.png', { frameWidth: 627, frameHeight: 627 });
   }
 
