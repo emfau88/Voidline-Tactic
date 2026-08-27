@@ -71,6 +71,7 @@ let outpostTapShieldTimer: number | undefined;
 let constructionTimer: number | undefined;
 let resettingForDevelopment = false;
 let shipyardPreviewVariant: ShipVariantId | undefined;
+let pendingShipUpgrade: ShipUpgradeId | undefined;
 let pendingVisualCargo: Cargo | undefined;
 let coreInfoOpen = false;
 
@@ -252,12 +253,16 @@ function renderShipyard(): void {
   required<HTMLImageElement>('shipyard-ship-image').alt = `${variant.name}, Schiffsvorschau`;
   required<HTMLElement>('shipyard-ship-name').textContent = variant.name.toUpperCase();
   const parts = required<HTMLElement>('shipyard-parts');
-  parts.innerHTML = ship.upgrades.map((id) => {
+  const previewUpgrades = pendingShipUpgrade && !ship.upgrades.includes(pendingShipUpgrade)
+    ? [...ship.upgrades, pendingShipUpgrade]
+    : ship.upgrades;
+  parts.innerHTML = previewUpgrades.map((id) => {
     const path = MODULE_PATHS_BY_HULL[previewVariant][id];
     return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${publicAssetPath(path)}" alt="" />` : `<i class="part-${id}" data-upgrade="${id}"></i>`;
   }).join('');
   const moduleCard = (upgrade: (typeof SHIP_UPGRADES)[number]) => {
     const active = ship.upgrades.includes(upgrade.id);
+    const pending = pendingShipUpgrade === upgrade.id && !active;
     const fieldUpgrade = isFieldUpgrade(upgrade.id);
     const available = fieldUpgrade && canPurchaseFieldUpgrade(upgrade.id);
     const cost = FIELD_UPGRADE_COSTS[upgrade.id];
@@ -265,10 +270,10 @@ function renderShipyard(): void {
     const status = active
       ? 'ECHTER EINBAU · ONLINE'
       : fieldUpgrade
-        ? available ? `${costLabel} · EINBAUEN` : `HANGAR + ${costLabel} NÖTIG`
+        ? pending ? `VORMONTIERT · BESTÄTIGEN` : available ? `${costLabel} · VORSCHAU` : `HANGAR + ${costLabel} NÖTIG`
         : 'KOSTENLOSER PROTOTYP';
     const disabled = fieldUpgrade && !available;
-    return `<button type="button" class="ship-module${active ? ' active' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small>${cost ? resourceCostMarkup(cost) : ''}</button>`;
+    return `<button type="button" class="ship-module${active ? ' active' : ''}${pending ? ' selected' : ''}" data-ship-upgrade="${upgrade.id}" style="--module-accent:${upgrade.accent}"${disabled ? ' disabled' : ''}><span>${status}</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small>${cost ? resourceCostMarkup(cost) : ''}</button>`;
   };
   const fieldUpgrades = SHIP_UPGRADES.filter((upgrade) => isFieldUpgrade(upgrade.id));
   const prototypes = SHIP_UPGRADES.filter((upgrade) => !isFieldUpgrade(upgrade.id));
@@ -281,6 +286,18 @@ function renderShipyard(): void {
       <summary><span>RUMPFIDEEN ANSEHEN</span><small>${prototypes.length} visuelle Prototypen</small></summary>
       <div class="prototype-grid">${prototypes.map((upgrade) => `<article class="ship-module prototype" style="--module-accent:${upgrade.accent}"><span>VISUELLE STUDIE</span><strong>${upgrade.name}</strong><small>${upgrade.description}</small></article>`).join('')}</div>
     </details>`;
+  const installConfirm = required<HTMLElement>('shipyard-install-confirm');
+  if (pendingShipUpgrade) {
+    const upgrade = SHIP_UPGRADES.find((entry) => entry.id === pendingShipUpgrade)!;
+    const cost = FIELD_UPGRADE_COSTS[pendingShipUpgrade]!;
+    required<HTMLElement>('shipyard-install-name').textContent = upgrade.name.toUpperCase();
+    required<HTMLElement>('shipyard-install-copy').textContent = `${upgrade.description} Die Montage ist nur eine Vorschau, bis du den Einbau bestätigst.`;
+    required<HTMLElement>('shipyard-install-cost').innerHTML = resourceCostMarkup(cost);
+    required<HTMLButtonElement>('confirm-ship-upgrade-button').disabled = !canPurchaseFieldUpgrade(pendingShipUpgrade);
+    installConfirm.hidden = false;
+  } else {
+    installConfirm.hidden = true;
+  }
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
     const active = button.dataset.shipSwitch === previewVariant;
     button.classList.toggle('active', active);
@@ -497,6 +514,7 @@ function render(): void {
 function startExpedition(): void {
   paused = false;
   selectedFacility = undefined;
+  pendingShipUpgrade = undefined;
   coreInfoOpen = false;
   facilityPanel.hidden = true;
   shipyardPanel.hidden = true;
@@ -599,12 +617,14 @@ required<HTMLButtonElement>('open-shipyard-button').addEventListener('click', ()
   selectedFacility = undefined;
   shipyardPanel.hidden = false;
   shipyardPreviewVariant = getProfile().ship?.variant;
+  pendingShipUpgrade = undefined;
   updateOutpostChrome();
   renderShipyard();
 });
 required<HTMLButtonElement>('close-shipyard-button').addEventListener('click', () => {
   shipyardPanel.hidden = true;
   shipyardPreviewVariant = undefined;
+  pendingShipUpgrade = undefined;
   updateOutpostChrome();
 });
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-ship-switch]')) {
@@ -620,17 +640,36 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
   if (!button) return;
   const upgradeId = button.dataset.shipUpgrade as ShipUpgradeId;
   if (isFieldUpgrade(upgradeId)) {
-    if (purchaseFieldUpgrade(upgradeId)) {
-      const message: Record<ShipUpgradeId, string> = {
-        'broadband-array': 'BREITBANDARRAY EINGEBAUT · +160 SCANREICHWEITE', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
-        'rail-lance': 'RAIL-LANZE EINGEBAUT · ZUSÄTZLICHE FRONTWAFFE BEREIT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
-        'side-turrets': '', 'salvage-claws': 'BERGUNGSGREIFER EINGEBAUT · WRACKBONUS BEREIT', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
-      };
-      toast(message[upgradeId]);
+    if (!canPurchaseFieldUpgrade(upgradeId)) {
+      toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
+      return;
     }
-    else toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
+    pendingShipUpgrade = upgradeId;
+    toast(`${SHIP_UPGRADES.find((entry) => entry.id === upgradeId)!.name.toUpperCase()} VORMONTIERT · EINBAU PRÜFEN.`);
   }
   renderShipyard();
+});
+required<HTMLButtonElement>('cancel-ship-upgrade-button').addEventListener('click', () => {
+  pendingShipUpgrade = undefined;
+  renderShipyard();
+  toast('VORMONTAGE VERWORFEN · KEINE RESSOURCEN VERBRAUCHT.');
+});
+required<HTMLButtonElement>('confirm-ship-upgrade-button').addEventListener('click', () => {
+  const upgradeId = pendingShipUpgrade;
+  if (!upgradeId) return;
+  if (!purchaseFieldUpgrade(upgradeId)) {
+    renderShipyard();
+    toast('Für diesen Einbau fehlen Hangar oder gesicherte Ressourcen.');
+    return;
+  }
+  const message: Record<ShipUpgradeId, string> = {
+    'broadband-array': 'BREITBANDARRAY EINGEBAUT · +160 SCANREICHWEITE', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
+    'rail-lance': 'RAIL-LANZE EINGEBAUT · ZUSÄTZLICHE FRONTWAFFE BEREIT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
+    'side-turrets': '', 'salvage-claws': 'BERGUNGSGREIFER EINGEBAUT · WRACKBONUS BEREIT', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
+  };
+  pendingShipUpgrade = undefined;
+  renderShipyard();
+  toast(message[upgradeId]);
 });
 required<HTMLButtonElement>('scan-button').addEventListener('click', () => {
   scanNearby();
@@ -766,7 +805,10 @@ subscribe(() => {
     coreInfoOpen = false;
     facilityPanel.hidden = true;
     shipyardPanel.hidden = true;
-    shieldOutpostTaps(1_050, true);
+    // The return button's trailing pointer only lasts a few frames. Keep the
+    // safety window below human perception; a full second made Farhaven feel
+    // as though it required an extra tap after every expedition.
+    shieldOutpostTaps(380, true);
     game.scene.stop('expedition');
     game.scene.start('outpost');
     if (resettingForDevelopment) {

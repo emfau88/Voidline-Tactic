@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Der Rückkehrschutz nach Expeditionen blockiert Stationsinteraktionen nur noch für einen kurzen Pointer-Nachlauf statt für eine spürbare Sekunde.
+- Hangar-Einbauten werden nun zunächst vormontiert und am Schiff gezeigt. Ressourcen werden erst nach „Einbau bestätigen“ ausgegeben; „Abbrechen“ verwirft die Vorschau kostenfrei.
 - Expeditionen zeigen am Rückkehrpunkt nun Farhavens tatsächlich errichteten Ausbauzustand mit Kern, Hangar, Scannerkapelle, Reliktlabor und Sternenwerk statt eines generischen Einzelkerns.
 - Die Scan-Navigation verwendet nur noch einen dezenten, antippbaren Randindikator. Er bleibt persistent, ist vom Kartenzoom entkoppelt und glättet seine Richtung ohne Flackern, Sprünge oder Grafikspuren während des Flugs.
 - Die kurze Touch-Sperre nach einer Rückkehr entsperrt Farhavens Stationsfläche nun garantiert. Ein echter Canvas-Touchtest prüft, dass der sichtbare Hangar anschließend wieder geöffnet und gebaut werden kann.

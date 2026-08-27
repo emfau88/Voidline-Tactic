@@ -157,10 +157,19 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .prototype-grid { padding: 0 9px 9px; }
 .ship-module { display: grid; min-height: 92px; padding: 9px; border: 1px solid rgb(130 165 189 / 30%); border-left: 3px solid var(--module-accent); border-radius: 11px; background: rgb(10 25 36 / 78%); color: #dde9ea; text-align: left; }
 .ship-module.active { border-color: var(--module-accent); background: linear-gradient(135deg, color-mix(in srgb, var(--module-accent) 16%, #0b1d2c), rgb(13 21 32 / 88%)); box-shadow: inset 0 0 18px color-mix(in srgb, var(--module-accent) 16%, transparent); }
+.ship-module.selected { border-color: var(--module-accent); background: linear-gradient(135deg, color-mix(in srgb, var(--module-accent) 24%, #0b1d2c), rgb(13 21 32 / 92%)); box-shadow: 0 0 18px color-mix(in srgb, var(--module-accent) 18%, transparent), inset 0 0 18px color-mix(in srgb, var(--module-accent) 15%, transparent); }
 .ship-module span { color: var(--module-accent); font-size: 7px; font-weight: 800; letter-spacing: .11em; }
 .ship-module strong { margin-top: 3px; color: #f0e0c1; font-family: Georgia, serif; font-size: 14px; }
 .ship-module small { margin-top: 4px; color: #b3c4c8; font-size: 8px; line-height: 1.22; }
 .ship-module .resource-cost { justify-content: flex-start; }
+#shipyard-install-confirm { display: grid; gap: 5px; margin-top: 13px; padding: 12px; border: 1px solid rgb(233 190 116 / 62%); border-radius: 13px; background: linear-gradient(115deg, rgb(55 37 19 / 92%), rgb(12 25 36 / 94%)); box-shadow: inset 0 0 22px rgb(241 194 108 / 8%); }
+#shipyard-install-confirm > small { color: #efc879; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
+#shipyard-install-confirm > strong { color: #f6e1bb; font-family: Georgia, serif; font-size: 18px; }
+#shipyard-install-confirm > p { margin: 0; color: #c4d0d2; font-size: 9px; line-height: 1.35; }
+#shipyard-install-confirm > div:last-child { display: flex; justify-content: flex-end; gap: 7px; margin-top: 2px; }
+#shipyard-install-confirm button { min-height: 36px; padding: 7px 10px; border: 1px solid rgb(161 191 199 / 42%); border-radius: 9px; background: rgb(7 18 28 / 86%); color: #d3e0e1; font-size: 8px; font-weight: 800; letter-spacing: .07em; }
+#shipyard-install-confirm .primary-button { border-color: rgb(239 199 122 / 72%); background: linear-gradient(120deg, #7a542a, #2d583e); color: #fff0c9; }
+#shipyard-install-confirm .primary-button:disabled { filter: grayscale(.75); opacity: .55; }
 
 #expedition-hud { width: min(330px, calc(100vw - 32px)); padding: 12px; }
 .expedition-top { display: flex; align-items: start; justify-content: space-between; gap: 8px; }

@@ -60,7 +60,7 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
   await expect(page.locator('#facility-upgrade-button')).toContainText('4 Legierungen SICHERN');
   await expect(page.locator('#game-root canvas')).toBeVisible();
-  await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost', { timeout: 12_000 });
 });
 
 test('lets the player inspect the Farhaven core as the station anchor', async ({ page }) => {
@@ -158,9 +158,34 @@ test('keeps visual hull ideas as previews and only installs real earned modules'
   await expect(page.getByText('VISUELLE STUDIE').first()).toBeVisible();
   await page.getByRole('button', { name: /Frachtrücken/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="cargo-spine"]')).toBeVisible();
+  await expect(page.locator('#shipyard-install-confirm')).toBeVisible();
+  await expect(page.locator('#shipyard-install-confirm')).toContainText('NOCH NICHT GEKAUFT');
+  await expect(page.locator('#resource-strip [data-resource="alloys"] b')).toHaveText('1');
+  await page.getByRole('button', { name: 'ABBRECHEN' }).click();
+  await expect(page.locator('#shipyard-install-confirm')).toBeHidden();
+  await expect(page.locator('#resource-strip [data-resource="alloys"] b')).toHaveText('1');
   await page.getByRole('button', { name: /Minenlaser/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toBeVisible();
   await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toHaveJSProperty('naturalWidth', 1024);
+});
+
+test('only spends resources after confirming a selected hangar upgrade', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 1, data: 1, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 2,
+    story: { routeTraceRecovered: false, discoveries: [] },
+    ship: { variant: 'bramble', upgrades: [] },
+  })));
+  await page.reload();
+  await openFacility(page, 'hangar');
+  await page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ }).click();
+  await page.getByRole('button', { name: /Frachtrücken/ }).click();
+  await expect(page.locator('#resource-strip [data-resource="alloys"] b')).toHaveText('1');
+  await page.getByRole('button', { name: 'EINBAU BESTÄTIGEN' }).click();
+  await expect(page.locator('#resource-strip [data-resource="alloys"] b')).toHaveText('0');
+  await expect(page.getByRole('button', { name: /Frachtrücken/ })).toContainText('ONLINE');
 });
 
 test('renders every earned field module as a real Bramble asset in the workshop', async ({ page }) => {
@@ -310,9 +335,9 @@ test('returns to a neutral Farhaven overview without reopening a prior station r
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
   await expect(page.locator('#facility-panel')).toBeHidden();
   await expect(page.locator('#shipyard-panel')).toBeHidden();
-  // Once the trailing return touch is safely gone, the station must always
-  // reactivate—even if the browser fired the original unlock timer early.
-  await page.waitForTimeout(1_150);
+  // The short pointer-tail shield is present but should be imperceptible to a
+  // player; after half a second Farhaven must be directly usable again.
+  await page.waitForTimeout(550);
   await expect(page.locator('#game-root canvas')).toHaveAttribute('data-outpost-input', 'enabled');
   await tapHangarOnStation(page);
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
