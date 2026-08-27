@@ -184,6 +184,7 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   await startExpedition(page);
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
   await page.getByRole('button', { name: /SCANNEN/ }).click();
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-scan-compass', 'visible');
   await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
   await expect(page.locator('#signal-list [data-resource="alloys"]')).toHaveCount(1);
   await expect(page.locator('#cargo-breakdown [data-resource="alloys"]')).toHaveCount(1);
@@ -210,6 +211,20 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   expect(layout.hudLeavesCenter).toBe(true);
   expect(layout.objectiveLeavesCenter).toBe(true);
   expect(layout.overlaysDoNotOverlap).toBe(true);
+});
+
+test('mirrors built Farhaven modules at the expedition return point', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 20, data: 20, relics: 20 },
+    facilities: { hangar: 1, scanner: 1, labor: 1, navigation: 1 },
+    expeditionCount: 4,
+    story: { routeTraceRecovered: true, discoveries: [] },
+    ship: { variant: 'bramble', upgrades: [] },
+  })));
+  await page.reload();
+  await startExpedition(page);
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven', 'core,hangar,scanner,labor,navigation');
 });
 
 test('resumes an ongoing expedition after a browser reload', async ({ page }) => {

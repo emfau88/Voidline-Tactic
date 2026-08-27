@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Expeditionen zeigen am Rückkehrpunkt nun Farhavens tatsächlich errichteten Ausbauzustand mit Kern, Hangar, Scannerkapelle, Reliktlabor und Sternenwerk statt eines generischen Einzelkerns.
+- Die Scan-Navigation verwendet nur noch einen dezenten, antippbaren Randindikator. Er bleibt persistent, ist vom Kartenzoom entkoppelt und glättet seine Richtung ohne Flackern, Sprünge oder Grafikspuren während des Flugs.
 - Die kurze Touch-Sperre nach einer Rückkehr entsperrt Farhavens Stationsfläche nun garantiert. Ein echter Canvas-Touchtest prüft, dass der sichtbare Hangar anschließend wieder geöffnet und gebaut werden kann.
 - Farhavens Hangar verwendet nun das schiffsfreie Landedeck-Asset. Nur noch der tatsächlich gewählte, persistent aufgerüstete Spielerrumpf parkt darin; seine Position folgt der freien Landefläche statt einem eingebrannten Attrappenschiff.
 - Der Kampf-Vertical-Slice besitzt nun abwählbare Karten-Ziele, sichtbare Front-/Breitseitenkorridore sowie die Zustände Patrouille, Beobachtung und Alarm mit klarer Fluchtgrenze.

@@ -70,6 +70,14 @@ export class ExpeditionScene extends Phaser.Scene {
   private homeLabel?: Phaser.GameObjects.Text;
   private engineFlame?: Phaser.GameObjects.Graphics;
   private signalLayer?: Phaser.GameObjects.Container;
+  private scanCompass?: Phaser.GameObjects.Container;
+  private scanCompassArrow?: Phaser.GameObjects.Triangle;
+  private scanCompassIcon?: Phaser.GameObjects.Image;
+  private scanCompassName?: Phaser.GameObjects.Text;
+  private scanCompassDistance?: Phaser.GameObjects.Text;
+  private scanCompassTargetId?: string;
+  private scanCompassAngle = 0;
+  private lastScanCompassUpdateAt = 0;
   private knownHostileIds = new Set<string>();
   private contactsInitialized = false;
   private expeditionZoom = DEFAULT_EXPEDITION_ZOOM;
@@ -129,15 +137,7 @@ export class ExpeditionScene extends Phaser.Scene {
     field.fillStyle(isAlienRealm ? 0x10091a : 0x040812, isAlienRealm ? 0.26 : 0.34);
     field.fillRect(0, 0, 4200, 2600);
     if (!isAlienRealm) {
-      // Farhaven sits just below the launch point: visible on departure without obscuring the ship.
-      const homeY = 1_570;
-      const homeGlow = this.add.circle(2_100, homeY, 56, 0xe7b96e, 0.1).setDepth(1);
-      this.tweens.add({ targets: homeGlow, alpha: { from: 0.07, to: 0.14 }, duration: 3_400, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-      this.add.image(2_100, homeY, 'farhaven-core-v2').setDisplaySize(92, 92).setDepth(2).setAlpha(0.98);
-      const dock = this.add.graphics().setDepth(3);
-      dock.lineStyle(2, 0x91e4eb, 0.7); dock.lineBetween(2_100, 1_510, 2_100, 1_528);
-      dock.fillStyle(0xf2cb79, 0.9); dock.fillCircle(2_100, 1_528, 3);
-      this.homeLabel = this.add.text(2_100, 1_630, 'FARHAVEN · HEIMATHAFEN', { fontFamily: 'Arial', fontSize: 8, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75 }).setOrigin(0.5).setDepth(3);
+      this.addFarhavenHome();
       this.addWormholeGate();
     } else {
       const returnGlow = this.add.image(2_100, 1_570, 'wormhole-gate-active-v4').setDisplaySize(112, 112).setAlpha(0.3).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
@@ -155,6 +155,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.engineFlame = this.add.graphics().setDepth(6);
     this.playerLabel = this.add.text(2_100, 1_538, 'ASTER VALE', { fontFamily: 'Arial', fontSize: 12, color: '#d9f6fb', fontStyle: 'bold', letterSpacing: 1 }).setOrigin(0.5).setDepth(7);
     this.signalLayer = this.add.container(0, 0).setDepth(4);
+    this.createScanCompass();
     this.events.on('wake', () => this.refresh());
     this.game.events.on('farhaven:weapon-fired', this.showWeaponFire, this);
     this.game.events.on('farhaven:mining-start', this.showMining, this);
@@ -174,6 +175,50 @@ export class ExpeditionScene extends Phaser.Scene {
     });
     this.refresh();
     this.lastHull = expedition?.hull ?? 100;
+  }
+
+  /**
+   * The return landmark mirrors the persistent outpost instead of showing a
+   * generic core. Modules use the same artwork and cardinal docking layout as
+   * Farhaven, only reduced to an unobtrusive navigation-scale silhouette.
+   */
+  private addFarhavenHome(): void {
+    const profile = getProfile();
+    const builtFacilities = Object.entries(profile.facilities)
+      .filter(([, level]) => level > 0)
+      .map(([id]) => id);
+    this.game.canvas.dataset.expeditionFarhaven = builtFacilities.length > 0 ? `core,${builtFacilities.join(',')}` : 'core';
+    const center = { x: 2_100, y: 1_650 };
+    const homeGlow = this.add.circle(center.x, center.y, 82, 0xe7b96e, 0.08).setDepth(1);
+    this.tweens.add({ targets: homeGlow, alpha: { from: 0.055, to: 0.1 }, duration: 4_800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+
+    const dock = this.add.graphics().setDepth(2);
+    dock.lineStyle(2, 0x91e4eb, 0.52);
+    dock.lineBetween(2_100, 1_514, 2_100, 1_584);
+    dock.fillStyle(0xf2cb79, 0.82);
+    dock.fillCircle(2_100, 1_584, 2.5);
+
+    const addAtlasModule = (x: number, y: number, frame: number | string, rotation = 0): void => {
+      this.add.image(x, y, 'farhaven-module-kit-v2', frame)
+        .setDisplaySize(52, 52)
+        .setRotation(rotation)
+        .setDepth(2)
+        .setAlpha(0.96);
+    };
+    if (profile.facilities.scanner > 0) addAtlasModule(center.x, center.y - 54, 'scanner-clean');
+    if (profile.facilities.labor > 0) addAtlasModule(center.x - 54, center.y, 2);
+    if (profile.facilities.navigation > 0) addAtlasModule(center.x, center.y + 54, 3);
+    if (profile.facilities.hangar > 0) {
+      this.add.image(center.x + 57, center.y, 'farhaven-hangar-module-v1')
+        .setDisplaySize(42, 58)
+        .setRotation(-Math.PI / 2)
+        .setDepth(2)
+        .setAlpha(0.98);
+    }
+    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(72, 72).setDepth(3).setAlpha(0.98);
+    this.homeLabel = this.add.text(center.x, center.y + 88, 'FARHAVEN · HEIMATHAFEN', {
+      fontFamily: 'Arial', fontSize: 8, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75,
+    }).setOrigin(0.5).setDepth(3);
   }
 
   private addWormholeGate(): void {
@@ -235,6 +280,7 @@ export class ExpeditionScene extends Phaser.Scene {
       engineFlame.fillCircle(nozzle.x, nozzle.y, index === 1 ? 3.2 : 2.2);
     });
     this.cameras.main.centerOn(expedition.position.x, expedition.position.y);
+    this.updateScanCompass(expedition);
     // Signal markers are rich scene objects. Rebuilding them on every physics
     // tick is wasteful on a phone; a scan still forces an immediate refresh
     // through its changed state signature.
@@ -253,7 +299,6 @@ export class ExpeditionScene extends Phaser.Scene {
       if (signal.knowledge === 'echo') this.addFaintEcho(signal.position);
       else this.addSignalMarker(signal);
     }
-    this.addResourceDirectionHints(expedition);
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
       const hostileKey = hostile.kind === 'guardian' ? 'ash-cantor-v1' : hostile.kind === 'sentinel' ? 'veloria-sentinel-v2' : hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1';
@@ -426,9 +471,40 @@ export class ExpeditionScene extends Phaser.Scene {
     this.signalLayer?.add(marker);
   }
 
-  /** Keeps a few relevant classified finds legible while their markers are off-screen. */
-  private addResourceDirectionHints(expedition: ExpeditionState): void {
-    const candidates = expedition.signals
+  /** Build the scan navigator once. It must never live in signalLayer, whose
+   * contents are intentionally rebuilt as contacts change. */
+  private createScanCompass(): void {
+    const back = this.add.graphics();
+    back.fillStyle(0x07151f, 0.74); back.fillRoundedRect(-42, -17, 84, 34, 9);
+    back.lineStyle(1, 0x80cbd2, 0.46); back.strokeRoundedRect(-42, -17, 84, 34, 9);
+    this.scanCompassArrow = this.add.triangle(-29, 0, 0, -7, -5.5, 5.5, 5.5, 5.5, 0x94e7e8, 0.86);
+    this.scanCompassIcon = this.add.image(-12, 0, 'resource-alloys-v1').setDisplaySize(13, 13);
+    this.scanCompassName = this.add.text(-2, -11, '', {
+      fontFamily: 'Arial', fontSize: 7, color: '#d9f3f2', fontStyle: 'bold',
+    }).setOrigin(0, 0);
+    this.scanCompassDistance = this.add.text(-2, 1, '', {
+      fontFamily: 'Arial', fontSize: 6.5, color: '#9fbabe', fontStyle: 'bold',
+    }).setOrigin(0, 0);
+    this.scanCompass = this.add.container(0, 0, [back, this.scanCompassArrow, this.scanCompassIcon, this.scanCompassName, this.scanCompassDistance])
+      .setDepth(20)
+      .setScrollFactor(0)
+      .setSize(84, 34)
+      .setInteractive({ useHandCursor: true })
+      .setVisible(false)
+      .setAlpha(0.9);
+    this.scanCompass.on('pointerdown', () => {
+      if (this.scanCompassTargetId) this.game.events.emit('farhaven:signal-selected', this.scanCompassTargetId);
+    });
+  }
+
+  /**
+   * One quiet screen-edge guide replaces the old group of world-space arrows.
+   * Its angle is interpolated across the wrap boundary, so ship motion cannot
+   * make it flicker, jump or leave graphics along the travelled path.
+   */
+  private updateScanCompass(expedition: ExpeditionState): void {
+    if (!this.scanCompass || !this.scanCompassArrow || !this.scanCompassIcon || !this.scanCompassName || !this.scanCompassDistance) return;
+    const candidate = expedition.signals
       .filter((signal) => signal.knowledge === 'classified')
       .map((signal) => ({ signal, distance: Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) }))
       .filter(({ distance }) => distance >= 190)
@@ -437,57 +513,45 @@ export class ExpeditionScene extends Phaser.Scene {
         const secondOnCourse = expedition.course && Math.hypot(second.signal.position.x - expedition.course.x, second.signal.position.y - expedition.course.y) < 4;
         if (firstOnCourse !== secondOnCourse) return firstOnCourse ? -1 : 1;
         return first.distance - second.distance;
-      })
-      .slice(0, 3);
-    for (const { signal, distance } of candidates) {
-      const reward = rewardForExpeditionSignal(expedition, signal);
-      const dx = signal.position.x - expedition.position.x;
-      const dy = signal.position.y - expedition.position.y;
-      const resource = RESOURCE_PRESENTATION[reward.kind];
-      const direction = Math.atan2(dy, dx);
-      const offset = Math.min(205, Math.max(128, distance * 0.2));
-      const x = expedition.position.x + Math.cos(direction) * offset;
-      const y = expedition.position.y + Math.sin(direction) * offset;
-      const hint = this.add.container(x, y).setDepth(9);
-      const color = Phaser.Display.Color.HexStringToColor(resource.color).color;
-      const halo = this.add.circle(0, 0, 20, color, 0.13);
-      const arrow = this.add.triangle(0, 0, 0, -14, -10, 9, 10, 9, color, 0.96).setRotation(direction + Math.PI / 2);
-      const icon = this.add.image(0, -30, resource.textureKey).setDisplaySize(16, 16);
-      const risk = signal.risk === 'high' ? 'HOHES RISIKO' : signal.risk === 'medium' ? 'MITTLERES RISIKO' : 'SICHER';
-      const tool = signal.kind === 'vein' ? ' · MINENLASER' : '';
-      const text = this.add.text(0, 24, `${resource.name.toUpperCase()} · ${reward.amount}\n${Math.round(distance)}u · ${risk}${tool}`, { fontFamily: 'Arial', fontSize: 7, color: resource.color, align: 'center', fontStyle: 'bold', lineSpacing: 1 }).setOrigin(0.5);
-      hint.add([halo, arrow, icon, text]);
-      // These are map markers, not screen effects. Keeping them in the same
-      // transient layer makes removeAll(true) reclaim them on the next render
-      // instead of leaving a trail at every former ship position.
-      this.signalLayer?.add(hint);
+      })[0];
+    if (!candidate) {
+      this.scanCompass.setVisible(false);
+      this.scanCompassTargetId = undefined;
+      this.game.canvas.dataset.scanCompass = 'hidden';
+      return;
     }
-    // Landscape phones hide the verbose signal list to protect the map. Give
-    // them one clear, tappable compass card instead of expecting tiny world
-    // labels to carry the whole navigation job.
-    if (this.scale.width <= 920 && this.scale.height <= 520 && candidates[0]) {
-      this.addMobileScanCompass(candidates[0].signal, candidates[0].distance);
-    }
-  }
 
-  private addMobileScanCompass(signal: ExpeditionState['signals'][number], distance: number): void {
-    const expedition = getExpedition();
-    if (!expedition) return;
-    const reward = rewardForExpeditionSignal(expedition, signal);
+    const reward = rewardForExpeditionSignal(expedition, candidate.signal);
     const resource = RESOURCE_PRESENTATION[reward.kind];
-    const color = Phaser.Display.Color.HexStringToColor(resource.color).color;
-    const compass = this.add.container(this.scale.width * .5, 62).setDepth(20).setScrollFactor(0).setSize(148, 42).setInteractive({ useHandCursor: true });
-    const back = this.add.graphics();
-    back.fillStyle(0x07151f, .9); back.fillRoundedRect(-74, -21, 148, 42, 11);
-    back.lineStyle(1, color, .78); back.strokeRoundedRect(-74, -21, 148, 42, 11);
-    const heading = Math.atan2(signal.position.y - expedition.position.y, signal.position.x - expedition.position.x) + Math.PI / 2;
-    const arrow = this.add.triangle(-57, 0, 0, -9, -7, 7, 7, 7, color, .98).setRotation(heading);
-    const icon = this.add.image(-36, 0, resource.textureKey).setDisplaySize(20, 20);
-    const name = this.add.text(-21, -13, `${resource.name.toUpperCase()} · ${reward.amount}`, { fontFamily: 'Arial', fontSize: 9, color: resource.color, fontStyle: 'bold' }).setOrigin(0, 0);
-    const detail = this.add.text(-21, 1, `KURS · ${Math.round(distance)}u · SCAN ${expedition.scanRadius}u`, { fontFamily: 'Arial', fontSize: 6.5, color: '#d2e6e8', fontStyle: 'bold' }).setOrigin(0, 0);
-    compass.add([back, arrow, icon, name, detail]);
-    compass.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
-    this.signalLayer?.add(compass);
+    const desiredAngle = Math.atan2(candidate.signal.position.y - expedition.position.y, candidate.signal.position.x - expedition.position.x) + Math.PI / 2;
+    const now = this.time.now;
+    if (this.scanCompassTargetId !== candidate.signal.id) {
+      this.scanCompassAngle = desiredAngle;
+    } else {
+      const elapsed = Phaser.Math.Clamp(now - this.lastScanCompassUpdateAt, 0, 50);
+      const blend = 1 - Math.exp(-elapsed / 105);
+      this.scanCompassAngle += Phaser.Math.Angle.Wrap(desiredAngle - this.scanCompassAngle) * blend;
+    }
+    this.lastScanCompassUpdateAt = now;
+    this.scanCompassTargetId = candidate.signal.id;
+    this.scanCompassArrow.setRotation(this.scanCompassAngle);
+    this.scanCompassIcon.setTexture(resource.textureKey);
+    this.scanCompassName.setText(resource.name.toUpperCase()).setColor(resource.color);
+    this.scanCompassDistance.setText(`${Math.round(candidate.distance)}u · SCAN ${expedition.scanRadius}u`);
+    // scrollFactor(0) still participates in the camera zoom transform. Place
+    // and counter-scale around the viewport centre so the guide remains a
+    // crisp 84x34 px and cannot drift beyond the edge at higher map zooms.
+    const zoom = this.cameras.main.zoom;
+    const desiredX = this.scale.width - 96;
+    const desiredY = Math.max(88, this.scale.height * 0.38);
+    const screenX = this.scale.width * 0.5 + (desiredX - this.scale.width * 0.5) / zoom;
+    const screenY = this.scale.height * 0.5 + (desiredY - this.scale.height * 0.5) / zoom;
+    this.scanCompass
+      .setPosition(screenX, screenY)
+      .setScale(1 / zoom)
+      .setVisible(true);
+    this.game.canvas.dataset.scanCompass = 'visible';
+    this.game.canvas.dataset.scanCompassTarget = candidate.signal.id;
   }
 
   private showEnemyAttackIfApplicable(expedition: ExpeditionState): void {
