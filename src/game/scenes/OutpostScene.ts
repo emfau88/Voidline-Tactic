@@ -19,10 +19,11 @@ const MODULE_ACCENTS: Record<FacilityId, number> = {
 export class OutpostScene extends Phaser.Scene {
   private unsubscribe?: () => void;
   private hasPlayedShipArrival = false;
+  private inputUnlockAt = 0;
   private stationCenter: Point = { x: 0, y: 0 };
   private stationUnit = 1;
   private readonly moduleLayouts = new Map<FacilityId, ModuleLayout>();
-  private readonly setInteractionLock = (locked: boolean): void => { this.input.enabled = !locked; };
+  private readonly setInteractionLock = (locked: boolean): void => { this.input.enabled = !locked && Date.now() >= this.inputUnlockAt; };
   private readonly animateBuiltFacility = (facilityId: FacilityId): void => this.playDockingAnimation(facilityId);
   private readonly animateCargoUnload = (cargo: Cargo): void => this.playCargoUnload(cargo);
 
@@ -30,6 +31,12 @@ export class OutpostScene extends Phaser.Scene {
 
   public create(): void {
     this.hasPlayedShipArrival = false;
+    // A scene may be created while the final touch from an expedition action is
+    // still active. Never let that touch open a random station module.
+    this.inputUnlockAt = this.registry.get('farhaven-outpost-input-unlock-at') ?? 0;
+    this.input.enabled = Date.now() >= this.inputUnlockAt;
+    const remainingInputLock = Math.max(0, this.inputUnlockAt - Date.now());
+    if (remainingInputLock) this.time.delayedCall(remainingInputLock, () => this.setInteractionLock(false));
     this.scale.on('resize', this.draw, this);
     this.game.events.on('farhaven:outpost-interaction-lock', this.setInteractionLock);
     this.game.events.on('farhaven:facility-built', this.animateBuiltFacility);
@@ -163,8 +170,11 @@ export class OutpostScene extends Phaser.Scene {
     exhaust.setBlendMode(Phaser.BlendModes.ADD);
     const vessel = this.add.image(0, 0, SHIP_VARIANTS[ship.variant].assetKey)
       .setName('farhaven-player-ship')
-      .setDisplaySize(76 * unit, 76 * unit)
       .setInteractive({ useHandCursor: true });
+    // Keep the actual hull aspect ratio. The old square fit squeezed the ship
+    // into a vertical token that could never match the painted hangar berth.
+    const hullHeight = 64 * unit;
+    vessel.setDisplaySize(vessel.width / vessel.height * hullHeight, hullHeight);
     vessel.on('pointerdown', () => this.game.events.emit('farhaven:facility-selected', 'hangar'));
     const craft = this.add.container(position.x, position.y, [exhaust, vessel])
       .setName('farhaven-player-craft')
@@ -334,7 +344,7 @@ export class OutpostScene extends Phaser.Scene {
     if (!layout || !module) return;
     const horizontal = facilityId === 'hangar' || facilityId === 'labor';
     const direction = facilityId === 'hangar' || facilityId === 'navigation' ? 1 : -1;
-    const travel = Math.max(layout.width, layout.height) * .32;
+    const travel = Math.max(layout.width, layout.height) * .58;
     if (horizontal) module.x += direction * travel; else module.y += direction * travel;
     module.setAlpha(.08).setScale(module.scaleX * .94, module.scaleY * .94);
     this.tweens.add({
@@ -344,12 +354,12 @@ export class OutpostScene extends Phaser.Scene {
       alpha: .96,
       scaleX: module.scaleX / .94,
       scaleY: module.scaleY / .94,
-      duration: 1_650,
+      duration: 2_250,
       ease: 'Sine.InOut',
       onComplete: () => {
         const clamp = this.add.circle(layout.x, layout.y, Math.min(layout.width, layout.height) * .32, 0xe4b86c, .18).setDepth(6);
         clamp.setStrokeStyle(2, 0xf3d295, .72);
-        this.tweens.add({ targets: clamp, alpha: 0, scale: 1.48, duration: 780, ease: 'Sine.Out', onComplete: () => clamp.destroy() });
+        this.tweens.add({ targets: clamp, alpha: 0, scale: 1.62, duration: 1_050, ease: 'Sine.Out', onComplete: () => clamp.destroy() });
       },
     });
     if (facilityId === 'hangar') {
@@ -368,8 +378,8 @@ export class OutpostScene extends Phaser.Scene {
           x: targetX,
           y: targetY,
           rotation: Math.PI / 2,
-          duration: 2050,
-          delay: 480,
+          duration: 2_650,
+          delay: 620,
           ease: 'Sine.InOut',
           onComplete: () => {
             exhaust?.setScale(1);

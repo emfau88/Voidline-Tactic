@@ -275,3 +275,14 @@ test('can pause and request a safe return', async ({ page }) => {
   await page.getByRole('button', { name: /RÜCKKEHR/ }).click();
   await expect(page.locator('#expedition-status')).toHaveText('RÜCKKEHR LÄUFT');
 });
+
+test('returns to a neutral Farhaven overview without reopening a prior station room', async ({ page }) => {
+  await openFacility(page, 'navigation');
+  await expect(page.getByRole('heading', { name: 'Sternenwerk' })).toBeVisible();
+  await page.getByRole('button', { name: 'Bereich schließen' }).click();
+  await startExpedition(page);
+  await page.getByRole('button', { name: /RÜCKKEHR/ }).click();
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'outpost');
+  await expect(page.locator('#facility-panel')).toBeHidden();
+  await expect(page.locator('#shipyard-panel')).toBeHidden();
+});

@@ -294,8 +294,8 @@ function playConstructionMoment(facilityId: FacilityId): void {
     required<HTMLElement>('construction-title').textContent = `${facility.name.toUpperCase()} IST ONLINE`;
     required<HTMLElement>('construction-copy').textContent = facility.effect;
     moment.classList.add('complete');
-  }, 1_450);
-  window.setTimeout(() => { moment.hidden = true; }, 3_400);
+  }, 1_850);
+  window.setTimeout(() => { moment.hidden = true; }, 4_600);
 }
 
 function playReturnMoment(cargo: Cargo): void {
@@ -481,6 +481,11 @@ function render(): void {
 
 function startExpedition(): void {
   paused = false;
+  selectedFacility = undefined;
+  coreInfoOpen = false;
+  facilityPanel.hidden = true;
+  shipyardPanel.hidden = true;
+  outpostTapShieldUntil = Date.now() + 320;
   required<HTMLButtonElement>('pause-button').setAttribute('aria-pressed', 'false');
   beginExpedition();
   game.scene.stop('outpost');
@@ -731,6 +736,15 @@ stick.addEventListener('pointercancel', releaseFlight);
 subscribe(() => {
   if (!getExpedition() && shell.dataset.screen === 'expedition') {
     const returnedCargo = consumeReturnCargo();
+    // A return always lands on the neutral Farhaven overview. Clear the last
+    // room selection before the scene exists, then shield it from the trailing
+    // touch that initiated the return.
+    selectedFacility = undefined;
+    coreInfoOpen = false;
+    facilityPanel.hidden = true;
+    shipyardPanel.hidden = true;
+    outpostTapShieldUntil = Date.now() + 1_050;
+    game.registry.set('farhaven-outpost-input-unlock-at', outpostTapShieldUntil);
     game.scene.stop('expedition');
     game.scene.start('outpost');
     if (resettingForDevelopment) {
