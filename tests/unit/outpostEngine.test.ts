@@ -58,4 +58,19 @@ describe('outpost progression', () => {
     expect(armed.resources).toEqual({ alloys: 0, data: 0, relics: 0 });
     expect(armed.ship?.upgrades).toEqual(expect.arrayContaining(['rail-lance', 'torpedo-rack']));
   });
+
+  it('treats the scanner array and salvage claws as regular paid ship systems', () => {
+    const prepared = {
+      ...DEFAULT_PROFILE,
+      resources: { alloys: 4, data: 2, relics: 0 },
+      facilities: { ...DEFAULT_PROFILE.facilities, hangar: 1 },
+      ship: newShip('bramble'),
+    };
+    expect(canPurchaseShipUpgrade(prepared, 'broadband-array')).toBe(true);
+    const scanned = purchaseShipUpgrade(prepared, 'broadband-array');
+    expect(canPurchaseShipUpgrade(scanned, 'salvage-claws')).toBe(true);
+    const clawed = purchaseShipUpgrade(scanned, 'salvage-claws');
+    expect(clawed.resources).toEqual({ alloys: 0, data: 0, relics: 0 });
+    expect(clawed.ship?.upgrades).toEqual(expect.arrayContaining(['broadband-array', 'salvage-claws']));
+  });
 });

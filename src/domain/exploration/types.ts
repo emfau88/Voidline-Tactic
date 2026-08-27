@@ -78,6 +78,7 @@ export interface ExpeditionState {
   readonly cargoCapacity: number;
   readonly scanRadius: number;
   readonly hullRiskReduction?: number;
+  readonly salvageBonus?: number;
   readonly signals: readonly SignalState[];
   readonly hostiles: readonly HostileState[];
   readonly dummyRespawns: readonly DummyRespawnState[];

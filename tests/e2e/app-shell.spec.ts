@@ -59,7 +59,7 @@ test('lets the player inspect the Farhaven core as the station anchor', async ({
   const canvas = page.locator('#game-root canvas');
   // Phaser creates the station targets after its texture preload. On high-DPI
   // mobile emulation the canvas is visible a few frames before those targets.
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(1_500);
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Expected the Farhaven canvas to be visible.');
   await canvas.click({ position: { x: box.width / 2, y: box.height * .51 } });
@@ -151,6 +151,23 @@ test('keeps visual hull ideas as previews and only installs real earned modules'
   await page.getByRole('button', { name: /Minenlaser/ }).click();
   await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toBeVisible();
   await expect(page.locator('#shipyard-preview img[data-upgrade="mining-lasers"]')).toHaveJSProperty('naturalWidth', 1024);
+});
+
+test('renders every earned field module as a real Bramble asset in the workshop', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 0, data: 0, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 4,
+    story: { routeTraceRecovered: false, discoveries: [] },
+    ship: { variant: 'bramble', upgrades: ['broadband-array', 'cargo-spine', 'salvage-claws', 'mining-lasers', 'rail-lance', 'torpedo-rack'] },
+  })));
+  await page.reload();
+  await openFacility(page, 'hangar');
+  await page.getByRole('button', { name: /WERKSTATT ÖFFNEN/ }).click();
+  await expect(page.locator('#shipyard-parts img.shipyard-art-layer')).toHaveCount(6);
+  const sources = await page.locator('#shipyard-parts img.shipyard-art-layer').evaluateAll((images) => images.map((image) => image.getAttribute('src')));
+  expect(sources.every((source) => source?.includes('/assets/ships/bramble/'))).toBe(true);
 });
 
 test('scans a sector, classifies a signal and keeps the mobile HUD readable', async ({ page }) => {

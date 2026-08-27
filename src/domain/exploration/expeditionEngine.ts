@@ -71,6 +71,14 @@ export function rewardForSignal(signal: SignalState): NonNullable<SignalState['r
   return signal.reward ?? SIGNAL_REWARDS[signal.kind];
 }
 
+/** The claw bonus is kept with the expedition so every presentation surface shows the real haul. */
+export function rewardForExpeditionSignal(state: ExpeditionState | undefined, signal: SignalState): NonNullable<SignalState['reward']> {
+  const reward = rewardForSignal(signal);
+  return signal.kind === 'wreck' && (state?.salvageBonus ?? 0) > 0
+    ? { ...reward, amount: reward.amount + (state?.salvageBonus ?? 0) }
+    : reward;
+}
+
 function appendLog(state: ExpeditionState, entry: string): ExpeditionState {
   return { ...state, log: [entry, ...state.log].slice(0, MAX_LOG_ENTRIES) };
 }
@@ -172,7 +180,7 @@ function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[]
   return scenario === 'free' ? TRAINING_DUMMIES.map((dummy): HostileState => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } })) : [];
 }
 
-export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0): ExpeditionState {
+export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0, salvageBonus = 0): ExpeditionState {
   return {
     sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
@@ -191,6 +199,7 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: Expedi
     cargoCapacity: 6 + cargoBonus,
     scanRadius: 560 + scanBonus,
     hullRiskReduction,
+    salvageBonus,
     signals: scenarioSignals(scenario),
     hostiles: scenarioHostiles(scenario),
     dummyRespawns: [],
@@ -327,7 +336,7 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
   if (guard) return appendLog(state, `${signal.name} ist durch ${guard.name} bewacht. Du kannst umkehren oder den Plünderer vertreiben.`);
   if (cargoTotal(state.cargo) >= state.cargoCapacity) return appendLog(state, 'Der Frachtraum ist voll. Sichere die Fracht in Farhaven.');
 
-  const reward = rewardForSignal(signal);
+  const reward = rewardForExpeditionSignal(state, signal);
   if (cargoTotal(state.cargo) + reward.amount > state.cargoCapacity) {
     return appendLog(state, `Zu wenig Frachtraum für diesen Fund (${reward.amount} Plätze nötig). Sichere erst deine Fracht in Farhaven.`);
   }
@@ -341,7 +350,9 @@ export function investigate(state: ExpeditionState, signalId: string): Expeditio
     signals,
     hull: Math.max(0, state.hull - hullCost),
     cargo: addCargo(state.cargo, reward.kind, reward.amount),
-  }, resultText);
+  }, signal.kind === 'wreck' && (state.salvageBonus ?? 0) > 0
+    ? `${resultText} Die Bergungsgreifer sichern zusätzlich eine Legierung.`
+    : resultText);
 }
 
 export function mineVein(state: ExpeditionState, signalId: string): ExpeditionState {

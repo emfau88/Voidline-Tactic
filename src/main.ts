@@ -2,7 +2,7 @@ import './farhaven.css';
 import Phaser from 'phaser';
 import { createGame } from './app/createGame';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
-import { canEnterWormhole, rewardForSignal, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
+import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, ResourceKind, WeaponMode } from './domain/exploration/types';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
@@ -16,8 +16,23 @@ const ASTER_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
   'salvage-claws': 'assets/ships/aster-vale/salvage-claws-v2.png',
   'mining-lasers': 'assets/ships/aster-vale/mining-lasers-v2.png',
   'rail-lance': 'assets/ships/aster-vale/rail-lance-v1.png',
+  'torpedo-rack': 'assets/ships/aster-vale/torpedo-rack-v1.png',
   'relic-shrine': 'assets/ships/aster-vale/relic-shrine-v1.png',
   'side-turrets': 'assets/ships/aster-vale/side-turrets-v1.png',
+};
+
+const BRAMBLE_MODULE_PATHS: Partial<Record<ShipUpgradeId, string>> = {
+  'broadband-array': 'assets/ships/bramble/broadband-array-v1.png',
+  'cargo-spine': 'assets/ships/bramble/cargo-spine-v1.png',
+  'salvage-claws': 'assets/ships/bramble/salvage-claws-v1.png',
+  'mining-lasers': 'assets/ships/bramble/mining-lasers-v1.png',
+  'rail-lance': 'assets/ships/bramble/rail-lance-v1.png',
+  'torpedo-rack': 'assets/ships/bramble/torpedo-rack-v1.png',
+};
+
+const MODULE_PATHS_BY_HULL: Record<ShipVariantId, Partial<Record<ShipUpgradeId, string>>> = {
+  'aster-vale': ASTER_MODULE_PATHS,
+  bramble: BRAMBLE_MODULE_PATHS,
 };
 
 function publicAssetPath(path: string): string {
@@ -223,7 +238,7 @@ function renderShipyard(): void {
   required<HTMLElement>('shipyard-ship-name').textContent = variant.name.toUpperCase();
   const parts = required<HTMLElement>('shipyard-parts');
   parts.innerHTML = ship.upgrades.map((id) => {
-    const path = previewVariant === 'aster-vale' ? ASTER_MODULE_PATHS[id] : undefined;
+    const path = MODULE_PATHS_BY_HULL[previewVariant][id];
     return path ? `<img class="shipyard-art-layer" data-upgrade="${id}" src="${publicAssetPath(path)}" alt="" />` : `<i class="part-${id}" data-upgrade="${id}"></i>`;
   }).join('');
   const moduleCard = (upgrade: (typeof SHIP_UPGRADES)[number]) => {
@@ -384,7 +399,7 @@ function renderExpedition(): void {
     interact.disabled = !nearby;
   }
   if (nearby && !nearbyGuard) {
-    const reward = rewardForSignal(nearby);
+    const reward = rewardForExpeditionSignal(expedition, nearby);
     interact.querySelector('small')!.innerHTML = `${resourceIconMarkup(reward.kind)} ${reward.amount} ${RESOURCE_PRESENTATION[reward.kind].name}`;
   }
   const targetId = getSelectedTargetId();
@@ -431,7 +446,7 @@ function renderExpedition(): void {
     item.dataset.signalCourse = signal.id;
     const distance = Math.round(Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y));
     item.className = 'signal';
-    const reward = rewardForSignal(signal);
+    const reward = rewardForExpeditionSignal(expedition, signal);
     const risk = signal.risk === 'high' ? 'HOHES RISIKO' : signal.risk === 'medium' ? 'MITTLERES RISIKO' : 'SICHER';
     const requirement = signal.kind === 'vein' ? ' · MINENLASER' : signal.guardedBy ? ' · BEWACHT' : '';
     item.innerHTML = `<span><b>${signal.name.toUpperCase()}</b><small>${risk}${requirement} · ${signal.description ?? ''}</small></span><span class="signal-reward" data-resource="${reward.kind}">${resourceIconMarkup(reward.kind)}<b>${reward.amount}</b><small>${distance}u</small></span>`;
@@ -587,9 +602,9 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
   if (isFieldUpgrade(upgradeId)) {
     if (purchaseFieldUpgrade(upgradeId)) {
       const message: Record<ShipUpgradeId, string> = {
-        'broadband-array': '', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
+        'broadband-array': 'BREITBANDARRAY EINGEBAUT · +160 SCANREICHWEITE', 'cargo-spine': 'FRACHTRÜCKEN EINGEBAUT · +2 FRACHTPLÄTZE', 'vector-tail': '', 'aegis-crown': '',
         'rail-lance': 'RAIL-LANZE EINGEBAUT · ZUSÄTZLICHE FRONTWAFFE BEREIT', 'torpedo-rack': 'TORPEDORACK EINGEBAUT · ORDNANZ BEREIT',
-        'side-turrets': '', 'salvage-claws': '', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
+        'side-turrets': '', 'salvage-claws': 'BERGUNGSGREIFER EINGEBAUT · WRACKBONUS BEREIT', 'mining-lasers': 'MINENLASER EINGEBAUT · SCHWARZE ADERN ERSCHLIESSEN', 'relic-shrine': '', 'core-reactor': '',
       };
       toast(message[upgradeId]);
     }
@@ -614,15 +629,15 @@ required<HTMLButtonElement>('interact-button').addEventListener('click', () => {
   const nearby = expedition?.signals.find((signal) => signal.knowledge === 'classified' && Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) <= 112);
   if (!nearby) return;
   if (nearby.kind === 'vein') {
-    const before = getExpedition()?.cargo[rewardForSignal(nearby).kind] ?? 0;
+    const before = getExpedition()?.cargo[rewardForExpeditionSignal(expedition, nearby).kind] ?? 0;
     if (mineVeinSignal(nearby.id)) {
-      const reward = rewardForSignal(nearby);
+      const reward = rewardForExpeditionSignal(expedition, nearby);
       game.events.emit('farhaven:mining-start', nearby.position);
       if ((getExpedition()?.cargo[reward.kind] ?? before) > before) game.events.emit('farhaven:resource-collected', { kind: reward.kind, amount: reward.amount, position: nearby.position });
     }
     return;
   }
-  const reward = rewardForSignal(nearby);
+  const reward = rewardForExpeditionSignal(expedition, nearby);
   const before = getExpedition()?.cargo[reward.kind] ?? 0;
   investigateSignal(nearby.id);
   game.events.emit('farhaven:signal-action', { kind: nearby.kind, position: nearby.position });

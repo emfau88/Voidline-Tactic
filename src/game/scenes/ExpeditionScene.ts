@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { rewardForSignal, weaponReadiness } from '../../domain/exploration/expeditionEngine';
+import { rewardForExpeditionSignal, weaponReadiness } from '../../domain/exploration/expeditionEngine';
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
 import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
 import type { ExpeditionState, SignalKind, Vector2, WeaponMode } from '../../domain/exploration/types';
-import { SHIP_VARIANTS, type ShipUpgradeId } from '../../domain/ship/types';
+import { SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from '../../domain/ship/types';
 
 const ASTER_MODULE_ART: Partial<Record<ShipUpgradeId, string>> = {
   'broadband-array': 'aster-module-broadband-array-v1',
@@ -13,8 +13,23 @@ const ASTER_MODULE_ART: Partial<Record<ShipUpgradeId, string>> = {
   'salvage-claws': 'aster-module-salvage-claws-v2',
   'mining-lasers': 'aster-module-mining-lasers-v2',
   'rail-lance': 'aster-module-rail-lance-v1',
+  'torpedo-rack': 'aster-module-torpedo-rack-v1',
   'relic-shrine': 'aster-module-relic-shrine-v1',
   'side-turrets': 'aster-module-side-turrets-v1',
+};
+
+const BRAMBLE_MODULE_ART: Partial<Record<ShipUpgradeId, string>> = {
+  'broadband-array': 'bramble-module-broadband-array-v1',
+  'cargo-spine': 'bramble-module-cargo-spine-v1',
+  'salvage-claws': 'bramble-module-salvage-claws-v1',
+  'mining-lasers': 'bramble-module-mining-lasers-v1',
+  'rail-lance': 'bramble-module-rail-lance-v1',
+  'torpedo-rack': 'bramble-module-torpedo-rack-v1',
+};
+
+const MODULE_ART_BY_HULL: Record<ShipVariantId, Partial<Record<ShipUpgradeId, string>>> = {
+  'aster-vale': ASTER_MODULE_ART,
+  bramble: BRAMBLE_MODULE_ART,
 };
 
 const DEFAULT_EXPEDITION_ZOOM = 1.1;
@@ -350,7 +365,7 @@ export class ExpeditionScene extends Phaser.Scene {
     labelBack.fillStyle(0x07131d, 0.88); labelBack.fillRoundedRect(-60, labelY, 120, 40, 7);
     labelBack.lineStyle(1, color, 0.62); labelBack.strokeRoundedRect(-60, labelY, 120, 40, 7);
     const label = this.add.text(0, labelY + 4, signal.name.toUpperCase(), { fontFamily: 'Arial', fontSize: 9, color: '#e6f4f3', align: 'center', fontStyle: 'bold', wordWrap: { width: 112 } }).setOrigin(0.5, 0);
-    const reward = rewardForSignal(signal);
+    const reward = rewardForExpeditionSignal(getExpedition(), signal);
     const resource = RESOURCE_PRESENTATION[reward.kind];
     const rewardIcon = this.add.image(-42, labelY + 29, resource.textureKey).setDisplaySize(12, 12);
     const actionLabel = this.add.text(-33, labelY + 28, `${reward.amount} ${resource.name.toUpperCase()} · ${action}`, { fontFamily: 'Arial', fontSize: 6, color: resource.color, align: 'left', fontStyle: 'bold', letterSpacing: 0.2 }).setOrigin(0, 0);
@@ -374,7 +389,7 @@ export class ExpeditionScene extends Phaser.Scene {
       })
       .slice(0, 3);
     for (const { signal, distance } of candidates) {
-      const reward = rewardForSignal(signal);
+      const reward = rewardForExpeditionSignal(expedition, signal);
       const dx = signal.position.x - expedition.position.x;
       const dy = signal.position.y - expedition.position.y;
       const resource = RESOURCE_PRESENTATION[reward.kind];
@@ -655,13 +670,9 @@ export class ExpeditionScene extends Phaser.Scene {
   private addShipUpgradeArt(upgrades: readonly ShipUpgradeId[]): void {
     if (!this.shipRig) return;
     for (const upgrade of upgrades) {
-      if (upgrade === 'torpedo-rack') {
-        this.addTorpedoRackArt();
-        continue;
-      }
-      const asterArt = getProfile().ship?.variant === 'aster-vale' ? ASTER_MODULE_ART[upgrade] : undefined;
-      if (asterArt) {
-        const layer = this.add.image(0, 0, asterArt).setName(`ship-upgrade-${upgrade}`).setDisplaySize(96, 144);
+      const moduleArt = getProfile().ship ? MODULE_ART_BY_HULL[getProfile().ship!.variant][upgrade] : undefined;
+      if (moduleArt) {
+        const layer = this.add.image(0, 0, moduleArt).setName(`ship-upgrade-${upgrade}`).setDisplaySize(96, 144);
         if (upgrade === 'vector-tail') this.shipRig.addAt(layer, 0); else this.shipRig.add(layer);
         continue;
       }

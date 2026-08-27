@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, rewardForSignal, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
+import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, rewardForExpeditionSignal, rewardForSignal, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
 
 describe('exploration engine', () => {
   it('classifies nearby echoes while consuming rechargeable system charge', () => {
@@ -39,6 +39,15 @@ describe('exploration engine', () => {
     const salvaged = investigate(nearWreck, 'echo-wreck');
     expect(salvaged.cargo.alloys).toBe(3);
     expect(salvaged.signals.find((signal) => signal.id === 'echo-wreck')?.knowledge).toBe('resolved');
+  });
+
+  it('makes installed salvage claws visible as a real extra wreck reward', () => {
+    const scanned = scan(createExpedition(0, 2, 'first-wreck', 0, 1));
+    const wreck = scanned.signals.find((signal) => signal.id === 'echo-wreck')!;
+    expect(rewardForExpeditionSignal(scanned, wreck).amount).toBe(4);
+    const salvaged = investigate({ ...scanned, position: wreck.position }, wreck.id);
+    expect(salvaged.cargo.alloys).toBe(4);
+    expect(salvaged.log[0]).toContain('Bergungsgreifer');
   });
 
   it('offers the second-shift choice and makes the risky data source cost hull instead of fuel', () => {

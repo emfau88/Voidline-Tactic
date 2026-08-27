@@ -40,7 +40,9 @@ export const FIRST_FIELD_UPGRADE_ID = 'cargo-spine' as const satisfies ShipUpgra
 export const SECOND_FIELD_UPGRADE_ID = 'mining-lasers' as const satisfies ShipUpgradeId;
 
 export const FIELD_UPGRADE_COSTS: Readonly<Partial<Record<ShipUpgradeId, Readonly<Partial<Record<'alloys' | 'data' | 'relics', number>>>>>> = {
+  'broadband-array': { alloys: 2, data: 1 },
   [FIRST_FIELD_UPGRADE_ID]: { alloys: 1 },
+  'salvage-claws': { alloys: 2, data: 1 },
   [SECOND_FIELD_UPGRADE_ID]: { data: 2, relics: 1 },
   'rail-lance': { alloys: 4, data: 1 },
   'torpedo-rack': { alloys: 3, relics: 1 },
@@ -69,14 +71,14 @@ export const SHIP_VARIANTS: Record<ShipVariantId, ShipVariantDefinition> = {
 };
 
 export const SHIP_UPGRADES: readonly ShipUpgradeDefinition[] = [
-  { id: 'broadband-array', name: 'Breitbandarray', shortName: 'ARRAY', description: 'Cyanfarbene Sensorzinken am Rücken.', slot: 'dorsal', accent: '#7ee8f3' },
+  { id: 'broadband-array', name: 'Breitbandarray', shortName: 'ARRAY', description: '+160 Scanreichweite; Echos werden früher lesbar.', slot: 'dorsal', accent: '#7ee8f3' },
   { id: 'cargo-spine', name: 'Frachtrücken', shortName: 'FRACHT', description: 'Ein echter Hangar-Einbau: +2 Frachtraum auf jeder Expedition.', slot: 'dorsal', accent: '#d6a45e' },
   { id: 'vector-tail', name: 'Vector-Heck', shortName: 'VECTOR', description: 'Zusätzliche violette Schubdüsen.', slot: 'stern', accent: '#ba86ef' },
   { id: 'aegis-crown', name: 'Aegis-Kranz', shortName: 'AEGIS', description: 'Ein sanft leuchtender Schutzkranz.', slot: 'core', accent: '#77dbe9' },
   { id: 'rail-lance', name: 'Rail-Lanze', shortName: 'LANZE', description: 'Echter Hangar-Einbau: präziser Frontschuss mit hoher Reichweite.', slot: 'nose', accent: '#f1d08a' },
   { id: 'torpedo-rack', name: 'Torpedorack', shortName: 'TORPEDO', description: 'Echter Hangar-Einbau: schwere Frontordnanz für ausgewählte Ziele.', slot: 'flank', accent: '#72dce9' },
   { id: 'side-turrets', name: 'Seitengeschütze', shortName: 'TÜRME', description: 'Zwei kompakte Flankentürme.', slot: 'flank', accent: '#ea966f' },
-  { id: 'salvage-claws', name: 'Bergungsgreifer', shortName: 'GREIFER', description: 'Goldene Gelenkarme für Wracks.', slot: 'flank', accent: '#e1b267' },
+  { id: 'salvage-claws', name: 'Bergungsgreifer', shortName: 'GREIFER', description: 'Wracks liefern eine zusätzliche Legierung.', slot: 'flank', accent: '#e1b267' },
   { id: 'mining-lasers', name: 'Minenlaser', shortName: 'LASER', description: 'Echter Hangar-Einbau: Schwarze Adern werden zu Legierungen.', slot: 'nose', accent: '#f0bf6d' },
   { id: 'relic-shrine', name: 'Reliktschrein', shortName: 'RELIKT', description: 'Ein kleines gotisches Reliquiar.', slot: 'dorsal', accent: '#d5b7f6' },
   { id: 'core-reactor', name: 'Kernreaktor', shortName: 'KERN', description: 'Ein violetter Kern für Sonderlasten.', slot: 'core', accent: '#c37cf0' },

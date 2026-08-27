@@ -92,10 +92,10 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 ### M3 — Sichtbare Schiffsprogression
 
 - ✅ Modulares Testschiff und visuelle Upgrade-Prototypen
-- ✅ Vier funktionale Feld-Upgrades im Hangar getrennt von Studien
-- ⬜ Sechs hochwertige, organisch verbaute Kern-Upgrades finalisieren
+- ✅ Sechs funktionale Kern-Einbauten im Hangar getrennt von Studien
+- ✅ Sechs hochwertige, rumpspezifische Montage-Layer für Aster Vale und Bramble
 - ⬜ Zwei klar unterschiedliche Schiffsklassen spielmechanisch differenzieren
-- ⬜ Waffen, Greifer, Scanner, Frachtraum und Triebwerke mit eigenem VFX
+- 🚧 Waffen, Greifer, Scanner, Frachtraum und Triebwerke mit eigenem VFX (Waffen, Greifer, Laser und Scanimpuls vorhanden; Montage- und Frachtrücken-VFX folgen)
 - ⬜ Rumpfvergrößerung über echte Zwischenstücke und passende Silhouetten
 - ⬜ Einbauvorschau mit Vorher/Nachher und eindeutigen Anschlussstellen
 - ⬜ Loadout-Grenzen für verständliche Entscheidungen statt Upgrade-Chaos
@@ -170,7 +170,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 1. ✅ **Bulk A – Verständliche Ressourcen:** Namen, Icons, Quellen, Fracht und Preise durchgängig verbinden.
 2. 🧪 **Bulk B – Zehn-Minuten-UX:** drei externe Tests, Sackgassen und unklare Ziele beseitigen.
 3. 🚧 **Bulk C – Explorationstiefe:** Veloria-Grundraum, sechs Ereignisse, neutraler Kontakt und Fundprotokoll stehen; Entscheidungen und Sektorgeheimnis werden noch vertieft.
-4. ⬜ **Bulk D – Sechs echte Schiffs-Upgrades:** organische Bauteile, Funktionen und VFX gemeinsam bauen.
+4. 🚧 **Bulk D – Sechs echte Schiffs-Upgrades:** organische Bauteile und Funktionen stehen; die Einbau- und passiven System-VFX werden noch vervollständigt.
 5. 🚧 **Bulk E – Kampf-Vertical-Slice:** zusätzliche Gegnerrollen, Vorwarnung, sichtbare Feindgeschosse und freiwillige Wächterzonen stehen; Balance und Abschlussgegner müssen validiert werden.
 6. ⬜ **Bulk F – Farhaven Level 2:** sichtbare Upgrades und Ambient-Leben erst auf dem validierten Loop.
 7. ⬜ **Bulk G – Polish/Release:** Audio, Lesbarkeit, Performance, Speicherung und Deployment.

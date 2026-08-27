@@ -16,8 +16,15 @@ export class BootScene extends Phaser.Scene {
     this.load.image('aster-module-salvage-claws-v2', 'assets/ships/aster-vale/salvage-claws-v2.png');
     this.load.image('aster-module-mining-lasers-v2', 'assets/ships/aster-vale/mining-lasers-v2.png');
     this.load.image('aster-module-rail-lance-v1', 'assets/ships/aster-vale/rail-lance-v1.png');
+    this.load.image('aster-module-torpedo-rack-v1', 'assets/ships/aster-vale/torpedo-rack-v1.png');
     this.load.image('aster-module-relic-shrine-v1', 'assets/ships/aster-vale/relic-shrine-v1.png');
     this.load.image('aster-module-side-turrets-v1', 'assets/ships/aster-vale/side-turrets-v1.png');
+    this.load.image('bramble-module-broadband-array-v1', 'assets/ships/bramble/broadband-array-v1.png');
+    this.load.image('bramble-module-cargo-spine-v1', 'assets/ships/bramble/cargo-spine-v1.png');
+    this.load.image('bramble-module-salvage-claws-v1', 'assets/ships/bramble/salvage-claws-v1.png');
+    this.load.image('bramble-module-mining-lasers-v1', 'assets/ships/bramble/mining-lasers-v1.png');
+    this.load.image('bramble-module-rail-lance-v1', 'assets/ships/bramble/rail-lance-v1.png');
+    this.load.image('bramble-module-torpedo-rack-v1', 'assets/ships/bramble/torpedo-rack-v1.png');
     this.load.image('ship-enemy-cruiser-v1', 'assets/ships/enemy-cruiser-v1.png');
     this.load.image('ship-enemy-destroyer-v1', 'assets/ships/enemy-destroyer-v1.png');
     this.load.image('ship-enemy-patrol-v1', 'assets/ships/enemy-patrol-v1.png');

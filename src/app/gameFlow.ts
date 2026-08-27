@@ -116,12 +116,15 @@ export function getPrologueObjective(): PrologueObjective {
 
 export function beginExpedition(): ExpeditionState {
   const variant = profile.ship?.variant;
-  const scanBonus = (profile.facilities.scanner ? 90 : 0) + (variant === 'aster-vale' ? 60 : 0);
+  const scanBonus = (profile.facilities.scanner ? 90 : 0)
+    + (variant === 'aster-vale' ? 60 : 0)
+    + (profile.ship?.upgrades.includes('broadband-array') ? 160 : 0);
   const cargoBonus = (profile.facilities.hangar ? 2 : 0)
     + (variant === 'bramble' ? 1 : 0)
     + (profile.ship?.upgrades.includes('cargo-spine') ? 2 : 0);
   const hullRiskReduction = profile.facilities.labor ? 3 : 0;
-  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction);
+  const salvageBonus = profile.ship?.upgrades.includes('salvage-claws') ? 1 : 0;
+  expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction, salvageBonus);
   // A soft lock makes the first combat contact legible on mouse and touch alike.
   // It never fires for the player and can be overridden by tapping another ship.
   selectedTargetId = expedition.hostiles
