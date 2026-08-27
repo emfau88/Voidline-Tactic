@@ -32,9 +32,9 @@ const MODULE_ART_BY_HULL: Record<ShipVariantId, Partial<Record<ShipUpgradeId, st
   bramble: BRAMBLE_MODULE_ART,
 };
 
-const DEFAULT_EXPEDITION_ZOOM = 1.1;
+const DEFAULT_EXPEDITION_ZOOM = 1.26;
 const MIN_EXPEDITION_ZOOM = 0.82;
-const MAX_EXPEDITION_ZOOM = 1.7;
+const MAX_EXPEDITION_ZOOM = 1.85;
 const STORY_SIGNAL_ART: Readonly<Partial<Record<string, string>>> = {
   'echo-wreck': 'route-reliquary-v1',
   'raider-cache': 'route-reliquary-v1',
@@ -82,6 +82,39 @@ export class ExpeditionScene extends Phaser.Scene {
   private lastSignalState = '';
 
   public constructor() { super('expedition'); }
+
+  /** Campaign art stays out of the initial Farhaven boot path. */
+  public preload(): void {
+    this.load.image('ship-player-frigate-v1', 'assets/ships/player-frigate-v1.png');
+    this.load.image('aster-module-broadband-array-v1', 'assets/ships/aster-vale/broadband-array-v1.png');
+    this.load.image('aster-module-cargo-spine-v1', 'assets/ships/aster-vale/cargo-spine-v1.png');
+    this.load.image('aster-module-vector-tail-v1', 'assets/ships/aster-vale/vector-tail-v1.png');
+    this.load.image('aster-module-salvage-claws-v2', 'assets/ships/aster-vale/salvage-claws-v2.png');
+    this.load.image('aster-module-mining-lasers-v2', 'assets/ships/aster-vale/mining-lasers-v2.png');
+    this.load.image('aster-module-rail-lance-v1', 'assets/ships/aster-vale/rail-lance-v1.png');
+    this.load.image('aster-module-torpedo-rack-v1', 'assets/ships/aster-vale/torpedo-rack-v1.png');
+    this.load.image('aster-module-relic-shrine-v1', 'assets/ships/aster-vale/relic-shrine-v1.png');
+    this.load.image('aster-module-side-turrets-v1', 'assets/ships/aster-vale/side-turrets-v1.png');
+    this.load.image('bramble-module-broadband-array-v1', 'assets/ships/bramble/broadband-array-v1.png');
+    this.load.image('bramble-module-cargo-spine-v1', 'assets/ships/bramble/cargo-spine-v1.png');
+    this.load.image('bramble-module-salvage-claws-v1', 'assets/ships/bramble/salvage-claws-v1.png');
+    this.load.image('bramble-module-mining-lasers-v1', 'assets/ships/bramble/mining-lasers-v1.png');
+    this.load.image('bramble-module-rail-lance-v1', 'assets/ships/bramble/rail-lance-v1.png');
+    this.load.image('bramble-module-torpedo-rack-v1', 'assets/ships/bramble/torpedo-rack-v1.png');
+    this.load.image('ship-enemy-patrol-v1', 'assets/ships/enemy-patrol-v1.png');
+    this.load.image('ashen-fringe-v1', 'assets/backgrounds/ashen-fringe-v1.png');
+    this.load.image('veloria-rift-v1', 'assets/backgrounds/veloria-rift-v1.webp');
+    this.load.image('wormhole-gate-sealed-v4', 'assets/objects/wormhole-gate-sealed-v4.png');
+    this.load.image('wormhole-gate-active-v4', 'assets/objects/wormhole-gate-active-v4.png');
+    this.load.image('ash-reaver-v2', 'assets/story/ash-reaver-v2.png');
+    this.load.image('route-reliquary-v1', 'assets/story/route-reliquary-v1.png');
+    this.load.image('monk-lantern-v1', 'assets/story/monk-lantern-v1.png');
+    this.load.image('cutting-liturgy-v1', 'assets/story/cutting-liturgy-v1.png');
+    this.load.image('route-vein-v1', 'assets/story/route-vein-v1.png');
+    this.load.image('veloria-shell-barge-v1', 'assets/veloria/veloria-shell-barge-v1.png');
+    this.load.image('veloria-sentinel-v2', 'assets/veloria/veloria-sentinel-v2.png');
+    this.load.image('veloria-pilgrim-v2', 'assets/veloria/veloria-pilgrim-v2.png');
+  }
 
   public create(): void {
     const expedition = getExpedition();
@@ -411,6 +444,32 @@ export class ExpeditionScene extends Phaser.Scene {
       // instead of leaving a trail at every former ship position.
       this.signalLayer?.add(hint);
     }
+    // Landscape phones hide the verbose signal list to protect the map. Give
+    // them one clear, tappable compass card instead of expecting tiny world
+    // labels to carry the whole navigation job.
+    if (this.scale.width <= 920 && this.scale.height <= 520 && candidates[0]) {
+      this.addMobileScanCompass(candidates[0].signal, candidates[0].distance);
+    }
+  }
+
+  private addMobileScanCompass(signal: ExpeditionState['signals'][number], distance: number): void {
+    const expedition = getExpedition();
+    if (!expedition) return;
+    const reward = rewardForExpeditionSignal(expedition, signal);
+    const resource = RESOURCE_PRESENTATION[reward.kind];
+    const color = Phaser.Display.Color.HexStringToColor(resource.color).color;
+    const compass = this.add.container(this.scale.width * .5, 62).setDepth(20).setScrollFactor(0).setSize(148, 42).setInteractive({ useHandCursor: true });
+    const back = this.add.graphics();
+    back.fillStyle(0x07151f, .9); back.fillRoundedRect(-74, -21, 148, 42, 11);
+    back.lineStyle(1, color, .78); back.strokeRoundedRect(-74, -21, 148, 42, 11);
+    const heading = Math.atan2(signal.position.y - expedition.position.y, signal.position.x - expedition.position.x) + Math.PI / 2;
+    const arrow = this.add.triangle(-57, 0, 0, -9, -7, 7, 7, 7, color, .98).setRotation(heading);
+    const icon = this.add.image(-36, 0, resource.textureKey).setDisplaySize(20, 20);
+    const name = this.add.text(-21, -13, `${resource.name.toUpperCase()} · ${reward.amount}`, { fontFamily: 'Arial', fontSize: 9, color: resource.color, fontStyle: 'bold' }).setOrigin(0, 0);
+    const detail = this.add.text(-21, 1, `KURS · ${Math.round(distance)}u · SCAN ${expedition.scanRadius}u`, { fontFamily: 'Arial', fontSize: 6.5, color: '#d2e6e8', fontStyle: 'bold' }).setOrigin(0, 0);
+    compass.add([back, arrow, icon, name, detail]);
+    compass.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
+    this.signalLayer?.add(compass);
   }
 
   private showEnemyAttackIfApplicable(expedition: ExpeditionState): void {
@@ -605,6 +664,10 @@ export class ExpeditionScene extends Phaser.Scene {
       ease: 'Cubic.Out',
       onComplete: () => pulse.destroy(),
     });
+    const rangeReadout = this.add.text(this.scale.width * .5, 108, `SCANBEREICH · ${expedition.scanRadius}u`, {
+      fontFamily: 'Arial', fontSize: 9, color: '#a8f0f5', fontStyle: 'bold', letterSpacing: 0.65,
+    }).setOrigin(.5).setDepth(21).setScrollFactor(0).setAlpha(.1);
+    this.tweens.add({ targets: rangeReadout, alpha: { from: .1, to: 1 }, y: 98, duration: 190, yoyo: true, hold: 780, ease: 'Sine.Out', onComplete: () => rangeReadout.destroy() });
   }
 
   private showMining(target: Vector2): void {

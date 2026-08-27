@@ -294,8 +294,8 @@ function playConstructionMoment(facilityId: FacilityId): void {
     required<HTMLElement>('construction-title').textContent = `${facility.name.toUpperCase()} IST ONLINE`;
     required<HTMLElement>('construction-copy').textContent = facility.effect;
     moment.classList.add('complete');
-  }, 760);
-  window.setTimeout(() => { moment.hidden = true; }, 2100);
+  }, 1_450);
+  window.setTimeout(() => { moment.hidden = true; }, 3_400);
 }
 
 function playReturnMoment(cargo: Cargo): void {
@@ -615,6 +615,8 @@ required<HTMLElement>('shipyard-module-list').addEventListener('click', (event) 
 required<HTMLButtonElement>('scan-button').addEventListener('click', () => {
   scanNearby();
   game.events.emit('farhaven:scan-pulse');
+  const range = getExpedition()?.scanRadius;
+  if (range) toast(`SCAN ABGESCHLOSSEN · REICHWEITE ${range}u`);
 });
 required<HTMLElement>('signal-list').addEventListener('click', (event) => {
   const signalId = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-signal-course]')?.dataset.signalCourse;

@@ -4,6 +4,9 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Farhaven öffnet nun mit einem sichtbaren, warmen Startbild und lädt nur die Station zuerst; Kampagnen-, Kampf- und Modulassets werden erst beim Expeditionsstart nachgeladen.
+- Mobile Expeditionen starten rund 15 Prozent näher am Schiff. Nach einem Scan zeigt ein antippbarer Fundkompass Ressource, Beute, Reichweite und live fallende Distanz; der Scanpuls nennt seine tatsächliche Reichweite.
+- Der Hangar dockt deutlich langsamer und mit längerer Klammer-Glintsequenz an. Das eigene Schiff dreht sich danach in die gleiche Richtung wie das Schiff im Hangarasset.
 - Scan-Richtungshinweise werden wieder vollständig mit dem Kartenlayer bereinigt und nur noch in ruhigem Takt neu aufgebaut; damit entstehen weder eine Spur paralleler Grafiken noch Mobile-Ruckler nach einem Scan.
 - Sechs echte Hangar-Einbauten sind nun kaufbar und gespeichert: Breitbandarray, Frachtrücken, Bergungsgreifer, Minenlaser, Rail-Lanze und Torpedorack. Beide Rümpfe besitzen dafür eigene sichtbare Montage-Layer; Scanner und Greifer haben zusätzlich echte Expeditionseffekte.
 - Farhaven und seine sichtbaren Module sind im Stationsbild rund zwölf Prozent größer; der antippbare Warmkern erklärt nun seine Rolle als sichtbarer Anker aller Andockmodule.

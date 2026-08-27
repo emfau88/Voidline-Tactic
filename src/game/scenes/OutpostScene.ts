@@ -169,11 +169,13 @@ export class OutpostScene extends Phaser.Scene {
     const craft = this.add.container(position.x, position.y, [exhaust, vessel])
       .setName('farhaven-player-craft')
       .setDepth(6)
-      .setRotation(inHangar ? 0 : -.34);
+      // The hangar art faces its internal ship toward the open berth on the
+      // right; keep the player's vessel in the same readable orientation.
+      .setRotation(inHangar ? Math.PI / 2 : -.34);
     this.animateExhaust(exhaust);
     if (!this.hasPlayedShipArrival) {
       this.hasPlayedShipArrival = true;
-      this.playShipArrival(craft, position, inHangar ? 0 : -.34, inHangar);
+      this.playShipArrival(craft, position, inHangar ? Math.PI / 2 : -.34, inHangar);
     } else {
       this.startShipIdle(craft, inHangar);
     }
@@ -342,12 +344,12 @@ export class OutpostScene extends Phaser.Scene {
       alpha: .96,
       scaleX: module.scaleX / .94,
       scaleY: module.scaleY / .94,
-      duration: 720,
-      ease: 'Cubic.Out',
+      duration: 1_650,
+      ease: 'Sine.InOut',
       onComplete: () => {
         const clamp = this.add.circle(layout.x, layout.y, Math.min(layout.width, layout.height) * .32, 0xe4b86c, .18).setDepth(6);
         clamp.setStrokeStyle(2, 0xf3d295, .72);
-        this.tweens.add({ targets: clamp, alpha: 0, scale: 1.25, duration: 420, onComplete: () => clamp.destroy() });
+        this.tweens.add({ targets: clamp, alpha: 0, scale: 1.48, duration: 780, ease: 'Sine.Out', onComplete: () => clamp.destroy() });
       },
     });
     if (facilityId === 'hangar') {
@@ -365,10 +367,10 @@ export class OutpostScene extends Phaser.Scene {
           targets: craft,
           x: targetX,
           y: targetY,
-          rotation: 0,
-          duration: 1080,
-          delay: 120,
-          ease: 'Cubic.InOut',
+          rotation: Math.PI / 2,
+          duration: 2050,
+          delay: 480,
+          ease: 'Sine.InOut',
           onComplete: () => {
             exhaust?.setScale(1);
             this.playDockGlint({ x: targetX, y: targetY }, 0xf1c56f);

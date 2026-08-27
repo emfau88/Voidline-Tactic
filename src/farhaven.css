@@ -202,6 +202,13 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #toast { position: fixed; z-index: 20; top: max(68px, calc(env(safe-area-inset-top) + 58px)); left: 50%; max-width: min(360px, calc(100vw - 30px)); padding: 8px 13px; border: 1px solid rgb(142 220 237 / 33%); border-radius: 15px; background: rgb(5 15 24 / 88%); color: #d9edf1; font-size: 10px; text-align: center; transform: translateX(-50%) translateY(-8px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
 #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 #rotate-device { display: none; }
+#startup-splash { position: fixed; z-index: 80; inset: 0; display: grid; place-content: center; gap: 9px; background: radial-gradient(circle at 50% 46%, rgb(28 46 55 / 82%), #04080f 64%); color: #dcecef; text-align: center; transition: opacity .22s ease; }
+#startup-splash small { color: #86dce8; font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+#startup-splash strong { color: #f0dfbc; font-family: Georgia, serif; font-size: clamp(31px, 7vw, 55px); letter-spacing: .06em; }
+#startup-splash span { width: 104px; height: 2px; margin: 3px auto 0; overflow: hidden; border-radius: 9px; background: rgb(121 197 215 / 24%); }
+#startup-splash span::after { display: block; width: 42%; height: 100%; background: #89dfeb; box-shadow: 0 0 14px #89dfeb; content: ''; animation: farhaven-load 1s ease-in-out infinite; }
+#startup-splash[hidden] { display: none; }
+@keyframes farhaven-load { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
 
 @media (max-height: 430px) and (orientation: landscape) {
   .screen-panel { bottom: max(8px, env(safe-area-inset-bottom)); left: max(8px, env(safe-area-inset-left)); width: min(332px, calc(100vw - 16px)); padding: 10px; border-radius: 14px; }

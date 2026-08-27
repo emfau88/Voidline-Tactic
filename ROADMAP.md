@@ -44,7 +44,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Persistentes Profil, Entwickler-Reset und gespeicherte Expedition
 - ✅ Zwei wählbare Startschiffe mit korrekten Namen und Vorschauen
 - ✅ Direkte Touch-, Maus- und Tastatursteuerung mit Trägheit
-- ✅ Kamera-Zoom, Pinch-Zoom und konsistente Auflösung
+- ✅ Kamera-Zoom, Pinch-Zoom, 15%-Mobile-Startzoom und konsistente Auflösung
 - ✅ Frachtraum-Limit und Niederlage bei null Hülle
 - ✅ Test-Prototypen von echten, speicherbaren Upgrades getrennt
 - ✅ Automatisierte Unit-, Browser- und Produktions-Build-Prüfungen
@@ -63,7 +63,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Klare Modulzustände: gebaut, baubar, gesperrt
 - ✅ Ruhige Station ohne permanente UI-Pulsanimationen
 - ✅ GitHub-Pages-sichere Schiffsbilder und sichtbare echte Einbauten in der mobilen Werkstatt
-- ✅ Mobile Expeditionshinweise liegen dezent an den Rändern statt übereinander in der Kartenmitte
+- ✅ Mobile Expeditionshinweise liegen dezent an den Rändern statt übereinander in der Kartenmitte, mit antippbarem Scan-Kompass und Live-Distanz
 - ✅ Künftige Farhaven-Module bleiben als ruhige, physisch angedockte Vorschau erkennbar
 - ✅ Einheitliche Ressourcensprache mit vollständigen Namen und eigenen ImageGen-Icons
 - ✅ Dieselben Ressourcen-Icons auf Expeditionen, in Fracht und bei Preisen
@@ -161,7 +161,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ⬜ Eigenes SFX-Set mit guter Wiedergabe auf Mobilgeräten
 - ⬜ Barrierearme Farben, skalierbarer Text und reduzierte Bewegung
 - ⬜ Performance-Budget für ältere Mobilgeräte
-- ⬜ PWA/Installierbarkeit, Ladebildschirm und Offline-Grundverhalten
+- 🚧 PWA/Installierbarkeit und Offline-Grundverhalten; sichtbarer Farhaven-Startbildschirm und bedarfsorientiertes Asset-Laden sind umgesetzt
 - ⬜ Save-Export/-Import und sichere Profilmigration
 - ⬜ Öffentlicher Vertical-Slice-Build mit Feedbackkanal
 
