@@ -7,10 +7,15 @@ Mobile-first 2D-Space-Explorer im Browser: Mit einem eigenen Schiff erkundest du
 ## Aktueller spielbarer Kern
 
 ```text
-Rumpfwahl → erstes Wrack → Hangar → Frachtrücken → Zweite Schicht
-                                                  ├→ Archiv (sicher) / Liturgie (riskant)
-                                                  └→ Minenlaser → Routenader → freie Bergung
-                                                                                 └→ Sternenwerk → Veloria
+Rumpfwahl → erster Scan → Wrack bergen ───────────────→ Rückkehr
+                         └→ Glutkutter stellen → Bonusbeute ↗
+                              ↓
+                Hangar → Frachtrücken → Zweite Schicht
+                                      ├→ Archiv (sicher)
+                                      ├→ Liturgie (riskant)
+                                      └→ Liturgie-Räuber bekämpfen
+                                             ↓
+                          Minenlaser → Routenader → freie Bergung → Sternenwerk → Veloria
 ```
 
 Der aktuelle spielbare Prototyp enthält:
@@ -20,15 +25,15 @@ Der aktuelle spielbare Prototyp enthält:
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort sowie allgemeine Richtungshinweise mit Ressource, Menge, Entfernung, Risiko und benötigtem Werkzeug
 - ein sichtbares, sanft pulsierendes Xenogate: Nach Routenkern und Bau des funktionalen Sternenwerks freiwillig anfliegen und **Veloria Rift** erkunden
 - sieben freigestellte ImageGen-Storyassets für den ersten Handlungsbogen: versiegeltes und aktiviertes Xenogate, Aschenplünderer, Routenreliquie, Mönchslaterne, Schneideliturgie und Routenader
-- einen geführten ersten 10-Minuten-Loop mit kontextuellem Expeditionsdock: nahes Wrack scannen, drei Legierungen bergen, Fracht sichern, Hangar errichten, Frachtrücken kaufen, zwei kontrastierende Signale untersuchen und Minenlaser bauen
+- einen geführten ersten 10-Minuten-Loop mit früher echter Wahl: nahes Wrack sicher bergen und heimkehren oder den sichtbaren Glutkutter bereits im ersten Einsatz freiwillig stellen; danach Hangar errichten, Frachtrücken kaufen und in der zweiten Schicht zwischen sicherem Archiv, riskanter Anomalie und Kampfbeute wählen
 - ein lebendiges Spielerschiff in Farhaven: sichtbarer Anflug, ruhiger Notdock-Schwebeflug, dezente Triebwerke, antippbarer Hangarzugang, echtes Andocken nach dem Hangarbau und sichtbare Entladung gesicherter Ressourcen
 - eine zweite Expeditionsschicht mit echter Tempowahl: Mönchslaterne plus sicheres Wandererarchiv oder die schnellere Schneideliturgie gegen Hüllenschaden
 - Schwarze Adern als klaren, aktiven Minenlaser-Fundort sowie einen optionalen, bewachten Plünderer-Cache
 - Bergung, Abbau, Fracht und Rückkehr nach Farhaven: der kleine sichtbare Heimathafen am Startpunkt ist zugleich Rückkehrziel; Rückkehr richtet den Bug aus und fliegt schnell ein, Scans funktionieren auch während des manuellen Flugs
 - einen optionalen, aktiven Aschenplünderer als ersten echten Gegner hinter einer Bonusbeute: Kampf bleibt vermeidbar; manuelle Salven funktionieren während des Flugs mit sichtbaren Waffen-VFX. Übungsdrohnen existieren nur noch im internen Test-Szenario, nicht im Spielsektor.
 - wiederholbare freie Bergungsflüge mit erreichbaren Quellen für alle drei Ressourcen, einem flankierenden Glutkutter und einem schweren, umfliegbaren Reliquienwächter
-- angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit; Front- und Breitseitenkorridore erklären die Positionierung direkt auf der Karte
-- getrennte Waffenrhythmen für Breitseite, Rail-Lanze, Torpedo und Energiekugel mit Cooldowns, eigenen VFX/SFX und Desktop-Hotkeys 1/2/3
+- angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit; der nächste Gegner wird ohne zusätzlichen Tipp automatisch erfasst, während freies Feuern jederzeit möglich bleibt
+- getrennte Waffenrhythmen für Breitseite, Rail-Lanze, Torpedo und Energiekugel mit sichtbaren Cooldowns, Hüllen- und Schadensanzeigen, eigenen VFX/SFX und Desktop-Hotkeys 1/2/3
 - den optionalen Aschenkantor als besonderen Wächter: Kampf gegen Chorschild und Aschenchor oder eine kampflose Breitband-Scanlösung führen zum einzigartigen Kantorenherz
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Das gewählte Schiff liegt zunächst am sichtbaren Notdock des Kerns; der erste Hangar dockt später mit Bau- und Einflugmoment an die zusammenhängende Top-down-Station an
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an

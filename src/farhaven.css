@@ -251,11 +251,15 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #expedition-hud .meter-grid label { grid-template-columns: 39px 1fr 34px; font-size: 6px; }
 #expedition-hud #signal-list { display: none; }
 #expedition-hud .expedition-log { display: inline; margin-left: 8px; color: #c7d6d8; font-size: 7px; }
-#game-shell[data-screen='expedition'] #objective-tracker { top: max(104px, calc(env(safe-area-inset-top) + 96px)); width: min(360px, calc(100vw - 220px)); padding: 4px 9px; opacity: .92; }
+#game-shell[data-screen='expedition'] #objective-tracker { top: max(74px, calc(env(safe-area-inset-top) + 66px)); right: max(18px, env(safe-area-inset-right)); left: auto; width: min(300px, calc(100vw - 32px)); padding: 5px 9px; text-align: left; transform: none; opacity: .9; }
 #game-shell[data-screen='expedition'] #objective-tracker strong { font-size: 12px; }
 #game-shell[data-screen='expedition'] #objective-tracker p { font-size: 7px; }
 #expedition-actions { position: fixed; z-index: 14; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 76px); gap: 8px; width: auto; }
 #expedition-actions button { min-height: 66px; border-radius: 13px; background: rgb(7 25 37 / 88%); }
+#expedition-actions button { position: relative; overflow: hidden; }
+#expedition-actions button > * { position: relative; z-index: 1; }
+#expedition-actions button[data-cooling='true']::after { position: absolute; right: 0; bottom: 0; left: 0; height: 5px; background: linear-gradient(90deg, #e7bd72 var(--cooldown-progress, 0%), rgb(109 137 150 / 20%) var(--cooldown-progress, 0%)); box-shadow: 0 -2px 9px rgb(231 189 114 / 18%); content: ''; }
+#expedition-actions button[data-cooling='true'] small { color: #e8c985; }
 #expedition-actions #fire-button { border-color: rgb(237 157 111 / 62%); color: #ffd2a9; }
 #expedition-actions #lance-button { border-color: rgb(235 208 138 / 62%); color: #ffe7a8; background: linear-gradient(135deg, rgb(58 47 27 / 92%), rgb(25 31 43 / 92%)); }
 #expedition-actions #ordnance-button { border-color: rgb(120 218 235 / 65%); color: #bfeffd; background: linear-gradient(135deg, rgb(17 54 72 / 92%), rgb(18 26 48 / 92%)); }

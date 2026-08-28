@@ -27,6 +27,22 @@ const ASH_REAVER: HostileState = {
   patrolPhase: 0, heading: Math.PI / 2, hull: 4, maxHull: 4, attackCooldownMs: 0,
 };
 
+const FIRST_CINDER_SKIF: HostileState = {
+  id: 'first-cinder-skiff', name: 'Glutkutter', kind: 'patrol', passive: false, status: 'patrol',
+  position: { x: 2_650, y: 1_160 }, patrolCenter: { x: 2_650, y: 1_160 }, patrolRadius: 82,
+  patrolPhase: Math.PI, heading: Math.PI / 2, hull: 8, maxHull: 8, attackCooldownMs: 0,
+};
+
+const SECOND_SHIFT_REAVER: HostileState = {
+  ...ASH_REAVER,
+  id: 'cipher-reaver',
+  name: 'Liturgie-Räuber',
+  position: { x: 2_980, y: 1_820 },
+  patrolCenter: { x: 2_980, y: 1_820 },
+  hull: 10,
+  maxHull: 10,
+};
+
 const RECOVERY_HOSTILES: readonly HostileState[] = [
   {
     id: 'cinder-skiff', name: 'Glutkutter', kind: 'patrol', passive: false, status: 'patrol',
@@ -176,11 +192,24 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
 function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
   const firstWreck: SignalState = { id: 'echo-wreck', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Reliquie der Versorgungsroute', classifiedDescription: 'Ein Ordenswrack mit Farhaven-Kennung. Seine Platten zeigen auf eine verlorene Route zum Xenogate.', position: { x: 2_520, y: 1_230 }, knowledge: 'echo', risk: 'low' };
   const blackVein: SignalState = { id: 'black-vein', kind: 'vein', name: 'Unbekanntes Echo', classifiedName: 'Routenader', classifiedDescription: 'Legierungen kapseln einen alten Routenverstärker ein. Der Minenlaser kann ihn freilegen.', position: { x: 2_520, y: 1_830 }, knowledge: 'echo', risk: 'low' };
-  if (scenario === 'first-wreck') return [firstWreck];
+  if (scenario === 'first-wreck') return [
+    {
+      ...firstWreck,
+      classifiedDescription: 'Die äußeren Platten reichen für Farhavens Hangar. Du kannst sie schnell sichern und dem Glutkutter entkommen.',
+      reward: { kind: 'alloys', amount: 3, text: 'Die äußeren Routenplatten sind gesichert. Farhaven kann damit den Hangar verbinden.' },
+    },
+    {
+      id: 'first-skiff-cache', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Glutkutter-Fracht',
+      classifiedDescription: 'Zusätzliche Platten und ein fremder Waffenkern. Der Glutkutter gibt seine Beute nur frei, wenn du ihn vertreibst.',
+      position: { x: 2_465, y: 1_110 }, knowledge: 'echo', risk: 'high', guardedBy: 'first-cinder-skiff',
+      reward: { kind: 'alloys', amount: 2, text: 'Die Glutkutter-Fracht ist gesichert. Zwei zusätzliche Legierungen und Fragmente eines Waffenkerns kehren nach Farhaven zurück.' },
+    },
+  ];
   if (scenario === 'second-shift') return [
     { id: 'monk-lantern', kind: 'distress', name: 'Unbekanntes Echo', classifiedName: 'Mönchslaterne', classifiedDescription: 'Ein sanftes Pilgersignal. Der Reliktkern bewahrt die erste Hälfte einer Navigationslitanei — sicher zu bergen.', position: { x: 2_510, y: 1_235 }, knowledge: 'echo', risk: 'low', reward: { kind: 'relics', amount: 1, text: 'Die Mönchslaterne wird geborgen. Ihr Reliktkern bewahrt die erste Hälfte der Routenlitanei.' } },
     { id: 'cutting-liturgy', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Schneideliturgie', classifiedDescription: 'Fremde Routinen halten die zweite Hälfte der Route fest. Ihre Nähe zerrt an der Hülle.', position: { x: 1_720, y: 1_240 }, knowledge: 'echo', risk: 'high', reward: { kind: 'data', amount: 2, hullCost: 6, text: 'Die Schneideliturgie wird entschlüsselt. Die zweite Routenhälfte nennt eine versiegelte Ader. Hülle -6.' } },
-    { id: 'wayfarer-archive', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Wandererarchiv', classifiedDescription: 'Ein beschädigtes, aber ungefährliches Archiv. Kleine Datenpakete können ohne Hüllenrisiko geborgen werden.', position: { x: 3_010, y: 1_780 }, knowledge: 'echo', risk: 'low', reward: { kind: 'data', amount: 1, text: 'Das Wandererarchiv gibt einen Datensatz frei. Der sichere Weg dauert länger, beschädigt aber die Hülle nicht.' } },
+    { id: 'wayfarer-archive', kind: 'anomaly', name: 'Unbekanntes Echo', classifiedName: 'Wandererarchiv', classifiedDescription: 'Ein beschädigtes, aber ungefährliches Archiv. Kleine Datenpakete können ohne Hüllenrisiko geborgen werden.', position: { x: 3_340, y: 2_080 }, knowledge: 'echo', risk: 'low', reward: { kind: 'data', amount: 1, text: 'Das Wandererarchiv gibt einen Datensatz frei. Der sichere Weg dauert länger, beschädigt aber die Hülle nicht.' } },
+    { id: 'raider-cipher', kind: 'wreck', name: 'Unbekanntes Echo', classifiedName: 'Geraubte Chiffre', classifiedDescription: 'Zwei Datensätze liegen im Griff eines Liturgie-Räubers. Kampf ist eine schnelle, freiwillige Alternative zur gefährlichen Anomalie.', position: { x: 2_950, y: 1_800 }, knowledge: 'echo', risk: 'high', guardedBy: 'cipher-reaver', reward: { kind: 'data', amount: 2, text: 'Die geraubte Chiffre ist gesichert. Zwei Datensätze reichen für die nächste Waffenmontage.' } },
     blackVein,
   ];
   if (scenario === 'mining-run') return [
@@ -204,6 +233,8 @@ function scenarioSignals(scenario: ExpeditionScenario): readonly SignalState[] {
 }
 
 function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[] {
+  if (scenario === 'first-wreck') return [{ ...FIRST_CINDER_SKIF, position: { ...FIRST_CINDER_SKIF.position }, patrolCenter: { ...FIRST_CINDER_SKIF.patrolCenter } }];
+  if (scenario === 'second-shift') return [{ ...SECOND_SHIFT_REAVER, position: { ...SECOND_SHIFT_REAVER.position }, patrolCenter: { ...SECOND_SHIFT_REAVER.patrolCenter } }];
   if (scenario === 'mining-run') return [{ ...ASH_REAVER, position: { ...ASH_REAVER.position }, patrolCenter: { ...ASH_REAVER.patrolCenter } }];
   if (scenario === 'recovery-run') return RECOVERY_HOSTILES.map((hostile) => ({ ...hostile, position: { ...hostile.position }, patrolCenter: { ...hostile.patrolCenter } }));
   // Practice drones are kept for the separate free/test scenario, never mixed into the story sector.
@@ -422,6 +453,8 @@ export function returnToFarhaven(state: ExpeditionState): ExpeditionState {
 export interface WeaponReadiness {
   readonly ready: boolean;
   readonly reason: string;
+  readonly cooldownMs?: number;
+  readonly cooldownTotalMs?: number;
 }
 
 const WEAPON_RULES: Record<WeaponMode, { energy: number; range: number; damage: number; cooldownMs: number; name: string }> = {
@@ -434,13 +467,13 @@ const WEAPON_RULES: Record<WeaponMode, { energy: number; range: number; damage: 
 export function weaponReadiness(state: ExpeditionState, targetId: string | undefined, weapon: WeaponMode): WeaponReadiness {
   const target = state.hostiles.find((hostile) => hostile.id === targetId);
   if (state.status !== 'active') return { ready: false, reason: 'Rückkehr aktiv' };
-  if (!target) return { ready: false, reason: 'Ziel auf Karte antippen' };
   const rules = WEAPON_RULES[weapon];
   const cooldown = state.weaponCooldowns?.[weapon] ?? 0;
-  if (cooldown > 0) return { ready: false, reason: `Lädt · ${(cooldown / 1000).toFixed(1)}s` };
+  if (cooldown > 0) return { ready: false, reason: `Nachladen · ${(cooldown / 1000).toFixed(1)}s`, cooldownMs: cooldown, cooldownTotalMs: rules.cooldownMs };
+  if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Systeme · ${rules.energy} nötig` };
+  if (!target) return { ready: true, reason: `Bereit · ${(rules.cooldownMs / 1000).toFixed(1)}s Takt` };
   const targetDistance = distance(target.position, state.position);
   if (targetDistance > rules.range) return { ready: false, reason: `Außer Reichweite · ${Math.round(targetDistance)}u` };
-  if (state.energy < rules.energy) return { ready: false, reason: `Zu wenig Systemladung · ${rules.energy} nötig` };
   if (target.kind === 'guardian' && target.status === 'alert' && (target.attackCooldownMs ?? 0) > 2_600) return { ready: false, reason: `Chorschild aktiv · öffnet in ${(((target.attackCooldownMs ?? 0) - 2_600) / 1000).toFixed(1)}s` };
   // Practice contacts are there to test visible weapons, not to require a precise
   // maneuver before the first shot. Real opponents still demand positioning.
@@ -457,8 +490,15 @@ export function weaponReadiness(state: ExpeditionState, targetId: string | undef
 export function fireWeapon(state: ExpeditionState, targetId: string | undefined, weapon: WeaponMode): ExpeditionState {
   const readiness = weaponReadiness(state, targetId, weapon);
   if (!readiness.ready) return appendLog(state, readiness.reason);
-  const target = state.hostiles.find((hostile) => hostile.id === targetId)!;
   const rules = WEAPON_RULES[weapon];
+  const target = state.hostiles.find((hostile) => hostile.id === targetId);
+  if (!target) {
+    return appendLog({
+      ...state,
+      energy: state.energy - rules.energy,
+      weaponCooldowns: { ...(state.weaponCooldowns ?? { broadside: 0, rail: 0, torpedo: 0, orb: 0 }), [weapon]: rules.cooldownMs },
+    }, `${rules.name} feuert in den leeren Raum.`);
+  }
   const hostiles = state.hostiles
     .map((hostile): HostileState => hostile.id !== target.id ? hostile : { ...hostile, status: hostile.passive ? 'patrol' : 'alert', hull: hostile.hull - rules.damage })
     .filter((hostile) => hostile.hull > 0);

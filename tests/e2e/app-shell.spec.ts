@@ -54,7 +54,7 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#resource-strip')).toContainText('DATEN');
   await expect(page.locator('#resource-strip')).toContainText('RELIKTE');
   await expect(page.locator('#resource-strip img[src*="resource-alloys-v1.png"]')).toBeVisible();
-  await expect(page.locator('#launch-button')).toContainText('NAHES WRACK SICHERN');
+  await expect(page.locator('#launch-button')).toContainText('WRACK UND GLUTKUTTER');
   await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
@@ -211,7 +211,9 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await expect(page.locator('#game-root canvas')).toHaveAttribute('data-scan-compass', 'visible');
   await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
-  await expect(page.locator('#signal-list [data-resource="alloys"]')).toHaveCount(1);
+  await expect(page.locator('#signal-list [data-resource="alloys"]')).toHaveCount(2);
+  await expect(page.locator('#signal-list')).toContainText('GLUTKUTTER-FRACHT');
+  await expect(page.locator('#signal-list')).toContainText('BEWACHT');
   await expect(page.locator('#cargo-breakdown [data-resource="alloys"]')).toHaveCount(1);
   await expect(page.locator('#expedition-log')).toContainText('klassifiziert');
 
@@ -260,12 +262,16 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
   await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
 });
 
-test('keeps combat test contacts out of the first story expedition', async ({ page }) => {
+test('introduces one real optional contact instead of combat dummies on the first expedition', async ({ page }) => {
   await startExpedition(page);
   await expect(page.locator('#combat-prompt')).toHaveCount(0);
   await expect(page.locator('#fire-button')).toContainText('SALVE');
-  await expect(page.locator('#fire-button')).toBeDisabled();
-  await expect(page.locator('#expedition-status')).toContainText('EXPLORATION');
+  await expect(page.locator('#fire-button')).toBeEnabled();
+  await expect(page.locator('#expedition-status')).toContainText('AUTOZIEL · GLUTKUTTER · 8/8');
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-contacts', 'first-cinder-skiff');
+  await page.locator('#fire-button').click();
+  await expect(page.locator('#fire-button')).toHaveAttribute('data-cooling', 'true');
+  await expect(page.locator('#fire-button')).toContainText('Nachladen');
 });
 
 test('does not place practice dummies onto the story map', async ({ page }) => {
@@ -275,7 +281,7 @@ test('does not place practice dummies onto the story map', async ({ page }) => {
   if (!box) throw new Error('Expected the expedition canvas to be visible.');
   // The former nearby practice-dummy location is now empty in the story sector.
   await canvas.click({ position: { x: box.width / 2 - 220 * 1.1, y: box.height / 2 - 40 * 1.1 } });
-  await expect(page.locator('#expedition-status')).toContainText('EXPLORATION');
+  await expect(canvas).not.toHaveAttribute('data-expedition-contacts', /ash-patrol|cinder-escort|wreck-eater/);
 });
 
 test('removes legacy prototype weapons from an old save instead of activating them', async ({ page }) => {
@@ -289,7 +295,9 @@ test('removes legacy prototype weapons from an old save instead of activating th
   await page.reload();
   await startExpedition(page);
   await expect(page.locator('#fire-button')).toContainText('SALVE');
-  await expect(page.locator('#fire-button')).toBeDisabled();
+  await expect(page.locator('#fire-button')).toBeEnabled();
+  await expect(page.locator('#lance-button')).toBeDisabled();
+  await expect(page.locator('#ordnance-button')).toBeDisabled();
 });
 
 test('keeps broadside, rail lance and torpedoes as separate expedition weapons', async ({ page }) => {

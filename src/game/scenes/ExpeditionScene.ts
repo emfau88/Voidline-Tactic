@@ -37,6 +37,8 @@ const MIN_EXPEDITION_ZOOM = 0.82;
 const MAX_EXPEDITION_ZOOM = 1.85;
 const STORY_SIGNAL_ART: Readonly<Partial<Record<string, string>>> = {
   'echo-wreck': 'route-reliquary-v1',
+  'first-skiff-cache': 'route-reliquary-v1',
+  'raider-cipher': 'route-reliquary-v1',
   'raider-cache': 'route-reliquary-v1',
   'monk-lantern': 'monk-lantern-v1',
   'cutting-liturgy': 'cutting-liturgy-v1',
@@ -54,6 +56,10 @@ interface WeaponFireEvent {
     readonly name: string;
     readonly position: Vector2;
     readonly destroyed: boolean;
+    readonly hit: boolean;
+    readonly damage: number;
+    readonly hull: number;
+    readonly maxHull: number;
   };
 }
 
@@ -71,7 +77,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private engineFlame?: Phaser.GameObjects.Graphics;
   private signalLayer?: Phaser.GameObjects.Container;
   private scanCompass?: Phaser.GameObjects.Container;
-  private scanCompassArrow?: Phaser.GameObjects.Triangle;
+  private scanCompassArrow?: Phaser.GameObjects.Graphics;
   private scanCompassIcon?: Phaser.GameObjects.Image;
   private scanCompassName?: Phaser.GameObjects.Text;
   private scanCompassDistance?: Phaser.GameObjects.Text;
@@ -250,7 +256,7 @@ export class ExpeditionScene extends Phaser.Scene {
     const expedition = getExpedition();
     if (!expedition || !this.shipRig || !this.signalLayer || !this.playerLabel || !this.engineFlame) return;
     const engineFlame = this.engineFlame;
-    if (expedition.hull < this.lastHull) this.showEnemyAttackIfApplicable(expedition);
+    if (expedition.hull < this.lastHull) this.showEnemyAttackIfApplicable(expedition, Math.ceil(this.lastHull - expedition.hull));
     this.lastHull = expedition.hull;
     this.shipRig.setPosition(expedition.position.x, expedition.position.y).setRotation(expedition.heading);
     this.playerLabel.setPosition(expedition.position.x, expedition.position.y + 48);
@@ -294,6 +300,7 @@ export class ExpeditionScene extends Phaser.Scene {
 
   private renderSignals(expedition: ExpeditionState): void {
     this.signalLayer?.removeAll(true);
+    this.game.canvas.dataset.expeditionContacts = expedition.hostiles.map((hostile) => hostile.id).join(',');
     for (const signal of expedition.signals) {
       if (signal.knowledge === 'resolved') continue;
       if (signal.knowledge === 'echo') this.addFaintEcho(signal.position);
@@ -301,7 +308,13 @@ export class ExpeditionScene extends Phaser.Scene {
     }
     for (const hostile of expedition.hostiles) {
       const selected = getSelectedTargetId() === hostile.id;
-      const hostileKey = hostile.kind === 'guardian' ? 'ash-cantor-v1' : hostile.kind === 'sentinel' ? 'veloria-sentinel-v2' : hostile.kind === 'raider' ? 'ash-reaver-v2' : 'ship-enemy-patrol-v1';
+      const hostileKey = hostile.kind === 'guardian'
+        ? 'ash-cantor-v1'
+        : hostile.kind === 'sentinel'
+          ? 'veloria-sentinel-v2'
+          : hostile.kind === 'raider' || hostile.id === 'first-cinder-skiff' || hostile.id === 'cinder-skiff'
+            ? 'ash-reaver-v2'
+            : 'ship-enemy-patrol-v1';
       const hostileArt = this.add.image(hostile.position.x, hostile.position.y, hostileKey);
       const hostileHeight = hostile.kind === 'guardian' ? 184 : hostile.kind === 'sentinel' ? 126 : hostile.kind === 'raider' ? 118 : 96;
       hostileArt.setDisplaySize(hostileArt.width / hostileArt.height * hostileHeight, hostileHeight)
@@ -311,15 +324,8 @@ export class ExpeditionScene extends Phaser.Scene {
       }
       if (selected) {
         const bracket = this.add.graphics();
-        bracket.lineStyle(2, 0xffd98e, 0.94);
         const radius = hostile.kind === 'guardian' ? 82 : hostile.kind === 'raider' ? 56 : 50;
-        this.drawCornerFrame(bracket, hostile.position, radius, 13, 0xffd98e, 0.94);
-        bracket.lineStyle(1, 0xf8f0ca, 0.72);
-        bracket.strokeRect(hostile.position.x - radius + 7, hostile.position.y - radius + 7, (radius - 7) * 2, (radius - 7) * 2);
-        const ready = weaponReadiness(expedition, hostile.id, 'broadside');
-        bracket.lineStyle(2, ready.ready ? 0x8de6ca : 0xe0a06d, ready.ready ? 0.72 : 0.46);
-        bracket.lineBetween(expedition.position.x, expedition.position.y, hostile.position.x, hostile.position.y);
-        this.drawWeaponCorridors(bracket, expedition);
+        this.drawCornerFrame(bracket, hostile.position, radius, 8, 0xe8c27d, 0.72);
         this.signalLayer?.add(bracket);
       }
       if (!hostile.passive && hostile.status === 'alert') {
@@ -332,16 +338,22 @@ export class ExpeditionScene extends Phaser.Scene {
         this.signalLayer?.add(warning);
       }
       const state = selected
-        ? weaponReadiness(expedition, hostile.id, 'broadside').reason.toUpperCase()
+        ? `AUTOZIEL · ${weaponReadiness(expedition, hostile.id, 'broadside').reason.toUpperCase()}`
         : hostile.passive
-        ? selected ? 'ZIEL MARKIERT · FEUER FREI' : 'TIPPE ZUM ZIELEN · KEINE GEGENWEHR'
+        ? 'TESTKONTAKT · AUTOMATISCH ERFASST'
         : hostile.status === 'alert'
           ? (hostile.attackCooldownMs ?? 9_999) <= (hostile.kind === 'guardian' ? 2_600 : hostile.kind === 'sentinel' ? 2_100 : hostile.kind === 'patrol' ? 1_050 : 1_350)
             ? `${hostile.kind === 'guardian' ? 'ASCHENCHOR' : hostile.kind === 'sentinel' ? 'ENERGIEKUGEL' : hostile.kind === 'patrol' ? 'STREUSALVE' : 'SALVE'} LÄDT · ${Math.max(0.1, (hostile.attackCooldownMs ?? 0) / 1000).toFixed(1)}s`
             : 'ALARM · FLUCHT MÖGLICH'
           : hostile.status === 'watchful' ? 'BEOBACHTET DICH · NOCH FRIEDLICH' : 'PATROUILLE · UMGEHBAR';
-      const label = this.add.text(hostile.position.x, hostile.position.y + 62, `${hostile.name.toUpperCase()} · ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
+      const hullWidth = hostile.kind === 'guardian' ? 116 : hostile.kind === 'raider' ? 94 : 82;
+      const hullBar = this.add.graphics();
+      hullBar.fillStyle(0x220f14, 0.9); hullBar.fillRoundedRect(hostile.position.x - hullWidth / 2, hostile.position.y + 51, hullWidth, 7, 3);
+      hullBar.fillStyle(hostile.hull / hostile.maxHull < 0.35 ? 0xff816d : 0xe9a46f, 0.96);
+      hullBar.fillRoundedRect(hostile.position.x - hullWidth / 2 + 1, hostile.position.y + 52, Math.max(2, (hullWidth - 2) * hostile.hull / hostile.maxHull), 5, 2);
+      const label = this.add.text(hostile.position.x, hostile.position.y + 63, `${hostile.name.toUpperCase()} · HÜLLE ${hostile.hull}/${hostile.maxHull}\n${state}`, { fontFamily: 'Arial', fontSize: 10, color: selected ? '#ffe1a3' : hostile.passive ? '#bfeef4' : '#ffc1c7', align: 'center', lineSpacing: 2 }).setOrigin(0.5);
       this.signalLayer?.add(hostileArt);
+      this.signalLayer?.add(hullBar);
       this.signalLayer?.add(label);
     }
     this.knownHostileIds = new Set(expedition.hostiles.map((hostile) => hostile.id));
@@ -359,18 +371,6 @@ export class ExpeditionScene extends Phaser.Scene {
     const hitRadius = nearest.hostile.kind === 'guardian' ? 132 : nearest.hostile.kind === 'raider' ? 94 : 82;
     if (nearest.distance <= hitRadius) this.game.events.emit('farhaven:target-selected', nearest.hostile.id);
     else this.game.events.emit('farhaven:target-cleared');
-  }
-
-  private drawWeaponCorridors(graphics: Phaser.GameObjects.Graphics, expedition: ExpeditionState): void {
-    const forwardAngle = expedition.heading - Math.PI / 2;
-    const drawRay = (angle: number, length: number, color: number, alpha: number): void => {
-      graphics.lineStyle(2, color, alpha);
-      graphics.lineBetween(expedition.position.x, expedition.position.y, expedition.position.x + Math.cos(angle) * length, expedition.position.y + Math.sin(angle) * length);
-    };
-    // Front corridor for rail/torpedoes; the two shorter rays are the broadside windows.
-    drawRay(forwardAngle, 175, 0x8de6ca, 0.52);
-    drawRay(forwardAngle - Math.PI / 2, 132, 0xffd98e, 0.48);
-    drawRay(forwardAngle + Math.PI / 2, 132, 0xffd98e, 0.48);
   }
 
   private setExpeditionZoom(zoom: number): void {
@@ -429,10 +429,11 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   private addSignalMarker(signal: ExpeditionState['signals'][number]): void {
+    const prominentWreck = signal.id === 'echo-wreck';
     const guarded = Boolean(signal.guardedBy);
-    const color = guarded ? 0xef7869 : signal.kind === 'anomaly' ? 0xca84ec : signal.kind === 'distress' ? 0xf0bd74 : signal.kind === 'vein' ? 0xdfa85b : 0x71dbe4;
+    const color = guarded ? 0xd3a166 : signal.kind === 'anomaly' ? 0xca84ec : signal.kind === 'distress' ? 0xf0bd74 : signal.kind === 'vein' ? 0xdfa85b : 0x71dbe4;
     const action = guarded ? 'BEUTE GESCHÜTZT' : signal.kind === 'wreck' ? 'BERGEN' : signal.kind === 'vein' ? 'ABBAU' : signal.kind === 'anomaly' ? 'DEUTEN' : 'ANTWORTEN';
-    const marker = this.add.container(signal.position.x, signal.position.y).setSize(120, 120).setInteractive({ useHandCursor: true });
+    const marker = this.add.container(signal.position.x, signal.position.y).setSize(prominentWreck ? 156 : 120, prominentWreck ? 172 : 120).setInteractive({ useHandCursor: true });
     const art = this.add.graphics();
     const storyArt = STORY_SIGNAL_ART[signal.id];
     if (storyArt) {
@@ -456,7 +457,7 @@ export class ExpeditionScene extends Phaser.Scene {
       art.fillStyle(color, 0.92); art.fillTriangle(0, -24, -11, 10, 11, 10);
       art.lineStyle(2, 0xffecbc, 0.94); art.lineBetween(-16, 15, 16, 15); art.lineBetween(-10, 21, 10, 21);
     }
-    const labelY = storyArt ? 42 : 30;
+    const labelY = prominentWreck ? 66 : storyArt ? 42 : 30;
     const labelBack = this.add.graphics();
     labelBack.fillStyle(0x07131d, 0.88); labelBack.fillRoundedRect(-60, labelY, 120, 40, 7);
     labelBack.lineStyle(1, color, 0.62); labelBack.strokeRoundedRect(-60, labelY, 120, 40, 7);
@@ -465,7 +466,9 @@ export class ExpeditionScene extends Phaser.Scene {
     const resource = RESOURCE_PRESENTATION[reward.kind];
     const rewardIcon = this.add.image(-42, labelY + 29, resource.textureKey).setDisplaySize(12, 12);
     const actionLabel = this.add.text(-33, labelY + 28, `${reward.amount} ${resource.name.toUpperCase()} · ${action}`, { fontFamily: 'Arial', fontSize: 6, color: resource.color, align: 'left', fontStyle: 'bold', letterSpacing: 0.2 }).setOrigin(0, 0);
-    const image = storyArt ? this.add.image(0, -3, storyArt).setDisplaySize(signal.kind === 'anomaly' ? 84 : 76, signal.kind === 'anomaly' ? 84 : 76) : undefined;
+    const compactDebris = signal.id === 'first-skiff-cache' || signal.id === 'raider-cipher';
+    const storySize = prominentWreck ? 124 : compactDebris ? 62 : signal.kind === 'anomaly' ? 84 : 76;
+    const image = storyArt ? this.add.image(0, -3, storyArt).setDisplaySize(storySize, storySize) : undefined;
     marker.add(image ? [art, image, labelBack, label, rewardIcon, actionLabel] : [art, labelBack, label, rewardIcon, actionLabel]);
     marker.on('pointerdown', () => this.game.events.emit('farhaven:signal-selected', signal.id));
     this.signalLayer?.add(marker);
@@ -477,7 +480,10 @@ export class ExpeditionScene extends Phaser.Scene {
     const back = this.add.graphics();
     back.fillStyle(0x07151f, 0.74); back.fillRoundedRect(-42, -17, 84, 34, 9);
     back.lineStyle(1, 0x80cbd2, 0.46); back.strokeRoundedRect(-42, -17, 84, 34, 9);
-    this.scanCompassArrow = this.add.triangle(-29, 0, 0, -7, -5.5, 5.5, 5.5, 5.5, 0x94e7e8, 0.86);
+    this.scanCompassArrow = this.add.graphics().setPosition(-29, 0);
+    this.scanCompassArrow.lineStyle(2, 0x94e7e8, 0.74);
+    this.scanCompassArrow.lineBetween(-5, 4, 0, -4);
+    this.scanCompassArrow.lineBetween(0, -4, 5, 4);
     this.scanCompassIcon = this.add.image(-12, 0, 'resource-alloys-v1').setDisplaySize(13, 13);
     this.scanCompassName = this.add.text(-2, -11, '', {
       fontFamily: 'Arial', fontSize: 7, color: '#d9f3f2', fontStyle: 'bold',
@@ -554,7 +560,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.game.canvas.dataset.scanCompassTarget = candidate.signal.id;
   }
 
-  private showEnemyAttackIfApplicable(expedition: ExpeditionState): void {
+  private showEnemyAttackIfApplicable(expedition: ExpeditionState, damage: number): void {
     const source = expedition.hostiles
       .filter((hostile) => !hostile.passive && hostile.status === 'alert')
       .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - expedition.position.x, hostile.position.y - expedition.position.y) }))
@@ -569,6 +575,7 @@ export class ExpeditionScene extends Phaser.Scene {
       onComplete: () => {
         bolt.destroy(); glow.destroy();
         this.spawnImpact(expedition.position, 0xf06c64, false);
+        this.showDamageReadout(expedition.position, `HÜLLE −${damage}`, '#ff9b88');
         this.ship?.setTint(0xff9b88);
         this.time.delayedCall(120, () => this.ship?.clearTint());
       },
@@ -595,23 +602,39 @@ export class ExpeditionScene extends Phaser.Scene {
       [-15, 0, 15].forEach((offset, index) => this.time.delayedCall(index * 68, () => {
         const muzzle = this.worldFromShip(side * 43, offset);
         this.spawnMuzzle(muzzle, 0xffb26f, 9);
-        this.launchBolt(muzzle, target, 0xffb26f, 255, 4, index === 2, event.target.destroyed);
+        this.launchBolt(muzzle, target, 0xffb26f, 255, 4, event.target.hit && index === 2, event.target.hit, event.target.destroyed);
       }));
+      if (event.target.hit) this.time.delayedCall(270, () => this.showWeaponDamage(event));
       return;
     }
     if (event.weapon === 'rail') {
       const muzzle = this.worldFromShip(0, -70);
       this.spawnCharge(muzzle, 0x8eeeff);
-      this.time.delayedCall(155, () => this.launchBolt(muzzle, target, 0x8eeeff, 330, 8, true, event.target.destroyed));
+      this.time.delayedCall(155, () => this.launchBolt(muzzle, target, 0x8eeeff, 330, 8, event.target.hit, event.target.hit, event.target.destroyed));
+      if (event.target.hit) this.time.delayedCall(500, () => this.showWeaponDamage(event));
       return;
     }
     if (event.weapon === 'torpedo') {
       const muzzle = this.worldFromShip(0, -47);
-      this.launchTorpedo(muzzle, target, event.target.destroyed);
+      this.launchTorpedo(muzzle, target, event.target.hit, event.target.destroyed);
+      if (event.target.hit) this.time.delayedCall(570, () => this.showWeaponDamage(event));
       return;
     }
     const muzzle = this.worldFromShip(0, -26);
-    this.launchOrb(muzzle, target, event.target.destroyed);
+    this.launchOrb(muzzle, target, event.target.hit, event.target.destroyed);
+    if (event.target.hit) this.time.delayedCall(490, () => this.showWeaponDamage(event));
+  }
+
+  private showWeaponDamage(event: WeaponFireEvent): void {
+    const text = event.target.destroyed ? 'ZIEL ZERSTÖRT' : `−${event.target.damage} · HÜLLE ${event.target.hull}/${event.target.maxHull}`;
+    this.showDamageReadout(event.target.position, text, event.target.destroyed ? '#ffe39a' : '#ffbd91');
+  }
+
+  private showDamageReadout(position: Vector2, text: string, color: string): void {
+    const readout = this.add.text(position.x, position.y - 68, text, {
+      fontFamily: 'Arial', fontSize: 12, color, fontStyle: 'bold', stroke: '#071019', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(15);
+    this.tweens.add({ targets: readout, y: readout.y - 24, alpha: 0, duration: 850, ease: 'Cubic.Out', onComplete: () => readout.destroy() });
   }
 
   private worldFromShip(localX: number, localY: number): Vector2 {
@@ -634,7 +657,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.tweens.add({ targets: charge, scale: 2.1, alpha: 0, duration: 150, ease: 'Cubic.In', onComplete: () => charge.destroy() });
   }
 
-  private launchBolt(from: Vector2, to: Vector2, color: number, duration: number, radius: number, impact: boolean, destroyed: boolean): void {
+  private launchBolt(from: Vector2, to: Vector2, color: number, duration: number, radius: number, impact: boolean, hit: boolean, destroyed: boolean): void {
     const core = this.add.circle(from.x, from.y, radius, 0xfbf4d5, 1).setDepth(12);
     const glow = this.add.circle(from.x, from.y, radius * 2.8, color, 0.36).setDepth(11);
     const trail = this.add.graphics().setDepth(10);
@@ -650,12 +673,12 @@ export class ExpeditionScene extends Phaser.Scene {
         core.destroy();
         glow.destroy();
         if (impact) this.spawnImpact(to, color, destroyed);
-        else this.spawnContactFlash(to, color);
+        else if (hit) this.spawnContactFlash(to, color);
       },
     });
   }
 
-  private launchTorpedo(from: Vector2, to: Vector2, destroyed: boolean): void {
+  private launchTorpedo(from: Vector2, to: Vector2, hit: boolean, destroyed: boolean): void {
     const angle = Math.atan2(to.y - from.y, to.x - from.x);
     const body = this.add.triangle(from.x, from.y, 0, -9, 7, 9, -7, 9, 0xe4ece8, 0.98).setDepth(12).setRotation(angle + Math.PI / 2);
     const ember = this.add.circle(from.x, from.y + 9, 7, 0xf19a61, 0.76).setDepth(11);
@@ -664,18 +687,18 @@ export class ExpeditionScene extends Phaser.Scene {
     this.tweens.add({
       targets: [body, ember], x: to.x, y: to.y, duration: 560, ease: 'Cubic.InOut',
       onUpdate: () => { trail.clear(); trail.lineStyle(5, 0x72dce9, 0.52); trail.lineBetween(body.x, body.y, body.x - Math.cos(angle) * 52, body.y - Math.sin(angle) * 52); ember.setPosition(body.x - Math.cos(angle) * 11, body.y - Math.sin(angle) * 11); },
-      onComplete: () => { trail.destroy(); body.destroy(); ember.destroy(); this.spawnImpact(to, 0x72dce9, destroyed); },
+      onComplete: () => { trail.destroy(); body.destroy(); ember.destroy(); if (hit) this.spawnImpact(to, 0x72dce9, destroyed); },
     });
   }
 
-  private launchOrb(from: Vector2, to: Vector2, destroyed: boolean): void {
+  private launchOrb(from: Vector2, to: Vector2, hit: boolean, destroyed: boolean): void {
     const orb = this.add.circle(from.x, from.y, 11, 0xd8b0ff, 0.96).setDepth(12);
     const halo = this.add.circle(from.x, from.y, 26, 0x8557d8, 0.36).setDepth(11);
     const rings = this.add.graphics().setDepth(10);
     this.tweens.add({
       targets: [orb, halo], x: to.x, y: to.y, duration: 480, ease: 'Sine.InOut',
       onUpdate: () => { rings.clear(); rings.lineStyle(2, 0xeccfff, 0.66); rings.strokeCircle(orb.x, orb.y, 16); rings.lineStyle(1, 0x9a63e8, 0.7); rings.strokeCircle(orb.x, orb.y, 25); },
-      onComplete: () => { rings.destroy(); orb.destroy(); halo.destroy(); this.spawnImpact(to, 0xd8b0ff, destroyed); },
+      onComplete: () => { rings.destroy(); orb.destroy(); halo.destroy(); if (hit) this.spawnImpact(to, 0xd8b0ff, destroyed); },
     });
   }
 

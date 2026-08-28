@@ -41,6 +41,35 @@ describe('exploration engine', () => {
     expect(salvaged.signals.find((signal) => signal.id === 'echo-wreck')?.knowledge).toBe('resolved');
   });
 
+  it('opens with a quick safe salvage and an optional guarded Glutkutter reward', () => {
+    const start = createExpedition(0, 0, 'first-wreck');
+    expect(start.hostiles).toHaveLength(1);
+    expect(start.hostiles[0]).toMatchObject({ id: 'first-cinder-skiff', passive: false, hull: 8 });
+    const scanned = scan(start);
+    const wreck = scanned.signals.find((signal) => signal.id === 'echo-wreck')!;
+    const cache = scanned.signals.find((signal) => signal.id === 'first-skiff-cache')!;
+    const quickSalvage = investigate({ ...scanned, position: wreck.position }, wreck.id);
+    expect(quickSalvage.cargo.alloys).toBe(3);
+    const guarded = investigate({ ...quickSalvage, position: cache.position }, cache.id);
+    expect(guarded.cargo.alloys).toBe(3);
+    expect(guarded.log[0]).toContain('bewacht');
+    const skiff = guarded.hostiles[0]!;
+    let combat = { ...guarded, position: { x: skiff.position.x - 280, y: skiff.position.y }, heading: 0 };
+    for (let shot = 0; shot < 8; shot += 1) {
+      combat = fireWeapon({ ...combat, weaponCooldowns: { broadside: 0, rail: 0, torpedo: 0, orb: 0 } }, skiff.id, 'broadside');
+    }
+    expect(combat.hostiles).toHaveLength(0);
+    const fullSalvage = investigate({ ...combat, position: cache.position }, cache.id);
+    expect(fullSalvage.cargo.alloys).toBe(5);
+  });
+
+  it('offers combat as a full-data alternative during the second expedition', () => {
+    const run = createExpedition(0, 4, 'second-shift');
+    const cipher = run.signals.find((signal) => signal.id === 'raider-cipher');
+    expect(cipher).toMatchObject({ guardedBy: 'cipher-reaver', reward: { kind: 'data', amount: 2 } });
+    expect(run.hostiles).toEqual([expect.objectContaining({ id: 'cipher-reaver', passive: false })]);
+  });
+
   it('makes installed salvage claws visible as a real extra wreck reward', () => {
     const scanned = scan(createExpedition(0, 2, 'first-wreck', 0, 1));
     const wreck = scanned.signals.find((signal) => signal.id === 'echo-wreck')!;
@@ -234,10 +263,14 @@ describe('exploration engine', () => {
     expect(firePrimary(closeContact).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
   });
 
-  it('requires manual target selection and uses ship positioning as the aim model', () => {
+  it('allows free fire without a target and uses ship positioning for automatic hits', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;
-    expect(weaponReadiness(start, undefined, 'broadside').ready).toBe(false);
+    expect(weaponReadiness(start, undefined, 'broadside').ready).toBe(true);
+    const freeFire = fireWeapon(start, undefined, 'broadside');
+    expect(freeFire.hostiles).toEqual(start.hostiles);
+    expect(freeFire.energy).toBeLessThan(start.energy);
+    expect(weaponReadiness(freeFire, undefined, 'broadside')).toMatchObject({ ready: false, cooldownMs: 760 });
     const sideOn = { ...start, position: { x: target.position.x - 220, y: target.position.y }, heading: 0 };
     expect(weaponReadiness(sideOn, target.id, 'broadside').ready).toBe(true);
     const fired = fireWeapon(sideOn, target.id, 'broadside');
@@ -259,6 +292,16 @@ describe('exploration engine', () => {
     const misaligned = { ...start, heading: Math.PI / 2 };
     expect(weaponReadiness(misaligned, target.id, 'rail').ready).toBe(true);
     expect(weaponReadiness(misaligned, target.id, 'broadside').ready).toBe(true);
+  });
+
+  it('fires a misaligned rail lance only forward into space instead of bending it toward a side target', () => {
+    const start = createExpedition(0, 0, 'first-wreck');
+    const target = start.hostiles[0]!;
+    const sideTarget = { ...start, position: { x: target.position.x - 240, y: target.position.y }, heading: 0 };
+    expect(weaponReadiness(sideTarget, target.id, 'rail')).toMatchObject({ ready: false, reason: 'Lanze nach vorn ausrichten' });
+    const freeShot = fireWeapon(sideTarget, undefined, 'rail');
+    expect(freeShot.hostiles[0]?.hull).toBe(target.hull);
+    expect(freeShot.energy).toBe(sideTarget.energy - 12);
   });
 
   it('enforces an individual cooldown and recharges it while the ship keeps moving', () => {

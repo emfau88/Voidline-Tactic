@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Kämpfe erfassen den nächsten Gegner nun automatisch, erlauben aber jederzeit freies Feuern. Gegner- und Spielerschaden, Hüllenstände und Waffen-Cooldowns werden unmittelbar angezeigt; längere Gegnerhaltbarkeit, ein einzelner korrekter Rail-Lanzenstrahl, ein deutlich größeres Hauptwrack sowie ruhigere Fundindikatoren verbessern Lesbarkeit und Wirkung.
+- Der erste Einsatz führt nach dem Scan nicht mehr durch eine reine Bergungskette: Das sichere Wrack finanziert bereits den Hangar, während ein naher Glutkutter eine freiwillige frühe Breitseite und zusätzliche Legierungen anbietet. In der zweiten Schicht liefert ein Liturgie-Räuber eine dritte, kampfbasierte Route zu den benötigten Daten.
 - Der Rückkehrschutz nach Expeditionen blockiert Stationsinteraktionen nur noch für einen kurzen Pointer-Nachlauf statt für eine spürbare Sekunde.
 - Hangar-Einbauten werden nun zunächst vormontiert und am Schiff gezeigt. Ressourcen werden erst nach „Einbau bestätigen“ ausgegeben; „Abbrechen“ verwirft die Vorschau kostenfrei.
 - Expeditionen zeigen am Rückkehrpunkt nun Farhavens tatsächlich errichteten Ausbauzustand mit Kern, Hangar, Scannerkapelle, Reliktlabor und Sternenwerk statt eines generischen Einzelkerns.

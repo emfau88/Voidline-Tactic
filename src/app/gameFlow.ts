@@ -31,7 +31,18 @@ export function subscribe(listener: Listener): () => void {
 
 export function getProfile(): FarhavenProfile { return profile; }
 export function getExpedition(): ExpeditionState | undefined { return expedition; }
-export function getSelectedTargetId(): string | undefined { return selectedTargetId; }
+function nearestHostileId(state: ExpeditionState | undefined): string | undefined {
+  if (!state) return undefined;
+  return [...state.hostiles]
+    .map((hostile) => ({ id: hostile.id, distance: Math.hypot(hostile.position.x - state.position.x, hostile.position.y - state.position.y) }))
+    .sort((first, second) => first.distance - second.distance)[0]?.id;
+}
+
+/** A manual tap may override the lock, but combat never requires target marking. */
+export function getSelectedTargetId(): string | undefined {
+  if (expedition?.hostiles.some((hostile) => hostile.id === selectedTargetId)) return selectedTargetId;
+  return nearestHostileId(expedition);
+}
 
 export interface PrologueObjective {
   readonly kicker: string;
@@ -65,19 +76,24 @@ export function getPrologueObjective(): PrologueObjective {
     }
     if (expedition.scenario === 'first-wreck') {
       const firstWreck = expedition.signals.find((signal) => signal.id === 'echo-wreck');
-      if (firstWreck?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 1/5', title: 'DAS NAHE ECHO SCANNEN', copy: 'Ein Signal trägt Farhavens alte Versorgungskennung. Scanne es nordöstlich der Station.' };
-      if (firstWreck?.knowledge === 'classified') return { kicker: 'VERLORENE ROUTE · 2/5', title: 'DIE ROUTENRELIQUIE BERGEN', copy: 'Tippe den Fund an, fliege heran und sichere seine Platten und den Kreiselkern.' };
-      return { kicker: 'VERLORENE ROUTE · 3/5', title: 'DEN ERSTEN HINWEIS HEIMBRINGEN', copy: 'Die Bergung nennt das Xenogate. Kehre nach Farhaven zurück und sichere die Fracht.' };
+      const skiffCache = expedition.signals.find((signal) => signal.id === 'first-skiff-cache');
+      const skiffAlive = expedition.hostiles.some((hostile) => hostile.id === 'first-cinder-skiff');
+      if (firstWreck?.knowledge === 'echo') return { kicker: 'ERSTER KONTAKT · 1/4', title: 'DAS WRACK UND DEN KONTAKT SCANNEN', copy: 'Farhavens Kennung liegt nordöstlich. Ein fremdes Schiff kreist bereits um das Signal.' };
+      if (firstWreck?.knowledge === 'classified') return { kicker: 'ERSTER KONTAKT · 2/4', title: 'PLATTEN SICHERN ODER STELLUNG BEZIEHEN', copy: 'Die äußeren Platten sind unbewacht. Sichere sie und fliehe – oder nähere dich dem automatisch erfassten Glutkutter und kämpfe um seine Zusatzfracht.' };
+      if (skiffAlive) return { kicker: 'FREIWILLIGE KONFRONTATION', title: 'GLUTKUTTER ODER HEIMKEHR', copy: 'Der Hangar ist bereits finanzierbar. Kehre sicher heim oder bring den Gegner in den seitlichen Feuerbogen und löse eine Breitseite aus.' };
+      if (skiffCache?.knowledge !== 'resolved') return { kicker: 'ERSTER KONTAKT · 3/4', title: 'DIE GLUTKUTTER-FRACHT SICHERN', copy: 'Der Weg ist frei. Fliege an die markierte Fracht und birg die zusätzlichen Platten.' };
+      return { kicker: 'ERSTER KONTAKT · 4/4', title: 'MIT DER BEUTE HEIMKEHREN', copy: 'Wrackplatten und Waffenkern sind gesichert. Farhaven kann den Hangar verbinden.' };
     }
     if (expedition.scenario === 'second-shift') {
       const lantern = expedition.signals.find((signal) => signal.id === 'monk-lantern');
       const liturgy = expedition.signals.find((signal) => signal.id === 'cutting-liturgy');
       const archive = expedition.signals.find((signal) => signal.id === 'wayfarer-archive');
-      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo' && archive?.knowledge === 'echo') return { kicker: 'VERLORENE ROUTE · 3/5', title: 'SICHER ODER SCHNELL', copy: 'Scanne drei Echos: Die Laterne birgt das Relikt. Daten erhältst du langsam und sicher im Archiv oder sofort aus der riskanten Liturgie.' };
-      const dataSecured = liturgy?.knowledge === 'resolved' || archive?.knowledge === 'resolved';
-      if (lantern?.knowledge !== 'resolved' || !dataSecured) return { kicker: 'VERLORENE ROUTE · 3/5', title: 'DEN EIGENEN WEG WÄHLEN', copy: 'Laterne: 1 Relikt. Wandererarchiv: 1 Daten sicher. Schneideliturgie: 2 Daten, aber 6 Hüllenschaden.' };
+      const cipher = expedition.signals.find((signal) => signal.id === 'raider-cipher');
+      if (lantern?.knowledge === 'echo' && liturgy?.knowledge === 'echo' && archive?.knowledge === 'echo' && cipher?.knowledge === 'echo') return { kicker: 'JAGD ODER UMWEG', title: 'DREI WEGE ZU DEN DATEN SCANNEN', copy: 'Archiv: sicher und langsam. Liturgie: schnell, aber schmerzhaft. Räuberchiffre: freiwilliger Kampf mit voller Datenausbeute.' };
+      const dataSecured = liturgy?.knowledge === 'resolved' || cipher?.knowledge === 'resolved' || archive?.knowledge === 'resolved';
+      if (lantern?.knowledge !== 'resolved' || !dataSecured) return { kicker: 'JAGD ODER UMWEG', title: 'DEINEN WEG ZUM MINENLASER WÄHLEN', copy: 'Laterne: 1 Relikt. Liturgie: 2 Daten gegen Hüllenschaden. Räuber: 2 Daten nach einem Gefecht. Das entfernte Archiv bleibt der sichere, langsamere Weg.' };
       if (archive?.knowledge === 'resolved' && liturgy?.knowledge !== 'resolved') return { kicker: 'SICHERER WEG', title: 'DIE FUNDE HEIMBRINGEN', copy: 'Reliktkern und sicherer Datensatz ergänzen Farhavens Reserve. Kehre zurück; die riskante Liturgie darf unberührt bleiben.' };
-      return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENBRECHER BAUEN', copy: 'Reliktkern und Datensätze reichen für einen Minenlaser. Er kann die versiegelte Routenader freilegen.' };
+      return { kicker: cipher?.knowledge === 'resolved' ? 'KAMPFBEUTE GESICHERT' : 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENBRECHER BAUEN', copy: 'Reliktkern und Datensätze reichen für einen Minenlaser. Kehre nach Farhaven zurück und montiere ihn.' };
     }
     if (expedition.scenario === 'mining-run') {
       const vein = expedition.signals.find((signal) => signal.id === 'black-vein');
@@ -105,7 +121,7 @@ export function getPrologueObjective(): PrologueObjective {
   if (!profile.ship.upgrades.includes(SECOND_FIELD_UPGRADE_ID)) {
     return canPurchaseShipUpgrade(profile, SECOND_FIELD_UPGRADE_ID)
       ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' }
-      : { kicker: 'ZWEITE SCHICHT', title: 'BAUPLAN FINDEN', copy: 'Mönchslaterne und Schneideliturgie liefern zusammen genau das Material für einen Minenlaser.' };
+      : { kicker: 'JAGD ODER UMWEG', title: 'DEN MINENLASER VORBEREITEN', copy: 'Mönchslaterne plus Liturgie oder Räuberchiffre liefern das Material. Das entfernte Archiv bietet eine langsamere sichere Route.' };
   }
   if (!profile.story.routeTraceRecovered) return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN HEIMBRINGEN', copy: 'Der Minenlaser ist bereit. Sichere die Routenader im Aschsaum und kehre mit dem Verstärker zurück.' };
   if (!profile.facilities.navigation) return canUpgrade(profile, 'navigation')
@@ -126,12 +142,7 @@ export function beginExpedition(): ExpeditionState {
   const salvageBonus = profile.ship?.upgrades.includes('salvage-claws') ? 1 : 0;
   const cantorBypass = profile.ship?.upgrades.includes('broadband-array') ?? false;
   expedition = createExpedition(scanBonus, cargoBonus, scenarioForProfile(), hullRiskReduction, salvageBonus, cantorBypass);
-  // A soft lock makes the first combat contact legible on mouse and touch alike.
-  // It never fires for the player and can be overridden by tapping another ship.
-  selectedTargetId = expedition.hostiles
-    .filter((hostile) => hostile.passive)
-    .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - expedition!.position.x, hostile.position.y - expedition!.position.y) }))
-    .sort((first, second) => first.distance - second.distance)[0]?.hostile.id;
+  selectedTargetId = nearestHostileId(expedition);
   persistExpedition();
   emit();
   return expedition;
@@ -153,6 +164,7 @@ export function setFlightVector(vector: Vector2): void {
 export function tickExpedition(deltaMs: number): void {
   if (!expedition) return;
   expedition = stepExpedition(expedition, Math.min(deltaMs, 40));
+  if (!expedition.hostiles.some((hostile) => hostile.id === selectedTargetId)) selectedTargetId = nearestHostileId(expedition);
   if (expedition.hull <= 0) completeDefeat();
   else if (isHome(expedition)) completeReturn();
   else persistExpedition();
@@ -226,7 +238,7 @@ export function fireWeapons(targetId: string | undefined, weapon: WeaponMode): b
   if (!expedition) return false;
   const before = expedition;
   expedition = fireWeapon(expedition, targetId, weapon);
-  if (!expedition.hostiles.some((hostile) => hostile.id === selectedTargetId)) selectedTargetId = undefined;
+  if (!expedition.hostiles.some((hostile) => hostile.id === selectedTargetId)) selectedTargetId = nearestHostileId(expedition);
   persistExpedition();
   emit();
   return expedition.energy < before.energy;

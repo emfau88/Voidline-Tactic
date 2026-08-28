@@ -2,8 +2,8 @@ import './farhaven.css';
 import Phaser from 'phaser';
 import { createGame } from './app/createGame';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, clearSelectedHostile, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
-import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness } from './domain/exploration/expeditionEngine';
-import type { Cargo, ResourceKind, WeaponMode } from './domain/exploration/types';
+import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness, type WeaponReadiness } from './domain/exploration/expeditionEngine';
+import type { Cargo, ExpeditionState, ResourceKind, WeaponMode } from './domain/exploration/types';
 import { playWeaponSound } from './app/combatAudio';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
@@ -74,6 +74,7 @@ let shipyardPreviewVariant: ShipVariantId | undefined;
 let pendingShipUpgrade: ShipUpgradeId | undefined;
 let pendingVisualCargo: Cargo | undefined;
 let coreInfoOpen = false;
+let freeBroadsideSide = 1;
 
 function shieldOutpostTaps(durationMs: number, persistForNextScene = false): void {
   outpostTapShieldUntil = Date.now() + durationMs;
@@ -90,6 +91,8 @@ function shieldOutpostTaps(durationMs: number, persistForNextScene = false): voi
 
 const DISCOVERY_NAMES: Readonly<Record<string, string>> = {
   'echo-wreck': 'Reliquie der Versorgungsroute',
+  'first-skiff-cache': 'Glutkutter-Fracht',
+  'raider-cipher': 'Geraubte Chiffre',
   'monk-lantern': 'Mönchslaterne',
   'cutting-liturgy': 'Schneideliturgie',
   'wayfarer-archive': 'Wandererarchiv',
@@ -136,6 +139,29 @@ function ordnanceWeaponMode(): WeaponMode | undefined {
 
 function weaponLabel(weapon: WeaponMode): string {
   return weapon === 'broadside' ? 'SALVE' : weapon === 'rail' ? 'LANZE' : weapon === 'torpedo' ? 'TORPEDO' : 'ORB';
+}
+
+function targetForWeapon(expedition: ExpeditionState, weapon: WeaponMode): string | undefined {
+  const selected = getSelectedTargetId();
+  return selected && weaponReadiness(expedition, selected, weapon).ready ? selected : undefined;
+}
+
+function readinessForWeapon(expedition: ExpeditionState, weapon: WeaponMode): WeaponReadiness {
+  const selected = getSelectedTargetId();
+  const targetId = targetForWeapon(expedition, weapon);
+  const readiness = weaponReadiness(expedition, targetId, weapon);
+  if (!targetId && selected && readiness.ready) return { ...readiness, reason: 'Bereit · freier Feuerbogen' };
+  return readiness;
+}
+
+function renderWeaponReadiness(button: HTMLButtonElement, weapon: WeaponMode, readiness: WeaponReadiness): void {
+  button.disabled = !readiness.ready;
+  button.querySelector('span')!.textContent = weaponLabel(weapon);
+  button.querySelector('small')!.textContent = readiness.reason;
+  const cooling = Boolean(readiness.cooldownMs && readiness.cooldownTotalMs);
+  button.dataset.cooling = String(cooling);
+  const progress = cooling ? 1 - readiness.cooldownMs! / readiness.cooldownTotalMs! : 0;
+  button.style.setProperty('--cooldown-progress', `${Math.max(0, Math.min(1, progress)) * 100}%`);
 }
 
 function toast(message: string): void {
@@ -350,11 +376,11 @@ function renderOutpost(): void {
   required<HTMLElement>('expedition-count').textContent = String(getProfile().expeditionCount);
   const launch = required<HTMLButtonElement>('launch-button');
   const next = !getProfile().facilities.hangar
-    ? getProfile().expeditionCount === 0 ? ['ERSTE EXPEDITION', 'NAHES WRACK SICHERN', 'Scan · Bergung · Heimkehr'] : ['FARHAVEN', 'WEITERE BERGUNG', 'Legierungen für den Hangar sichern']
+    ? getProfile().expeditionCount === 0 ? ['ERSTER KONTAKT', 'WRACK UND GLUTKUTTER', 'Bergen · fliehen oder kämpfen'] : ['ERSTER KONTAKT', 'ZURÜCK ZUM WRACK', 'Hangarplatten sichern · Kampf freiwillig']
     : !getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
       ? ['HANGARWERKSTATT', 'FRACHTRÜCKEN EINBAUEN', 'Erst den echten Einbau im Hangar wählen']
       : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
-        ? ['ZWEITE SCHICHT', 'ZWEI ECHOS UNTERSUCHEN', 'Sichere Laterne · riskante Liturgie']
+        ? ['JAGD ODER UMWEG', 'DREI WEGE ZU DEN DATEN', 'Archiv · Anomalie · Räuber']
         : !getProfile().story.routeTraceRecovered
           ? ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste']
           : !getProfile().facilities.navigation
@@ -437,11 +463,9 @@ function renderExpedition(): void {
   const targetId = getSelectedTargetId();
   const selectedTarget = expedition.hostiles.find((hostile) => hostile.id === targetId);
   const primary = primaryWeaponMode();
-  const primaryReadiness = weaponReadiness(expedition, targetId, primary);
+  const primaryReadiness = readinessForWeapon(expedition, primary);
   const fire = required<HTMLButtonElement>('fire-button');
-  fire.disabled = !primaryReadiness.ready;
-  fire.querySelector('span')!.textContent = weaponLabel(primary);
-  fire.querySelector('small')!.textContent = primaryReadiness.reason;
+  renderWeaponReadiness(fire, primary, primaryReadiness);
   const lance = required<HTMLButtonElement>('lance-button');
   const lanceMode = lanceWeaponMode();
   if (!lanceMode) {
@@ -449,10 +473,8 @@ function renderExpedition(): void {
     lance.querySelector('span')!.textContent = 'LANZE';
     lance.querySelector('small')!.textContent = 'Rail-Lanze fehlt';
   } else {
-    const lanceReadiness = weaponReadiness(expedition, targetId, lanceMode);
-    lance.disabled = !lanceReadiness.ready;
-    lance.querySelector('span')!.textContent = weaponLabel(lanceMode);
-    lance.querySelector('small')!.textContent = lanceReadiness.reason;
+    const lanceReadiness = readinessForWeapon(expedition, lanceMode);
+    renderWeaponReadiness(lance, lanceMode, lanceReadiness);
   }
   const ordnance = required<HTMLButtonElement>('ordnance-button');
   const ordnanceMode = ordnanceWeaponMode();
@@ -461,16 +483,14 @@ function renderExpedition(): void {
     ordnance.querySelector('span')!.textContent = 'ORDNANZ';
     ordnance.querySelector('small')!.textContent = 'Torpedorack oder Kern fehlt';
   } else {
-    const ordnanceReadiness = weaponReadiness(expedition, targetId, ordnanceMode);
-    ordnance.disabled = !ordnanceReadiness.ready;
-    ordnance.querySelector('span')!.textContent = weaponLabel(ordnanceMode);
-    ordnance.querySelector('small')!.textContent = ordnanceReadiness.reason;
+    const ordnanceReadiness = readinessForWeapon(expedition, ordnanceMode);
+    renderWeaponReadiness(ordnance, ordnanceMode, ordnanceReadiness);
   }
   required<HTMLElement>('expedition-status').textContent = expedition.status === 'returning'
     ? 'RÜCKKEHR LÄUFT'
     : expedition.sectorId === 'veloria-rift'
       ? 'VELORIA RIFT · KARTENSONDE'
-      : selectedTarget ? `ZIEL · ${selectedTarget.name.toUpperCase()}` : expedition.hostiles.length ? 'ZIEL AUF KARTE WÄHLEN' : 'EXPLORATION · SCANNEN';
+      : selectedTarget ? `AUTOZIEL · ${selectedTarget.name.toUpperCase()} · ${selectedTarget.hull}/${selectedTarget.maxHull}` : 'WAFFEN BEREIT · FREIES FEUER';
   const list = required<HTMLElement>('signal-list');
   list.replaceChildren(...expedition.signals.filter((signal) => signal.knowledge === 'classified').map((signal) => {
     const item = document.createElement('button');
@@ -522,7 +542,12 @@ function startExpedition(): void {
   beginExpedition();
   game.scene.stop('outpost');
   game.scene.start('expedition');
-  toast('Aschsaum I erreicht. Suche die verlorene Versorgungsroute von Farhaven.');
+  const scenario = getExpedition()?.scenario;
+  toast(scenario === 'first-wreck'
+    ? 'ERSTER KONTAKT · Das Wrack ist bergbar. Der Glutkutter kann umflogen, bekämpft oder durch Rückkehr verlassen werden.'
+    : scenario === 'second-shift'
+      ? 'JAGD ODER UMWEG · Daten warten im Archiv, in der Liturgie oder hinter einem Räuber.'
+      : 'Aschsaum I erreicht. Suche die verlorene Versorgungsroute von Farhaven.');
 }
 
 required<HTMLButtonElement>('launch-button').addEventListener('click', startExpedition);
@@ -706,13 +731,32 @@ required<HTMLButtonElement>('interact-button').addEventListener('click', () => {
 });
 function fireSelectedWeapon(weapon: WeaponMode): void {
   const before = getExpedition();
-  const targetId = getSelectedTargetId();
+  if (!before) return;
+  const targetId = targetForWeapon(before, weapon);
   const target = before?.hostiles.find((hostile) => hostile.id === targetId);
-  if (!before || !target) { toast('Wähle erst einen Kontakt direkt auf der Karte.'); return; }
-  if (!fireWeapons(target.id, weapon)) { toast(weaponReadiness(before, target.id, weapon).reason); return; }
+  if (!fireWeapons(target?.id, weapon)) { toast(readinessForWeapon(before, weapon).reason); return; }
   playWeaponSound(weapon);
-  const destroyed = !getExpedition()?.hostiles.some((hostile) => hostile.id === target.id);
-  game.events.emit('farhaven:weapon-fired', { weapon, target: { id: target.id, name: target.name, position: target.position, destroyed } });
+  const after = getExpedition();
+  const targetAfter = target ? after?.hostiles.find((hostile) => hostile.id === target.id) : undefined;
+  const forward = { x: Math.cos(before.heading - Math.PI / 2), y: Math.sin(before.heading - Math.PI / 2) };
+  const side = { x: -forward.y * freeBroadsideSide, y: forward.x * freeBroadsideSide };
+  const freeDistance = weapon === 'rail' ? 600 : weapon === 'torpedo' ? 650 : weapon === 'orb' ? 480 : 390;
+  const freeDirection = weapon === 'broadside' ? side : forward;
+  const freePosition = { x: before.position.x + freeDirection.x * freeDistance, y: before.position.y + freeDirection.y * freeDistance };
+  if (!target && weapon === 'broadside') freeBroadsideSide *= -1;
+  game.events.emit('farhaven:weapon-fired', {
+    weapon,
+    target: {
+      id: target?.id ?? 'free-fire',
+      name: target?.name ?? 'Leerer Raum',
+      position: target?.position ?? freePosition,
+      destroyed: Boolean(target && !targetAfter),
+      hit: Boolean(target),
+      damage: target ? target.hull - (targetAfter?.hull ?? 0) : 0,
+      hull: targetAfter?.hull ?? 0,
+      maxHull: target?.maxHull ?? 0,
+    },
+  });
 }
 function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponMode | undefined): void {
   // Fire on press, not release. A second mobile thumb can shoot while the first

@@ -1,7 +1,7 @@
 # Farhaven – optionaler, spektakulärer Combat
 
 Stand: 24. August 2026
-Status: geplant
+Status: erster Vertical Slice umgesetzt; Ausbau und Balancing laufen
 Ziel: Kämpfe sollen zu den spannenden Geschichten einer Expedition gehören, aber nie Exploration, Bergung oder Rückkehr verdrängen.
 
 ## Leitentscheidung
