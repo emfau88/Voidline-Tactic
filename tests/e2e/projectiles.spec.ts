@@ -20,15 +20,19 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('renders physical shots and applies each installed weapon at contact', async ({ page }) => {
+  test.setTimeout(60_000);
   for (const [button, hull] of [['#fire-button', 19], ['#lance-button', 17], ['#ordnance-button', 14]] as const) {
     await page.locator(button).click();
     await expect(page.locator('#game-root canvas')).toHaveAttribute('data-projectile-count', '1');
-    await expect(page.locator('#expedition-status')).toContainText(`${hull}/20`);
-    await expect(page.locator('#game-root canvas')).toHaveAttribute('data-projectile-count', '0');
+    // CI runs multiple mobile canvases concurrently and can advance Phaser far
+    // slower than wall-clock time. Observe the physical flight completing
+    // before asserting damage instead of treating a round still in flight as a miss.
+    await expect(page.locator('#game-root canvas')).toHaveAttribute('data-projectile-count', '0', { timeout: 15_000 });
+    await expect(page.locator('#expedition-status')).toContainText(`${hull}/20`, { timeout: 15_000 });
   }
   await page.reload();
-  await expect(page.locator('#expedition-status')).toContainText('14/20');
-  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-projectile-count', '0');
+  await expect(page.locator('#expedition-status')).toContainText('14/20', { timeout: 15_000 });
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-projectile-count', '0', { timeout: 15_000 });
 });
 
 test('allows a second touch to fire while flying and prevents ghost shots on return', async ({ page }) => {
