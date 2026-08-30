@@ -72,6 +72,15 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 #game-shell[data-screen='outpost'] #outpost-hud .primary-button span { font-size: 6px; }
 #game-shell[data-screen='outpost'] #outpost-hud .primary-button strong { font-size: 11px; }
 #game-shell[data-screen='outpost'] #outpost-hud .primary-button small { display: block; overflow: hidden; color: #92b5be; font-size: 6px; text-overflow: ellipsis; white-space: nowrap; }
+#first-launch-guide { display: flex; align-items: center; gap: 6px; margin: 0 2px 7px; color: #e9ca8a; text-shadow: 0 2px 8px #000; }
+#first-launch-guide[hidden] { display: none; }
+#first-launch-guide > span { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; border: 1px solid rgb(233 202 138 / 62%); border-radius: 50%; font: 700 8px Arial, sans-serif; }
+#first-launch-guide p { min-width: 0; margin: 0; line-height: 1.05; }
+#first-launch-guide strong, #first-launch-guide small { display: block; }
+#first-launch-guide strong { font: 800 7px Arial, sans-serif; letter-spacing: .1em; }
+#first-launch-guide small { margin-top: 3px; color: #b9c8ca; font: 600 6px/1.2 Arial, sans-serif; }
+#first-launch-guide b { margin-left: auto; font: 800 13px Arial, sans-serif; }
+#game-shell[data-screen='outpost'] #outpost-hud.first-launch .primary-button { border-color: rgb(239 199 122 / 78%); box-shadow: 0 8px 24px rgb(0 0 0 / 26%), 0 0 20px rgb(239 199 122 / 13%), inset 0 0 18px rgb(239 199 122 / 9%); }
 #game-shell[data-outpost-view='room'] #game-root { filter: brightness(.5) saturate(.72) blur(1px); transform: scale(1.012); transition: filter .18s ease, transform .18s ease; }
 #outpost-nav { position: fixed; z-index: 11; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; width: min(410px, calc(100vw - 32px)); }
 #outpost-nav button { display: grid; min-height: 60px; place-items: center; gap: 3px; border: 1px solid rgb(122 207 235 / 38%); border-radius: 13px; background: rgb(5 15 25 / 82%); color: #93ddee; font-size: 19px; backdrop-filter: blur(9px); }

@@ -374,6 +374,7 @@ function playReturnMoment(cargo: Cargo): void {
 function renderOutpost(): void {
   required<HTMLElement>('expedition-count').textContent = String(getProfile().expeditionCount);
   const launch = required<HTMLButtonElement>('launch-button');
+  const firstLaunch = getProfile().expeditionCount === 0;
   const next = !getProfile().facilities.hangar
     ? getProfile().expeditionCount === 0 ? ['ERSTER KONTAKT', 'WRACK UND GLUTKUTTER', 'Bergen · fliehen oder kämpfen'] : ['ERSTER KONTAKT', 'ZURÜCK ZUM WRACK', 'Hangarplatten sichern · Kampf freiwillig']
     : !getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
@@ -387,9 +388,11 @@ function renderOutpost(): void {
             : ['FREIE EXPEDITION', 'EIGENEN KURS WÄHLEN', 'Bergen · ausbauen · Veloria'];
   // Farhaven itself is the menu. Keep this only as a compact departure control;
   // the current task lives on the station rather than covering it as a large HUD card.
-  launch.querySelector('span')!.textContent = 'EXPEDITION';
-  launch.querySelector('strong')!.textContent = 'ASCHSAUM STARTEN';
-  launch.querySelector('small')!.textContent = `${next[0]} · ${next[1]}`;
+  required<HTMLElement>('first-launch-guide').hidden = !firstLaunch;
+  outpostHud.classList.toggle('first-launch', firstLaunch);
+  launch.querySelector('span')!.textContent = firstLaunch ? 'ERSTE MISSION' : 'EXPEDITION';
+  launch.querySelector('strong')!.textContent = firstLaunch ? 'JETZT AUSFLIEGEN' : 'ASCHSAUM STARTEN';
+  launch.querySelector('small')!.textContent = firstLaunch ? 'Wrack scannen · Rückkehr jederzeit möglich' : `${next[0]} · ${next[1]}`;
   if (coreInfoOpen) openCoreInfo();
   else renderFacilityPanel();
 }

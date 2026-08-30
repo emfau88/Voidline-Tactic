@@ -188,36 +188,41 @@ export class ExpeditionScene extends Phaser.Scene {
       .filter(([, level]) => level > 0)
       .map(([id]) => id);
     this.game.canvas.dataset.expeditionFarhaven = builtFacilities.length > 0 ? `core,${builtFacilities.join(',')}` : 'core';
+    this.game.canvas.dataset.expeditionFarhavenScale = '1.55';
+    // The old return landmark was smaller than the player's hull. Keep it a
+    // navigational miniature, but large enough to read as the station it mirrors.
+    // The ship begins just outside the northern collar, so the station reads
+    // immediately on a short landscape phone rather than sitting below camera.
     const center = { x: 2_100, y: 1_650 };
-    const homeGlow = this.add.circle(center.x, center.y, 82, 0xe7b96e, 0.08).setDepth(1);
+    const homeGlow = this.add.circle(center.x, center.y, 142, 0xe7b96e, 0.08).setDepth(1);
     this.tweens.add({ targets: homeGlow, alpha: { from: 0.055, to: 0.1 }, duration: 4_800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
 
     const dock = this.add.graphics().setDepth(2);
     dock.lineStyle(2, 0x91e4eb, 0.52);
-    dock.lineBetween(2_100, 1_514, 2_100, 1_584);
+    dock.lineBetween(2_100, 1_510, 2_100, 1_584);
     dock.fillStyle(0xf2cb79, 0.82);
-    dock.fillCircle(2_100, 1_584, 2.5);
+    dock.fillCircle(2_100, 1_584, 3.5);
 
     const addAtlasModule = (x: number, y: number, frame: number | string, rotation = 0): void => {
       this.add.image(x, y, 'farhaven-module-kit-v2', frame)
-        .setDisplaySize(52, 52)
+        .setDisplaySize(82, 82)
         .setRotation(rotation)
         .setDepth(2)
         .setAlpha(0.96);
     };
-    if (profile.facilities.scanner > 0) addAtlasModule(center.x, center.y - 54, 'scanner-clean');
-    if (profile.facilities.labor > 0) addAtlasModule(center.x - 54, center.y, 2);
-    if (profile.facilities.navigation > 0) addAtlasModule(center.x, center.y + 54, 3);
+    if (profile.facilities.scanner > 0) addAtlasModule(center.x, center.y - 84, 'scanner-clean');
+    if (profile.facilities.labor > 0) addAtlasModule(center.x - 84, center.y, 2);
+    if (profile.facilities.navigation > 0) addAtlasModule(center.x, center.y + 84, 3);
     if (profile.facilities.hangar > 0) {
-      this.add.image(center.x + 57, center.y, 'farhaven-hangar-module-v1')
-        .setDisplaySize(42, 58)
+      this.add.image(center.x + 90, center.y, 'farhaven-hangar-module-v1')
+        .setDisplaySize(68, 94)
         .setRotation(-Math.PI / 2)
         .setDepth(2)
         .setAlpha(0.98);
     }
-    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(72, 72).setDepth(3).setAlpha(0.98);
-    this.homeLabel = this.add.text(center.x, center.y + 88, 'FARHAVEN · HEIMATHAFEN', {
-      fontFamily: 'Arial', fontSize: 8, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75,
+    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(112, 112).setDepth(3).setAlpha(0.98);
+    this.homeLabel = this.add.text(center.x, center.y + 138, 'FARHAVEN · HEIMATHAFEN', {
+      fontFamily: 'Arial', fontSize: 10, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75,
     }).setOrigin(0.5).setDepth(3);
   }
 
@@ -594,9 +599,11 @@ export class ExpeditionScene extends Phaser.Scene {
         // All geometry is local to the simulated projectile; no target tweens.
         art.fillStyle(color, 0.18); art.fillEllipse(-8, 0, shot.weapon === 'rail' ? 70 : 35, shot.radius * 5);
         if (shot.weapon === 'broadside') {
-          for (const [i, y] of [-5, 0, 5].entries()) {
-            art.lineStyle(2, color, 0.65); art.lineBetween(-24 - i * 3, y, -3, y);
-            art.fillStyle(0xffebcb, 1); art.fillCircle(-i * 3, y, 2.4);
+          // One physical damage packet, presented as three cannon rounds
+          // chasing one another rather than a simultaneous laser-like fan.
+          for (const [i, x] of [0, -16, -32].entries()) {
+            art.lineStyle(2, color, 0.55 + i * .08); art.lineBetween(x - 17, 0, x - 4, 0);
+            art.fillStyle(0xffebcb, 1); art.fillCircle(x, 0, 2.7);
           }
         } else if (shot.weapon === 'rail') {
           art.lineStyle(8, color, 0.28); art.lineBetween(-48, 0, 0, 0);
@@ -619,7 +626,8 @@ export class ExpeditionScene extends Phaser.Scene {
       this.lastCombatEventId = event.id;
       const color = this.projectileColor(event.weapon, event.side);
       if (event.kind === 'shot') {
-        this.spawnMuzzle(event.position, color, event.weapon === 'rail' ? 12 : 8);
+        if (event.side === 'player' && event.weapon === 'broadside') this.showBroadsideVolley(event.position, color);
+        else this.spawnMuzzle(event.position, color, event.weapon === 'rail' ? 12 : 8);
         if (event.side === 'player') {
           playWeaponSound(event.weapon);
           this.cameras.main.shake(event.weapon === 'torpedo' ? 140 : 65, 0.0013);
@@ -663,6 +671,21 @@ export class ExpeditionScene extends Phaser.Scene {
     const flash = this.add.circle(position.x, position.y, radius, color, 0.92).setDepth(11);
     const halo = this.add.circle(position.x, position.y, radius * 2.4, color, 0.24).setDepth(10);
     this.tweens.add({ targets: [flash, halo], scale: 0.18, alpha: 0, duration: 130, ease: 'Quad.Out', onComplete: () => { flash.destroy(); halo.destroy(); } });
+  }
+
+  private showBroadsideVolley(eventPosition: Vector2, color: number): void {
+    if (!this.shipRig) return;
+    const left = this.worldFromShip(-43, 0);
+    const right = this.worldFromShip(43, 0);
+    const side = Phaser.Math.Distance.Between(eventPosition.x, eventPosition.y, left.x, left.y)
+      < Phaser.Math.Distance.Between(eventPosition.x, eventPosition.y, right.x, right.y) ? -43 : 43;
+    [18, 0, -18].forEach((localY, index) => {
+      this.time.delayedCall(index * 78, () => {
+        if (!this.shipRig?.active) return;
+        this.spawnMuzzle(this.worldFromShip(side, localY), color, 8 - index * .6);
+      });
+    });
+    this.game.canvas.dataset.broadsideVolley = '3-shell-stagger';
   }
 
 

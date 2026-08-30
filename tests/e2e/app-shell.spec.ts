@@ -54,7 +54,9 @@ test('presents the Farhaven outpost and a compact launch flow', async ({ page })
   await expect(page.locator('#resource-strip')).toContainText('DATEN');
   await expect(page.locator('#resource-strip')).toContainText('RELIKTE');
   await expect(page.locator('#resource-strip img[src*="resource-alloys-v1.png"]')).toBeVisible();
-  await expect(page.locator('#launch-button')).toContainText('WRACK UND GLUTKUTTER');
+  await expect(page.locator('#first-launch-guide')).toContainText('DEIN ERSTER SCHRITT');
+  await expect(page.locator('#launch-button')).toContainText('JETZT AUSFLIEGEN');
+  await expect(page.locator('#launch-button')).toContainText('Rückkehr jederzeit möglich');
   await openFacility(page, 'hangar');
   await expect(page.getByRole('heading', { name: 'Hangar' })).toBeVisible();
   await expect(page.locator('#facility-upgrade-button')).toBeVisible();
@@ -252,6 +254,7 @@ test('mirrors built Farhaven modules at the expedition return point', async ({ p
   await page.reload();
   await startExpedition(page);
   await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven', 'core,hangar,scanner,labor,navigation');
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven-scale', '1.55');
 });
 
 test('resumes an ongoing expedition after a browser reload', async ({ page }) => {
@@ -270,6 +273,7 @@ test('introduces one real optional contact instead of combat dummies on the firs
   await expect(page.locator('#expedition-status')).toContainText('AUTOZIEL · GLUTKUTTER · 8/8');
   await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-contacts', 'first-cinder-skiff');
   await page.locator('#fire-button').click();
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-broadside-volley', '3-shell-stagger');
   await expect(page.locator('#fire-button')).toHaveAttribute('data-cooling', 'true');
   await expect(page.locator('#fire-button')).toContainText('Nachladen');
 });

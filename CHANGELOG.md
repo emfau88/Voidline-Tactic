@@ -4,6 +4,9 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Der erste Farhaven-Besuch benennt den Ausflug nun eindeutig als ersten Schritt und erklärt direkt am Start, dass das Wrack gescannt und jederzeit zurückgekehrt werden kann. Der im Sektor sichtbare Heimathafen ist rund 55 Prozent größer und bleibt mit etwas Abstand zum spawnenden Schiff lesbar.
+- Die Breitseite wirkt wieder wie eine Piratensalve: drei Kanonen zünden sichtbar nacheinander und die Geschosse folgen einander statt als gleichzeitiger Lichtfächer zu erscheinen; die physische Trefferberechnung bleibt ein eindeutiger Schadensverband.
+
 - Desktop-Steuerung: WASD/Pfeiltasten mit normalisierten Diagonalen und gleichzeitigem Waffenfeuer; weicher Mausrad-Zoom bis 0,55× für mehr Kartenübersicht. Mobile-Touchstick und Pinch-Grenzen bleiben erhalten. Gehaltene Flugbefehle werden bei Fokusverlust, Pause, Szenenwechsel und Reload zurückgesetzt; Texteingaben und Browser-Zoom bleiben unbeeinflusst.
 
 - Kampf-Fundament (Bulk A): Spieler- und Gegnerwaffen verwenden dieselbe Projektilsimulation mit kontinuierlicher Trefferprüfung gegen bewegte Schiffe. Schaden, Treffer-VFX und Hüllenanzeige folgen dem Einschlag statt dem Auslöser. Freie Schüsse können treffen, Geschosse können verfehlen; alte Saves, laufende Geschosse, Schildtreffer und Szenenwechsel sind abgesichert. Kampfbalancing und Belohnungen bleiben unverändert.
