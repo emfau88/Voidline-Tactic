@@ -188,13 +188,13 @@ export class ExpeditionScene extends Phaser.Scene {
       .filter(([, level]) => level > 0)
       .map(([id]) => id);
     this.game.canvas.dataset.expeditionFarhaven = builtFacilities.length > 0 ? `core,${builtFacilities.join(',')}` : 'core';
-    this.game.canvas.dataset.expeditionFarhavenScale = '1.55';
+    this.game.canvas.dataset.expeditionFarhavenScale = '2.75';
     // The old return landmark was smaller than the player's hull. Keep it a
     // navigational miniature, but large enough to read as the station it mirrors.
     // The ship begins just outside the northern collar, so the station reads
     // immediately on a short landscape phone rather than sitting below camera.
     const center = { x: 2_100, y: 1_650 };
-    const homeGlow = this.add.circle(center.x, center.y, 142, 0xe7b96e, 0.08).setDepth(1);
+    const homeGlow = this.add.circle(center.x, center.y, 230, 0xe7b96e, 0.075).setDepth(1);
     this.tweens.add({ targets: homeGlow, alpha: { from: 0.055, to: 0.1 }, duration: 4_800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
 
     const dock = this.add.graphics().setDepth(2);
@@ -205,24 +205,24 @@ export class ExpeditionScene extends Phaser.Scene {
 
     const addAtlasModule = (x: number, y: number, frame: number | string, rotation = 0): void => {
       this.add.image(x, y, 'farhaven-module-kit-v2', frame)
-        .setDisplaySize(82, 82)
+        .setDisplaySize(140, 140)
         .setRotation(rotation)
         .setDepth(2)
         .setAlpha(0.96);
     };
-    if (profile.facilities.scanner > 0) addAtlasModule(center.x, center.y - 84, 'scanner-clean');
-    if (profile.facilities.labor > 0) addAtlasModule(center.x - 84, center.y, 2);
-    if (profile.facilities.navigation > 0) addAtlasModule(center.x, center.y + 84, 3);
+    if (profile.facilities.scanner > 0) addAtlasModule(center.x, center.y - 142, 'scanner-clean');
+    if (profile.facilities.labor > 0) addAtlasModule(center.x - 142, center.y, 2);
+    if (profile.facilities.navigation > 0) addAtlasModule(center.x, center.y + 142, 3);
     if (profile.facilities.hangar > 0) {
-      this.add.image(center.x + 90, center.y, 'farhaven-hangar-module-v1')
-        .setDisplaySize(68, 94)
+      this.add.image(center.x + 158, center.y, 'farhaven-hangar-module-v1')
+        .setDisplaySize(116, 160)
         .setRotation(-Math.PI / 2)
         .setDepth(2)
         .setAlpha(0.98);
     }
-    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(112, 112).setDepth(3).setAlpha(0.98);
-    this.homeLabel = this.add.text(center.x, center.y + 138, 'FARHAVEN · HEIMATHAFEN', {
-      fontFamily: 'Arial', fontSize: 10, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75,
+    this.add.image(center.x, center.y, 'farhaven-core-v2').setDisplaySize(200, 200).setDepth(3).setAlpha(0.98);
+    this.homeLabel = this.add.text(center.x, center.y + 224, 'FARHAVEN · HEIMATHAFEN', {
+      fontFamily: 'Arial', fontSize: 12, color: '#ebcf91', fontStyle: 'bold', letterSpacing: 0.75,
     }).setOrigin(0.5).setDepth(3);
   }
 
@@ -261,6 +261,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private refresh(): void {
     const expedition = getExpedition();
     if (!expedition || !this.shipRig || !this.signalLayer || !this.playerLabel || !this.engineFlame) return;
+    this.game.canvas.dataset.expeditionSceneStack = this.scene.isActive('outpost') ? 'overlap' : 'exclusive';
     const engineFlame = this.engineFlame;
     this.syncCombat(expedition);
     this.shipRig.setPosition(expedition.position.x, expedition.position.y).setRotation(expedition.heading);

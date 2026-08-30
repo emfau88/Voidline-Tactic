@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { getExpedition } from '../../app/gameFlow';
 
 export class BootScene extends Phaser.Scene {
   public constructor() {
@@ -28,6 +29,9 @@ export class BootScene extends Phaser.Scene {
     // Register a clean sub-frame without changing the source artwork.
     this.textures.get('farhaven-module-kit-v2').add('scanner-clean', 0, 643, 0, 611, 627);
     document.getElementById('startup-splash')?.setAttribute('hidden', '');
-    this.scene.start('outpost');
+    // A persisted flight must never render on top of a freshly started
+    // OutpostScene. Starting the correct destination here keeps exactly one
+    // world scene active from the first rendered frame after a reload.
+    this.scene.start(getExpedition() ? 'expedition' : 'outpost');
   }
 }

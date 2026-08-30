@@ -899,12 +899,11 @@ subscribe(() => {
 
 render();
 
-// A browser reload resumes the actual flight, rather than silently replacing it
-// with the outpost screen. The snapshot itself is written by gameFlow.
+// BootScene now selects the persisted destination before drawing a world scene.
+// Keep this hook for DOM state and feedback only; starting another Phaser scene
+// here used to race the boot preload and leave Farhaven beneath the expedition.
 game.events.once(Phaser.Core.Events.READY, () => {
   if (!getExpedition()) return;
-  game.scene.stop('outpost');
-  game.scene.start('expedition');
   render();
   toast('EXPEDITION FORTGESETZT · Farhaven hält deine letzte Position bereit.');
 });

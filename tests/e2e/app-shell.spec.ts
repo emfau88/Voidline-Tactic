@@ -254,7 +254,7 @@ test('mirrors built Farhaven modules at the expedition return point', async ({ p
   await page.reload();
   await startExpedition(page);
   await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven', 'core,hangar,scanner,labor,navigation');
-  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven-scale', '1.55');
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-farhaven-scale', '2.75');
 });
 
 test('resumes an ongoing expedition after a browser reload', async ({ page }) => {
@@ -262,6 +262,7 @@ test('resumes an ongoing expedition after a browser reload', async ({ page }) =>
   await page.getByRole('button', { name: /SCANNEN/ }).click();
   await page.reload();
   await expect(page.locator('#game-shell')).toHaveAttribute('data-screen', 'expedition');
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-expedition-scene-stack', 'exclusive');
   await expect(page.locator('#signal-list')).toContainText('RELIQUIE DER VERSORGUNGSROUTE');
 });
 
