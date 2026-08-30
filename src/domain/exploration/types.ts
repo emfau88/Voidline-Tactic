@@ -60,7 +60,35 @@ export interface DummyRespawnState {
   readonly remainingMs: number;
 }
 
+export interface ProjectileState {
+  readonly id: number;
+  readonly ownerId: string;
+  readonly side: 'player' | 'hostile';
+  readonly weapon: WeaponMode;
+  readonly position: Vector2;
+  readonly velocity: Vector2;
+  readonly radius: number;
+  readonly damage: number;
+  readonly remainingMs: number;
+}
+
+export interface CombatEvent {
+  readonly id: number;
+  readonly kind: 'shot' | 'hit' | 'blocked';
+  readonly side: 'player' | 'hostile';
+  readonly weapon: WeaponMode;
+  readonly position: Vector2;
+  readonly damage: number;
+  readonly hull: number;
+  readonly maxHull: number;
+  readonly destroyed: boolean;
+}
+
 export interface ExpeditionState {
+  readonly projectiles: readonly ProjectileState[];
+  readonly combatEvents: readonly CombatEvent[];
+  readonly nextCombatId: number;
+  readonly freeBroadsideSide: number;
   readonly sectorId: SectorId;
   readonly sectorName: string;
   readonly scenario: ExpeditionScenario;

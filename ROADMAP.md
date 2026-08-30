@@ -3,6 +3,10 @@
 Stand: 27. August 2026
 Status-Legende: ✅ fertig · 🚧 in Arbeit · ⬜ geplant · 🧪 validieren
 
+### Aktueller Arbeitsblock — Stand 30. August 2026
+
+Der [Plan für den ersten Kampf- und Fortschrittsbogen](docs/planning/FIRST_COMBAT_EXPERIENCE_PLAN.md) konkretisiert die nächsten Schritte: gemeinsame Projektil-/Trefferregeln → ein gutes Glutkutter-Gefecht → freie Fortschrittswahl und erste Rail-Lanze → vollständige UX-/Geräteprüfung → Erstspielertests. **Bulk A ist implementiert und intern geprüft:** echte Einschläge, ausweichbare Geschosse, physisches freies Feuer und Save-Kompatibilität. Bulk B (Kampfgefühl/Zielhilfe) ist als Nächstes offen. Weitere Content- und Stationsausbauten werden während dieses Blocks zurückgestellt. Ältere Zielwerte wie der feste Kampfanteil sind bis zur Auswertung der Tests keine verbindliche Abnahme dieses Blocks.
+
 ## 1. Zielbild
 
 Ein Mobile-first-Singleplayer-Space-Explorer in 2D: Der Spieler wählt ein Schiff, fliegt frei durch zusammenhängende Sektoren, scannt unbekannte Signale, birgt Wracks, baut Rohstoffe ab, entdeckt Kontakte und entscheidet selbst, ob er Kämpfe eingeht. Jede Rückkehr lässt Farhaven und das eigene Schiff sichtbar wachsen.

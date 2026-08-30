@@ -57,6 +57,7 @@ describe('exploration engine', () => {
     let combat = { ...guarded, position: { x: skiff.position.x - 280, y: skiff.position.y }, heading: 0 };
     for (let shot = 0; shot < 8; shot += 1) {
       combat = fireWeapon({ ...combat, weaponCooldowns: { broadside: 0, rail: 0, torpedo: 0, orb: 0 } }, skiff.id, 'broadside');
+      combat = stepExpedition(combat, 500);
     }
     expect(combat.hostiles).toHaveLength(0);
     const fullSalvage = investigate({ ...combat, position: cache.position }, cache.id);
@@ -202,7 +203,7 @@ describe('exploration engine', () => {
       heading: 0,
       hostiles: [{ ...raider, hull: 1 }],
     };
-    const cleared = fireWeapon(sideOn, raider.id, 'broadside');
+    const cleared = stepExpedition(fireWeapon(sideOn, raider.id, 'broadside'), 500);
     expect(cleared.hostiles).toHaveLength(0);
     const looted = investigate({ ...cleared, position: cache.position }, cache.id);
     expect(looted.cargo.alloys).toBe(6);
@@ -215,15 +216,16 @@ describe('exploration engine', () => {
     expect(warned.hull).toBe(run.hull);
     const threatened = stepExpedition(warned, 1_400);
     expect(threatened.hostiles[0]?.status).toBe('alert');
-    expect(threatened.hull).toBeLessThan(run.hull);
+    expect(threatened.hull).toBe(run.hull);
     expect(threatened.log[0]).toContain('feuert');
+    expect(stepExpedition(threatened, 600).hull).toBeLessThan(run.hull);
   });
 
   it('can reduce the hull to zero, allowing the flow layer to resolve a real defeat', () => {
     const run = createExpedition(0, 4, 'mining-run');
     const exposed = { ...run, hull: 4, position: { x: 2_570, y: 1_470 } };
     const warned = stepExpedition(exposed, 40);
-    expect(stepExpedition(warned, 1_400).hull).toBe(0);
+    expect(stepExpedition(warned, 2_000).hull).toBe(0);
   });
 
   it('gives the recovery contacts distinct, avoidable combat roles', () => {
@@ -256,11 +258,12 @@ describe('exploration engine', () => {
   it('fires only when a hostile contact is in range', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;
-    expect(firePrimary(start).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
+    expect(firePrimary(start).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(4);
+    expect(stepExpedition(firePrimary(start), 400).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
     const tooFar = { ...start, position: { x: 0, y: 0 } };
     expect(firePrimary(tooFar).hostiles).toEqual(start.hostiles);
     const closeContact = { ...start, position: { x: target.position.x - 300, y: target.position.y } };
-    expect(firePrimary(closeContact).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
+    expect(stepExpedition(firePrimary(closeContact), 500).hostiles.find((hostile) => hostile.id === target.id)?.hull).toBe(3);
   });
 
   it('allows free fire without a target and uses ship positioning for automatic hits', () => {
@@ -274,10 +277,11 @@ describe('exploration engine', () => {
     const sideOn = { ...start, position: { x: target.position.x - 220, y: target.position.y }, heading: 0 };
     expect(weaponReadiness(sideOn, target.id, 'broadside').ready).toBe(true);
     const fired = fireWeapon(sideOn, target.id, 'broadside');
-    expect(fired.hostiles[0]?.hull).toBe(3);
+    expect(fired.hostiles[0]?.hull).toBe(4);
+    expect(stepExpedition(fired, 400).hostiles[0]?.hull).toBe(3);
     const runningBroadside = { ...sideOn, velocity: { x: 0.2, y: 0 }, flightInput: { x: 1, y: 0 } };
     expect(weaponReadiness(runningBroadside, target.id, 'broadside').ready).toBe(true);
-    expect(fireWeapon(runningBroadside, target.id, 'broadside').hostiles[0]?.hull).toBe(3);
+    expect(stepExpedition(fireWeapon(runningBroadside, target.id, 'broadside'), 400).hostiles[0]?.hull).toBe(3);
     expect(fired.hostiles[0]?.status).toBe('patrol');
     expect(fired.hostiles[0]?.passive).toBe(true);
     const angleToTarget = Math.atan2(target.position.y - sideOn.position.y, target.position.x - sideOn.position.x);
@@ -318,7 +322,7 @@ describe('exploration engine', () => {
     const start = createExpedition();
     const target = start.hostiles[0]!;
     const fragileDummy = { ...start, hostiles: [{ ...target, hull: 1 }] };
-    const destroyed = fireWeapon(fragileDummy, target.id, 'broadside');
+    const destroyed = stepExpedition(fireWeapon(fragileDummy, target.id, 'broadside'), 400);
     expect(destroyed.hostiles).toHaveLength(0);
     expect(destroyed.dummyRespawns[0]?.hostileId).toBe(target.id);
     const respawned = stepExpedition(destroyed, 3_000);

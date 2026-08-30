@@ -1,10 +1,10 @@
 import type { Cargo, ExpeditionResult, ExpeditionScenario, ExpeditionState, HostileState, ResourceKind, SignalKind, SignalState, Vector2, WeaponMode } from './types';
+import { advanceProjectiles, hostileHitRadius, launchProjectile } from './projectiles';
 
 const ORIGIN: Vector2 = { x: 2_100, y: 1_500 };
 const WORLD_WIDTH = 4_200;
 const WORLD_HEIGHT = 2_600;
 const MAX_LOG_ENTRIES = 4;
-const DUMMY_RESPAWN_MS = 2_700;
 const SYSTEM_RECHARGE_PER_MS = 0.012;
 const RETURN_TRAVEL_SPEED = 0.3;
 const WATCH_RADIUS = 560;
@@ -134,7 +134,7 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
     .filter((dummy) => respawnedIds.includes(dummy.id))
     .map((dummy) => ({ ...dummy, position: { ...dummy.position }, patrolCenter: { ...dummy.patrolCenter } }));
   const attackLogs: string[] = [];
-  let playerHull = state.hull;
+  let shots = state;
   const hostiles: HostileState[] = [...state.hostiles, ...respawned].map((hostile): HostileState => {
     if (hostile.passive) return hostile;
     const dx = state.position.x - hostile.position.x;
@@ -160,8 +160,9 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
     }
     if (remaining <= (hostile.kind === 'guardian' ? 500 : 430) && attackCooldownMs <= 0) {
       const damage = hostile.kind === 'guardian' ? 11 : hostile.kind === 'sentinel' ? 8 : hostile.kind === 'patrol' ? 3 : 4;
-      playerHull = Math.max(0, playerHull - damage);
-      attackLogs.push(`${hostile.name} ${hostile.kind === 'guardian' ? 'vollendet den Aschenchor' : hostile.kind === 'sentinel' ? 'entlädt seine Energiekugel' : hostile.kind === 'patrol' ? 'zieht eine schnelle Streusalve' : 'feuert eine angekündigte Salve'}. Hülle -${damage}.`);
+      const weapon = hostile.kind === 'guardian' || hostile.kind === 'sentinel' ? 'orb' : 'broadside';
+      shots = launchProjectile(shots, hostile.id, 'hostile', weapon, hostile.position, { x: dx, y: dy }, damage, 750);
+      attackLogs.push(`${hostile.name} feuert – Einschlag durch Ausweichen vermeiden.`);
       return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs: hostile.kind === 'guardian' ? 6_200 : hostile.kind === 'sentinel' ? 4_800 : hostile.kind === 'patrol' ? 2_250 : 2_900 };
     }
     if (hostile.kind === 'sentinel' || hostile.kind === 'guardian') return { ...hostile, status: 'alert', heading: Math.atan2(dy, dx) + Math.PI / 2, attackCooldownMs };
@@ -181,9 +182,8 @@ function advanceHostiles(state: ExpeditionState, deltaMs: number): ExpeditionSta
     };
   });
   return {
-    ...state,
+    ...shots,
     hostiles,
-    hull: playerHull,
     dummyRespawns: nextRespawns.filter((entry) => entry.remainingMs > 0),
     log: [...attackLogs, ...(respawned.length > 0 ? [`${respawned.map((dummy) => dummy.name).join(' und ')} erneut signalisiert.`] : []), ...state.log].slice(0, MAX_LOG_ENTRIES),
   };
@@ -243,6 +243,7 @@ function scenarioHostiles(scenario: ExpeditionScenario): readonly HostileState[]
 
 export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: ExpeditionScenario = 'free', hullRiskReduction = 0, salvageBonus = 0, cantorBypass = false): ExpeditionState {
   return {
+    projectiles: [], combatEvents: [], nextCombatId: 1, freeBroadsideSide: 1,
     sectorId: 'ashenscar',
     sectorName: 'Aschsaum I',
     scenario,
@@ -281,6 +282,7 @@ export function enterWormhole(state: ExpeditionState): ExpeditionState {
   return {
     ...state,
     sectorId: 'veloria-rift',
+    projectiles: [], combatEvents: [],
     sectorName: 'Veloria Rift',
     scenario: 'free',
     position: { x: 2_100, y: 1_500 },
@@ -318,6 +320,19 @@ export function setFlightInput(state: ExpeditionState, input: Vector2): Expediti
 }
 
 export function stepExpedition(state: ExpeditionState, deltaMs: number): ExpeditionState {
+  if (!Number.isFinite(deltaMs) || deltaMs <= 0) return state;
+  if (state.hull <= 0) return { ...state, projectiles: [] };
+  // Fixed bounded slices keep collision and moving-target tests independent of frame length.
+  let next = state;
+  for (let remaining = deltaMs; remaining > 0; remaining -= 20) {
+    const dt = Math.min(20, remaining);
+    next = advanceProjectiles(stepMovement(next, dt), next, dt);
+    if (next.hull <= 0) return { ...next, projectiles: [] };
+  }
+  return next;
+}
+
+function stepMovement(state: ExpeditionState, deltaMs: number): ExpeditionState {
   if (state.status === 'active' && Math.hypot(state.flightInput.x, state.flightInput.y) > 0.05) {
     const desiredSpeed = 0.23;
     const desired = { x: state.flightInput.x * desiredSpeed, y: state.flightInput.y * desiredSpeed };
@@ -443,6 +458,7 @@ export function returnToFarhaven(state: ExpeditionState): ExpeditionState {
   return appendLog({
     ...state,
     status: 'returning',
+    projectiles: [], combatEvents: [],
     flightInput: { x: 0, y: 0 },
     velocity: { x: 0, y: 0 },
     heading: headingToward(state.position, state.origin),
@@ -467,6 +483,7 @@ const WEAPON_RULES: Record<WeaponMode, { energy: number; range: number; damage: 
 export function weaponReadiness(state: ExpeditionState, targetId: string | undefined, weapon: WeaponMode): WeaponReadiness {
   const target = state.hostiles.find((hostile) => hostile.id === targetId);
   if (state.status !== 'active') return { ready: false, reason: 'Rückkehr aktiv' };
+  if (state.hull <= 0) return { ready: false, reason: 'Schiff kampfunfähig' };
   const rules = WEAPON_RULES[weapon];
   const cooldown = state.weaponCooldowns?.[weapon] ?? 0;
   if (cooldown > 0) return { ready: false, reason: `Nachladen · ${(cooldown / 1000).toFixed(1)}s`, cooldownMs: cooldown, cooldownTotalMs: rules.cooldownMs };
@@ -492,28 +509,28 @@ export function fireWeapon(state: ExpeditionState, targetId: string | undefined,
   if (!readiness.ready) return appendLog(state, readiness.reason);
   const rules = WEAPON_RULES[weapon];
   const target = state.hostiles.find((hostile) => hostile.id === targetId);
-  if (!target) {
-    return appendLog({
-      ...state,
-      energy: state.energy - rules.energy,
-      weaponCooldowns: { ...(state.weaponCooldowns ?? { broadside: 0, rail: 0, torpedo: 0, orb: 0 }), [weapon]: rules.cooldownMs },
-    }, `${rules.name} feuert in den leeren Raum.`);
-  }
-  const hostiles = state.hostiles
-    .map((hostile): HostileState => hostile.id !== target.id ? hostile : { ...hostile, status: hostile.passive ? 'patrol' : 'alert', hull: hostile.hull - rules.damage })
-    .filter((hostile) => hostile.hull > 0);
-  const ending = target.hull <= rules.damage;
-  const dummyRespawns = target.passive && ending ? [...(state.dummyRespawns ?? []), { hostileId: target.id, remainingMs: DUMMY_RESPAWN_MS }] : (state.dummyRespawns ?? []);
-  const result = ending
-    ? target.passive ? `${target.name} zerfällt. Ein neues Prüfsignal wird vorbereitet.` : `${target.name} bricht in glühende Trümmer.`
-    : target.passive ? `${rules.name} trifft ${target.name}. Keine Gegenwehr.` : `${rules.name} trifft ${target.name}. Alarmlichter erwachen.`;
-  return appendLog({
-    ...state,
-    hostiles,
-    dummyRespawns,
-    energy: state.energy - rules.energy,
-    weaponCooldowns: { ...(state.weaponCooldowns ?? { broadside: 0, rail: 0, torpedo: 0, orb: 0 }), [weapon]: rules.cooldownMs },
-  }, result);
+  const forward = forwardVector(state.heading);
+  const toTarget = target ? { x: target.position.x - state.position.x, y: target.position.y - state.position.y } : undefined;
+  const side = toTarget ? (forward.x * toTarget.y - forward.y * toTarget.x > 0 ? 1 : -1) : state.freeBroadsideSide;
+  const localX = weapon === 'broadside' ? side * 43 : 0;
+  const localY = weapon === 'rail' ? -70 : weapon === 'torpedo' ? -47 : weapon === 'orb' ? -26 : 0;
+  // At point-blank range a long barrel must not spawn the shot beyond its target.
+  const muzzleScale = target ? Math.min(1, Math.max(0, distance(state.position, target.position) - hostileHitRadius(target.kind) - 12)
+    / Math.max(1, Math.hypot(localX, localY))) : 1;
+  const muzzle = {
+    x: state.position.x + (localX * Math.cos(state.heading) - localY * Math.sin(state.heading)) * muzzleScale,
+    y: state.position.y + (localX * Math.sin(state.heading) + localY * Math.cos(state.heading)) * muzzleScale,
+  };
+  const direction = target ? { x: target.position.x - muzzle.x, y: target.position.y - muzzle.y }
+    : weapon === 'broadside' ? { x: -forward.y * side, y: forward.x * side } : forward;
+  // One broadside packet represents its three closely grouped shells and preserves
+  // the existing salvo damage budget. Collision consumes the packet exactly once.
+  const fired = launchProjectile({
+    ...state, energy: state.energy - rules.energy,
+    freeBroadsideSide: !target && weapon === 'broadside' ? -side : state.freeBroadsideSide,
+    weaponCooldowns: { ...state.weaponCooldowns, [weapon]: rules.cooldownMs } as Record<WeaponMode, number>,
+  }, 'player', 'player', weapon, muzzle, direction, rules.damage, rules.range);
+  return appendLog(fired, target ? `${rules.name} abgefeuert – Treffer beim Einschlag.` : `${rules.name} feuert in den leeren Raum.`);
 }
 
 export function firePrimary(state: ExpeditionState, targetId?: string): ExpeditionState {

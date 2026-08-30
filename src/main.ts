@@ -4,7 +4,6 @@ import { createGame } from './app/createGame';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, clearSelectedHostile, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness, type WeaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, ExpeditionState, ResourceKind, WeaponMode } from './domain/exploration/types';
-import { playWeaponSound } from './app/combatAudio';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { formatResourceCost, RESOURCE_ORDER, RESOURCE_PRESENTATION, resourceEntries, resourceSourceHint, type ResourceAmounts } from './domain/resources/presentation';
@@ -74,7 +73,6 @@ let shipyardPreviewVariant: ShipVariantId | undefined;
 let pendingShipUpgrade: ShipUpgradeId | undefined;
 let pendingVisualCargo: Cargo | undefined;
 let coreInfoOpen = false;
-let freeBroadsideSide = 1;
 
 function shieldOutpostTaps(durationMs: number, persistForNextScene = false): void {
   outpostTapShieldUntil = Date.now() + durationMs;
@@ -733,30 +731,7 @@ function fireSelectedWeapon(weapon: WeaponMode): void {
   const before = getExpedition();
   if (!before) return;
   const targetId = targetForWeapon(before, weapon);
-  const target = before?.hostiles.find((hostile) => hostile.id === targetId);
-  if (!fireWeapons(target?.id, weapon)) { toast(readinessForWeapon(before, weapon).reason); return; }
-  playWeaponSound(weapon);
-  const after = getExpedition();
-  const targetAfter = target ? after?.hostiles.find((hostile) => hostile.id === target.id) : undefined;
-  const forward = { x: Math.cos(before.heading - Math.PI / 2), y: Math.sin(before.heading - Math.PI / 2) };
-  const side = { x: -forward.y * freeBroadsideSide, y: forward.x * freeBroadsideSide };
-  const freeDistance = weapon === 'rail' ? 600 : weapon === 'torpedo' ? 650 : weapon === 'orb' ? 480 : 390;
-  const freeDirection = weapon === 'broadside' ? side : forward;
-  const freePosition = { x: before.position.x + freeDirection.x * freeDistance, y: before.position.y + freeDirection.y * freeDistance };
-  if (!target && weapon === 'broadside') freeBroadsideSide *= -1;
-  game.events.emit('farhaven:weapon-fired', {
-    weapon,
-    target: {
-      id: target?.id ?? 'free-fire',
-      name: target?.name ?? 'Leerer Raum',
-      position: target?.position ?? freePosition,
-      destroyed: Boolean(target && !targetAfter),
-      hit: Boolean(target),
-      damage: target ? target.hull - (targetAfter?.hull ?? 0) : 0,
-      hull: targetAfter?.hull ?? 0,
-      maxHull: target?.maxHull ?? 0,
-    },
-  });
+  if (!fireWeapons(targetId, weapon)) toast(readinessForWeapon(before, weapon).reason);
 }
 function bindFireControl(button: HTMLButtonElement, resolveWeapon: () => WeaponMode | undefined): void {
   // Fire on press, not release. A second mobile thumb can shoot while the first

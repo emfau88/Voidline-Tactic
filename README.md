@@ -34,6 +34,7 @@ Der aktuelle spielbare Prototyp enthält:
 - wiederholbare freie Bergungsflüge mit erreichbaren Quellen für alle drei Ressourcen, einem flankierenden Glutkutter und einem schweren, umfliegbaren Reliquienwächter
 - angekündigte Gegnerangriffe mit Aufladeanzeige, sichtbaren Feindprojektilen, Ausweichfenster und klarer Fluchtmöglichkeit; der nächste Gegner wird ohne zusätzlichen Tipp automatisch erfasst, während freies Feuern jederzeit möglich bleibt
 - getrennte Waffenrhythmen für Breitseite, Rail-Lanze, Torpedo und Energiekugel mit sichtbaren Cooldowns, Hüllen- und Schadensanzeigen, eigenen VFX/SFX und Desktop-Hotkeys 1/2/3
+- gemeinsame physische Projektilsimulation für Spieler und Gegner: Schaden erst beim Einschlag, echte Fehlschüsse und Ausweichmöglichkeiten, Kollision auch bei freiem Feuer; laufende Geschosse werden mit der Expedition gespeichert
 - den optionalen Aschenkantor als besonderen Wächter: Kampf gegen Chorschild und Aschenchor oder eine kampflose Breitband-Scanlösung führen zum einzigartigen Kantorenherz
 - Farhaven als direkte Stationsoberfläche vor einem ruhigen, warmen Weltraumhintergrund: Das gewählte Schiff liegt zunächst am sichtbaren Notdock des Kerns; der erste Hangar dockt später mit Bau- und Einflugmoment an die zusammenhängende Top-down-Station an
 - klare Farhaven-Interaktion: Nur der nächste Ausbau erscheint als kühle Blaupause oder warme „baubereit“-Vorschau; gebaute Räume sind voll sichtbar, direkt antippbar und docken mit einer kurzen Bauanimation an

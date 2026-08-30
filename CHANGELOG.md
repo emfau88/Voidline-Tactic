@@ -4,6 +4,7 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Kampf-Fundament (Bulk A): Spieler- und Gegnerwaffen verwenden dieselbe Projektilsimulation mit kontinuierlicher Trefferprüfung gegen bewegte Schiffe. Schaden, Treffer-VFX und Hüllenanzeige folgen dem Einschlag statt dem Auslöser. Freie Schüsse können treffen, Geschosse können verfehlen; alte Saves, laufende Geschosse, Schildtreffer und Szenenwechsel sind abgesichert. Kampfbalancing und Belohnungen bleiben unverändert.
 - Kämpfe erfassen den nächsten Gegner nun automatisch, erlauben aber jederzeit freies Feuern. Gegner- und Spielerschaden, Hüllenstände und Waffen-Cooldowns werden unmittelbar angezeigt; längere Gegnerhaltbarkeit, ein einzelner korrekter Rail-Lanzenstrahl, ein deutlich größeres Hauptwrack sowie ruhigere Fundindikatoren verbessern Lesbarkeit und Wirkung.
 - Der erste Einsatz führt nach dem Scan nicht mehr durch eine reine Bergungskette: Das sichere Wrack finanziert bereits den Hangar, während ein naher Glutkutter eine freiwillige frühe Breitseite und zusätzliche Legierungen anbietet. In der zweiten Schicht liefert ein Liturgie-Räuber eine dritte, kampfbasierte Route zu den benötigten Daten.
 - Der Rückkehrschutz nach Expeditionen blockiert Stationsinteraktionen nur noch für einen kurzen Pointer-Nachlauf statt für eine spürbare Sekunde.

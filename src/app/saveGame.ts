@@ -1,6 +1,7 @@
 import { DEFAULT_PROFILE, type FarhavenProfile } from '../domain/outpost/types';
 import { isFieldUpgrade, isFoundationUpgrade, isShipUpgrade, isShipVariant, type ShipState } from '../domain/ship/types';
 import type { ExpeditionState } from '../domain/exploration/types';
+import { normalizeCombatState } from '../domain/exploration/projectiles';
 
 const STORAGE_KEY = 'voidline-farhaven-save-v2';
 const EXPEDITION_STORAGE_KEY = 'voidline-farhaven-expedition-v1';
@@ -92,7 +93,7 @@ export function loadActiveExpedition(): SavedExpedition | undefined {
     const parsed = JSON.parse(window.localStorage.getItem(EXPEDITION_STORAGE_KEY) ?? 'null') as Partial<SavedExpedition> | null;
     if (!parsed || !isExpedition(parsed.expedition)) return undefined;
     return {
-      expedition: parsed.expedition,
+      expedition: normalizeCombatState(parsed.expedition),
       selectedTargetId: typeof parsed.selectedTargetId === 'string' ? parsed.selectedTargetId : undefined,
     };
   } catch {
@@ -102,7 +103,7 @@ export function loadActiveExpedition(): SavedExpedition | undefined {
 
 export function saveActiveExpedition(expedition: ExpeditionState, selectedTargetId?: string): void {
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(EXPEDITION_STORAGE_KEY, JSON.stringify({ expedition, selectedTargetId } satisfies SavedExpedition));
+    window.localStorage.setItem(EXPEDITION_STORAGE_KEY, JSON.stringify({ expedition: { ...expedition, combatEvents: [] }, selectedTargetId } satisfies SavedExpedition));
   }
 }
 

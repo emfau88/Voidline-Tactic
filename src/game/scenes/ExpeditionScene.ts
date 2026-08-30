@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { playWeaponSound } from '../../app/combatAudio';
 import { rewardForExpeditionSignal, weaponReadiness } from '../../domain/exploration/expeditionEngine';
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
@@ -49,19 +50,6 @@ const STORY_SIGNAL_ART: Readonly<Partial<Record<string, string>>> = {
   'veloria-cocoon': 'veloria-pilgrim-v2',
 };
 
-interface WeaponFireEvent {
-  readonly weapon: WeaponMode;
-  readonly target: {
-    readonly id: string;
-    readonly name: string;
-    readonly position: Vector2;
-    readonly destroyed: boolean;
-    readonly hit: boolean;
-    readonly damage: number;
-    readonly hull: number;
-    readonly maxHull: number;
-  };
-}
 
 interface ResourceCollectedEvent {
   readonly kind: keyof typeof RESOURCE_PRESENTATION;
@@ -91,7 +79,8 @@ export class ExpeditionScene extends Phaser.Scene {
   private pinchStartDistance = 0;
   private pinchStartZoom = DEFAULT_EXPEDITION_ZOOM;
   private removePinchListeners?: () => void;
-  private lastHull = 100;
+  private readonly projectileArt = new Map<number, Phaser.GameObjects.Graphics>();
+  private lastCombatEventId = 0;
   private lastSignalRenderAt = 0;
   private lastSignalState = '';
 
@@ -133,6 +122,8 @@ export class ExpeditionScene extends Phaser.Scene {
 
   public create(): void {
     const expedition = getExpedition();
+    this.projectileArt.clear();
+    this.lastCombatEventId = (expedition?.nextCombatId ?? 1) - 1;
     const isAlienRealm = expedition?.sectorId === 'veloria-rift';
     this.cameras.main.setBounds(0, 0, 4200, 2600);
     this.setExpeditionZoom(DEFAULT_EXPEDITION_ZOOM);
@@ -163,7 +154,6 @@ export class ExpeditionScene extends Phaser.Scene {
     this.signalLayer = this.add.container(0, 0).setDepth(4);
     this.createScanCompass();
     this.events.on('wake', () => this.refresh());
-    this.game.events.on('farhaven:weapon-fired', this.showWeaponFire, this);
     this.game.events.on('farhaven:mining-start', this.showMining, this);
     this.game.events.on('farhaven:signal-action', this.showSignalAction, this);
     this.game.events.on('farhaven:resource-collected', this.showResourceCollected, this);
@@ -171,7 +161,7 @@ export class ExpeditionScene extends Phaser.Scene {
     this.input.on('pointerdown', this.selectHostileAtPointer, this);
     this.bindPinchZoom();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.game.events.off('farhaven:weapon-fired', this.showWeaponFire, this);
+      this.projectileArt.clear();
       this.game.events.off('farhaven:mining-start', this.showMining, this);
       this.game.events.off('farhaven:signal-action', this.showSignalAction, this);
       this.game.events.off('farhaven:resource-collected', this.showResourceCollected, this);
@@ -180,7 +170,6 @@ export class ExpeditionScene extends Phaser.Scene {
       this.removePinchListeners?.();
     });
     this.refresh();
-    this.lastHull = expedition?.hull ?? 100;
   }
 
   /**
@@ -256,8 +245,7 @@ export class ExpeditionScene extends Phaser.Scene {
     const expedition = getExpedition();
     if (!expedition || !this.shipRig || !this.signalLayer || !this.playerLabel || !this.engineFlame) return;
     const engineFlame = this.engineFlame;
-    if (expedition.hull < this.lastHull) this.showEnemyAttackIfApplicable(expedition, Math.ceil(this.lastHull - expedition.hull));
-    this.lastHull = expedition.hull;
+    this.syncCombat(expedition);
     this.shipRig.setPosition(expedition.position.x, expedition.position.y).setRotation(expedition.heading);
     this.playerLabel.setPosition(expedition.position.x, expedition.position.y + 48);
     this.homeLabel?.setVisible(Math.hypot(expedition.position.x - 2_100, expedition.position.y - 1_500) > 105);
@@ -560,27 +548,6 @@ export class ExpeditionScene extends Phaser.Scene {
     this.game.canvas.dataset.scanCompassTarget = candidate.signal.id;
   }
 
-  private showEnemyAttackIfApplicable(expedition: ExpeditionState, damage: number): void {
-    const source = expedition.hostiles
-      .filter((hostile) => !hostile.passive && hostile.status === 'alert')
-      .map((hostile) => ({ hostile, distance: Math.hypot(hostile.position.x - expedition.position.x, hostile.position.y - expedition.position.y) }))
-      .filter(({ distance }) => distance <= 460)
-      .sort((first, second) => first.distance - second.distance)[0]?.hostile;
-    if (!source || !this.shipRig || !this.ship) return;
-    const heavy = source.kind === 'sentinel' || source.kind === 'guardian';
-    const bolt = this.add.circle(source.position.x, source.position.y, source.kind === 'guardian' ? 19 : source.kind === 'sentinel' ? 13 : 5, heavy ? 0xcba4ff : 0xffd19b, 1).setDepth(13);
-    const glow = this.add.circle(source.position.x, source.position.y, source.kind === 'guardian' ? 44 : source.kind === 'sentinel' ? 30 : 12, heavy ? 0x8159d5 : 0xf06c64, 0.38).setDepth(12);
-    this.tweens.add({
-      targets: [bolt, glow], x: expedition.position.x, y: expedition.position.y, duration: source.kind === 'guardian' ? 560 : source.kind === 'sentinel' ? 430 : 240, ease: 'Quad.In',
-      onComplete: () => {
-        bolt.destroy(); glow.destroy();
-        this.spawnImpact(expedition.position, 0xf06c64, false);
-        this.showDamageReadout(expedition.position, `HÜLLE −${damage}`, '#ff9b88');
-        this.ship?.setTint(0xff9b88);
-        this.time.delayedCall(120, () => this.ship?.clearTint());
-      },
-    });
-  }
 
   private drawCornerFrame(graphics: Phaser.GameObjects.Graphics, center: Vector2, radius: number, arm: number, color: number, alpha: number): void {
     graphics.lineStyle(2, color, alpha);
@@ -591,43 +558,68 @@ export class ExpeditionScene extends Phaser.Scene {
     graphics.lineBetween(right - arm, bottom, right, bottom); graphics.lineBetween(right, bottom - arm, right, bottom);
   }
 
-  private showWeaponFire(event: WeaponFireEvent): void {
-    if (!this.shipRig) return;
-    const target = event.target.position;
-    this.cameras.main.shake(event.weapon === 'torpedo' ? 150 : event.weapon === 'rail' ? 110 : 75, event.weapon === 'torpedo' ? 0.0024 : 0.0013);
-    if (event.weapon === 'broadside') {
-      const forward = { x: Math.cos(this.shipRig.rotation - Math.PI / 2), y: Math.sin(this.shipRig.rotation - Math.PI / 2) };
-      const toTarget = { x: target.x - this.shipRig.x, y: target.y - this.shipRig.y };
-      const side = forward.x * toTarget.y - forward.y * toTarget.x > 0 ? 1 : -1;
-      [-15, 0, 15].forEach((offset, index) => this.time.delayedCall(index * 68, () => {
-        const muzzle = this.worldFromShip(side * 43, offset);
-        this.spawnMuzzle(muzzle, 0xffb26f, 9);
-        this.launchBolt(muzzle, target, 0xffb26f, 255, 4, event.target.hit && index === 2, event.target.hit, event.target.destroyed);
-      }));
-      if (event.target.hit) this.time.delayedCall(270, () => this.showWeaponDamage(event));
-      return;
+  private syncCombat(expedition: ExpeditionState): void {
+    const active = new Set(expedition.projectiles.map((shot) => shot.id));
+    for (const [id, art] of this.projectileArt) {
+      if (!active.has(id)) { art.destroy(); this.projectileArt.delete(id); }
     }
-    if (event.weapon === 'rail') {
-      const muzzle = this.worldFromShip(0, -70);
-      this.spawnCharge(muzzle, 0x8eeeff);
-      this.time.delayedCall(155, () => this.launchBolt(muzzle, target, 0x8eeeff, 330, 8, event.target.hit, event.target.hit, event.target.destroyed));
-      if (event.target.hit) this.time.delayedCall(500, () => this.showWeaponDamage(event));
-      return;
+    for (const shot of expedition.projectiles) {
+      let art = this.projectileArt.get(shot.id);
+      if (!art) {
+        art = this.add.graphics().setDepth(12);
+        const color = this.projectileColor(shot.weapon, shot.side);
+        // All geometry is local to the simulated projectile; no target tweens.
+        art.fillStyle(color, 0.18); art.fillEllipse(-8, 0, shot.weapon === 'rail' ? 70 : 35, shot.radius * 5);
+        if (shot.weapon === 'broadside') {
+          for (const [i, y] of [-5, 0, 5].entries()) {
+            art.lineStyle(2, color, 0.65); art.lineBetween(-24 - i * 3, y, -3, y);
+            art.fillStyle(0xffebcb, 1); art.fillCircle(-i * 3, y, 2.4);
+          }
+        } else if (shot.weapon === 'rail') {
+          art.lineStyle(8, color, 0.28); art.lineBetween(-48, 0, 0, 0);
+          art.lineStyle(3, 0xe9ffff, 1); art.lineBetween(-40, 0, 0, 0);
+        } else if (shot.weapon === 'torpedo') {
+          art.lineStyle(4, 0x77dde7, 0.5); art.lineBetween(-36, 0, -7, 0);
+          art.fillStyle(0xf6bc76, 1); art.fillEllipse(-11, 0, 14, 5);
+          art.fillStyle(0xe2f1ee, 1); art.fillRoundedRect(-7, -3, 17, 6, 3);
+        } else {
+          art.fillStyle(color, 0.24); art.fillCircle(0, 0, 23);
+          art.lineStyle(1.5, color, 0.8); art.strokeCircle(0, 0, 16);
+          art.fillStyle(0xecd9ff, 0.95); art.fillCircle(0, 0, 9);
+        }
+        this.projectileArt.set(shot.id, art);
+      }
+      art.setPosition(shot.position.x, shot.position.y).setRotation(Math.atan2(shot.velocity.y, shot.velocity.x));
     }
-    if (event.weapon === 'torpedo') {
-      const muzzle = this.worldFromShip(0, -47);
-      this.launchTorpedo(muzzle, target, event.target.hit, event.target.destroyed);
-      if (event.target.hit) this.time.delayedCall(570, () => this.showWeaponDamage(event));
-      return;
+    for (const event of expedition.combatEvents) {
+      if (event.id <= this.lastCombatEventId) continue;
+      this.lastCombatEventId = event.id;
+      const color = this.projectileColor(event.weapon, event.side);
+      if (event.kind === 'shot') {
+        this.spawnMuzzle(event.position, color, event.weapon === 'rail' ? 12 : 8);
+        if (event.side === 'player') {
+          playWeaponSound(event.weapon);
+          this.cameras.main.shake(event.weapon === 'torpedo' ? 140 : 65, 0.0013);
+        }
+      } else {
+        this.spawnImpact(event.position, color, event.destroyed);
+        const text = event.kind === 'blocked' ? 'CHORSCHILD'
+          : event.side === 'hostile' ? `HÜLLE −${event.damage}`
+          : event.destroyed ? 'ZIEL ZERSTÖRT' : `−${event.damage} · HÜLLE ${event.hull}/${event.maxHull}`;
+        this.showDamageReadout(event.position, text, event.side === 'hostile' ? '#ff9b88' : '#ffddaa');
+        if (event.side === 'hostile') {
+          this.ship?.setTint(0xff9b88);
+          this.time.delayedCall(120, () => this.ship?.clearTint());
+        }
+      }
     }
-    const muzzle = this.worldFromShip(0, -26);
-    this.launchOrb(muzzle, target, event.target.hit, event.target.destroyed);
-    if (event.target.hit) this.time.delayedCall(490, () => this.showWeaponDamage(event));
+    this.game.canvas.dataset.projectileCount = String(expedition.projectiles.length);
+    this.game.canvas.dataset.combatEventId = String(this.lastCombatEventId);
   }
 
-  private showWeaponDamage(event: WeaponFireEvent): void {
-    const text = event.target.destroyed ? 'ZIEL ZERSTÖRT' : `−${event.target.damage} · HÜLLE ${event.target.hull}/${event.target.maxHull}`;
-    this.showDamageReadout(event.target.position, text, event.target.destroyed ? '#ffe39a' : '#ffbd91');
+  private projectileColor(weapon: WeaponMode, side: 'player' | 'hostile'): number {
+    return weapon === 'orb' ? 0xcba4ff : side === 'hostile' ? 0xf49b7b
+      : weapon === 'rail' || weapon === 'torpedo' ? 0x8eeeff : 0xffb26f;
   }
 
   private showDamageReadout(position: Vector2, text: string, color: string): void {
@@ -650,57 +642,6 @@ export class ExpeditionScene extends Phaser.Scene {
     this.tweens.add({ targets: [flash, halo], scale: 0.18, alpha: 0, duration: 130, ease: 'Quad.Out', onComplete: () => { flash.destroy(); halo.destroy(); } });
   }
 
-  private spawnCharge(position: Vector2, color: number): void {
-    const charge = this.add.graphics().setDepth(11);
-    charge.lineStyle(3, color, 0.9); charge.strokeCircle(position.x, position.y, 12);
-    charge.lineStyle(1, 0xf9f6d3, 0.92); charge.strokeCircle(position.x, position.y, 5);
-    this.tweens.add({ targets: charge, scale: 2.1, alpha: 0, duration: 150, ease: 'Cubic.In', onComplete: () => charge.destroy() });
-  }
-
-  private launchBolt(from: Vector2, to: Vector2, color: number, duration: number, radius: number, impact: boolean, hit: boolean, destroyed: boolean): void {
-    const core = this.add.circle(from.x, from.y, radius, 0xfbf4d5, 1).setDepth(12);
-    const glow = this.add.circle(from.x, from.y, radius * 2.8, color, 0.36).setDepth(11);
-    const trail = this.add.graphics().setDepth(10);
-    this.tweens.add({
-      targets: [core, glow], x: to.x, y: to.y, duration, ease: 'Quad.In',
-      onUpdate: () => {
-        const dx = to.x - core.x;
-        const dy = to.y - core.y;
-        trail.clear(); trail.lineStyle(radius * 0.82, color, 0.68); trail.lineBetween(core.x, core.y, core.x - dx * 0.16, core.y - dy * 0.16);
-      },
-      onComplete: () => {
-        trail.destroy();
-        core.destroy();
-        glow.destroy();
-        if (impact) this.spawnImpact(to, color, destroyed);
-        else if (hit) this.spawnContactFlash(to, color);
-      },
-    });
-  }
-
-  private launchTorpedo(from: Vector2, to: Vector2, hit: boolean, destroyed: boolean): void {
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const body = this.add.triangle(from.x, from.y, 0, -9, 7, 9, -7, 9, 0xe4ece8, 0.98).setDepth(12).setRotation(angle + Math.PI / 2);
-    const ember = this.add.circle(from.x, from.y + 9, 7, 0xf19a61, 0.76).setDepth(11);
-    const trail = this.add.graphics().setDepth(10);
-    this.spawnMuzzle(from, 0x72dce9, 11);
-    this.tweens.add({
-      targets: [body, ember], x: to.x, y: to.y, duration: 560, ease: 'Cubic.InOut',
-      onUpdate: () => { trail.clear(); trail.lineStyle(5, 0x72dce9, 0.52); trail.lineBetween(body.x, body.y, body.x - Math.cos(angle) * 52, body.y - Math.sin(angle) * 52); ember.setPosition(body.x - Math.cos(angle) * 11, body.y - Math.sin(angle) * 11); },
-      onComplete: () => { trail.destroy(); body.destroy(); ember.destroy(); if (hit) this.spawnImpact(to, 0x72dce9, destroyed); },
-    });
-  }
-
-  private launchOrb(from: Vector2, to: Vector2, hit: boolean, destroyed: boolean): void {
-    const orb = this.add.circle(from.x, from.y, 11, 0xd8b0ff, 0.96).setDepth(12);
-    const halo = this.add.circle(from.x, from.y, 26, 0x8557d8, 0.36).setDepth(11);
-    const rings = this.add.graphics().setDepth(10);
-    this.tweens.add({
-      targets: [orb, halo], x: to.x, y: to.y, duration: 480, ease: 'Sine.InOut',
-      onUpdate: () => { rings.clear(); rings.lineStyle(2, 0xeccfff, 0.66); rings.strokeCircle(orb.x, orb.y, 16); rings.lineStyle(1, 0x9a63e8, 0.7); rings.strokeCircle(orb.x, orb.y, 25); },
-      onComplete: () => { rings.destroy(); orb.destroy(); halo.destroy(); if (hit) this.spawnImpact(to, 0xd8b0ff, destroyed); },
-    });
-  }
 
   private spawnImpact(position: Vector2, color: number, destroyed: boolean): void {
     // Keep the whole hit effect anchored to the target. The previous sparks
