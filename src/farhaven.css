@@ -200,6 +200,10 @@ button:focus-visible { outline: 2px solid #86e4f8; outline-offset: 3px; }
 .expedition-actions button span { margin-top: 2px; font-size: 8px; font-weight: 800; }.expedition-actions button small { margin-top: 1px; color: #9aadb7; font-size: 6px; }
 .expedition-actions #return-button { border-color: rgb(230 183 105 / 48%); color: #f0d293; }.expedition-actions #pause-button[aria-pressed='true'] { border-color: #f1d38e; background: #3c2e1c; }
 #flight-control { position: fixed; z-index: 14; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; align-items: end; gap: 10px; }
+#desktop-control-hint { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  #desktop-control-hint { display: block; position: absolute; top: -18px; left: 0; white-space: nowrap; color: #a9c5d0; font-size: 8px; letter-spacing: .04em; pointer-events: none; }
+}
 #flight-stick { position: relative; display: grid; width: 116px; height: 116px; place-items: center; border: 2px solid rgb(104 210 239 / 42%); border-radius: 50%; background: radial-gradient(circle, rgb(37 99 122 / 24%), rgb(5 12 21 / 68%) 67%); touch-action: none; user-select: none; }
 #flight-stick::before { position: absolute; width: 62%; height: 1px; background: rgb(131 218 239 / 24%); content: ''; }
 #flight-stick::after { position: absolute; width: 1px; height: 62%; background: rgb(131 218 239 / 24%); content: ''; }

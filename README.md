@@ -20,7 +20,7 @@ Rumpfwahl → erster Scan → Wrack bergen ────────────�
 
 Der aktuelle spielbare Prototyp enthält:
 
-- direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick oder Maus; zwei Finger zoomen auf mobilen Karten frei hinein und heraus
+- direkte Schiffssteuerung mit sanfter Trägheit, Ausrollverhalten und Antriebs-VFX – per Touchstick, Maus oder WASD/Pfeiltasten; Mausrad-Zoom am Desktop und Zwei-Finger-Zoom auf mobilen Karten
 - eine klar geschichtete Expeditionskarte: atmosphärischer Hintergrund, reduzierte unbekannte Echos und eindeutig beschriftete, antippbare Fundorte
 - Scans mit Kurssetzen direkt auf einen bestätigten Fundort sowie allgemeine Richtungshinweise mit Ressource, Menge, Entfernung, Risiko und benötigtem Werkzeug
 - ein sichtbares, sanft pulsierendes Xenogate: Nach Routenkern und Bau des funktionalen Sternenwerks freiwillig anfliegen und **Veloria Rift** erkunden
@@ -56,6 +56,13 @@ Der frühere Fleet-Corridors-PoC wurde lokal mit `fleet-corridors-poc-2026-08-24
 Die verbindliche Produktionsreihenfolge steht im [Farhaven Pivot-Plan](docs/planning/FARHAVEN_PIVOT_PLAN.md). Die aktuelle Produktvision steht in [Game Vision](docs/design/GAME_VISION.md), der überprüfbare Status in der [Roadmap](ROADMAP.md).
 
 ## Lokal entwickeln
+
+### Steuerung auf Expeditionen
+
+- **Desktop:** WASD oder Pfeiltasten fliegen in Bildschirmrichtung; diagonaler Flug ist nicht schneller. Das Mausrad über der Karte zoomt weich hinein und weiter heraus (0,55–1,85×; Start bei 1,26×).
+- **Waffen:** Buttons oder Tasten 1/2/3 für Salve, Lanze und Zusatzwaffe, soweit eingebaut. Feuern funktioniert gleichzeitig mit dem Fliegen.
+- **Mobile:** Touchstick zum Fliegen, Aktionsbuttons zum Feuern und Scannen, zwei Finger auf der Karte zum Zoomen (0,82–1,85×).
+- Beim Loslassen rollt das Schiff aus. Fensterwechsel, Pause und Reload setzen gehaltene Steuereingaben zurück.
 
 Voraussetzung: Node.js 24 und npm.
 

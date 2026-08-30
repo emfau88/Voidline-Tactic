@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { playWeaponSound } from '../../app/combatAudio';
+import { wheelZoom } from '../../app/flightControls';
 import { rewardForExpeditionSignal, weaponReadiness } from '../../domain/exploration/expeditionEngine';
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
@@ -75,6 +76,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private knownHostileIds = new Set<string>();
   private contactsInitialized = false;
   private expeditionZoom = DEFAULT_EXPEDITION_ZOOM;
+  private wheelZoomTarget?: number;
   private readonly touchPointers = new Map<number, { x: number; y: number }>();
   private pinchStartDistance = 0;
   private pinchStartZoom = DEFAULT_EXPEDITION_ZOOM;
@@ -121,6 +123,9 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   public create(): void {
+    this.wheelZoomTarget = undefined;
+    this.touchPointers.clear();
+    this.pinchStartDistance = 0;
     const expedition = getExpedition();
     this.projectileArt.clear();
     this.lastCombatEventId = (expedition?.nextCombatId ?? 1) - 1;
@@ -237,6 +242,13 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   public update(_time: number, delta: number): void {
+    if (this.wheelZoomTarget !== undefined) {
+      const next = Phaser.Math.Linear(this.expeditionZoom, this.wheelZoomTarget, 1 - Math.exp(-delta / 90));
+      if (Math.abs(next - this.wheelZoomTarget) < 0.001) {
+        this.setExpeditionZoom(this.wheelZoomTarget, 0.55);
+        this.wheelZoomTarget = undefined;
+      } else this.setExpeditionZoom(next, 0.55);
+    }
     tickExpedition(delta);
     this.refresh();
   }
@@ -361,9 +373,10 @@ export class ExpeditionScene extends Phaser.Scene {
     else this.game.events.emit('farhaven:target-cleared');
   }
 
-  private setExpeditionZoom(zoom: number): void {
-    this.expeditionZoom = Phaser.Math.Clamp(zoom, MIN_EXPEDITION_ZOOM, MAX_EXPEDITION_ZOOM);
+  private setExpeditionZoom(zoom: number, minimum = MIN_EXPEDITION_ZOOM): void {
+    this.expeditionZoom = Phaser.Math.Clamp(zoom, minimum, MAX_EXPEDITION_ZOOM);
     this.cameras.main.setZoom(this.expeditionZoom);
+    this.game.canvas.dataset.expeditionZoom = this.expeditionZoom.toFixed(3);
   }
 
   private bindPinchZoom(): void {
@@ -380,6 +393,7 @@ export class ExpeditionScene extends Phaser.Scene {
       if (event.pointerType !== 'touch') return;
       this.touchPointers.set(event.pointerId, point(event));
       if (this.touchPointers.size === 2) {
+        this.wheelZoomTarget = undefined;
         this.pinchStartDistance = Math.max(1, gap());
         this.pinchStartZoom = this.expeditionZoom;
       }
@@ -395,11 +409,20 @@ export class ExpeditionScene extends Phaser.Scene {
       this.touchPointers.delete(event.pointerId);
       if (this.touchPointers.size < 2) this.pinchStartDistance = 0;
     };
+    const wheel = (event: WheelEvent): void => {
+      // Only the world canvas consumes wheel input. Preserve browser Ctrl/Cmd zoom
+      // and scrolling in every HTML overlay; pinch retains its existing bounds.
+      if (event.ctrlKey || event.metaKey || !this.scene.isActive()) return;
+      event.preventDefault();
+      this.wheelZoomTarget = wheelZoom(this.wheelZoomTarget ?? this.expeditionZoom, event.deltaY, event.deltaMode, this.scale.height);
+    };
+    canvas.addEventListener('wheel', wheel, { passive: false });
     canvas.addEventListener('pointerdown', down, { passive: true });
     canvas.addEventListener('pointermove', move, { passive: false });
     canvas.addEventListener('pointerup', up, { passive: true });
     canvas.addEventListener('pointercancel', up, { passive: true });
     this.removePinchListeners = () => {
+      canvas.removeEventListener('wheel', wheel);
       canvas.removeEventListener('pointerdown', down);
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerup', up);

@@ -1,6 +1,7 @@
 import './farhaven.css';
 import Phaser from 'phaser';
 import { createGame } from './app/createGame';
+import { FLIGHT_KEYS, keyboardFlightVector } from './app/flightControls';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, clearSelectedHostile, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness, type WeaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, ExpeditionState, ResourceKind, WeaponMode } from './domain/exploration/types';
@@ -530,6 +531,7 @@ function render(): void {
 }
 
 function startExpedition(): void {
+  resetFlightControls();
   paused = false;
   selectedFacility = undefined;
   pendingShipUpgrade = undefined;
@@ -598,6 +600,7 @@ game.events.on('farhaven:signal-selected', (signalId: string) => {
 });
 function enterRiftIfReady(): void {
   if (!enterAlienRift()) return;
+  resetFlightControls();
   game.scene.stop('expedition');
   game.scene.start('expedition');
   toast('Das Xenogate verschluckt die Aster Vale. Veloria Rift ist noch eine Kartensonde.');
@@ -752,13 +755,13 @@ bindFireControl(required<HTMLButtonElement>('fire-button'), () => primaryWeaponM
 bindFireControl(required<HTMLButtonElement>('lance-button'), lanceWeaponMode);
 bindFireControl(required<HTMLButtonElement>('ordnance-button'), ordnanceWeaponMode);
 window.addEventListener('keydown', (event) => {
-  if (event.repeat || shell.dataset.screen !== 'expedition') return;
+  if (event.repeat || paused || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey || shell.dataset.screen !== 'expedition') return;
   const weapon = event.code === 'Digit1' ? primaryWeaponMode() : event.code === 'Digit2' ? lanceWeaponMode() : event.code === 'Digit3' ? ordnanceWeaponMode() : undefined;
   if (!weapon) return;
   event.preventDefault();
   fireSelectedWeapon(weapon);
 });
-required<HTMLButtonElement>('return-button').addEventListener('click', () => returnHome());
+required<HTMLButtonElement>('return-button').addEventListener('click', () => { resetFlightControls(); returnHome(); });
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => {
   required<HTMLElement>('return-moment').hidden = true;
   if (pendingVisualCargo) game.events.emit('farhaven:cargo-unload', pendingVisualCargo);
@@ -778,6 +781,7 @@ required<HTMLButtonElement>('reset-button').addEventListener('click', () => {
   }
 });
 required<HTMLButtonElement>('pause-button').addEventListener('click', () => {
+  resetFlightControls();
   paused = !paused;
   if (paused) game.loop.sleep(); else game.loop.wake();
   required<HTMLButtonElement>('pause-button').setAttribute('aria-pressed', String(paused));
@@ -791,6 +795,45 @@ required<HTMLButtonElement>('fullscreen-button').addEventListener('click', async
 const stick = required<HTMLElement>('flight-stick');
 const knob = stick.querySelector<HTMLElement>('i')!;
 let activePointer: number | undefined;
+const pressedFlightKeys = new Set<string>();
+let stickVector = { x: 0, y: 0 };
+
+function isTyping(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'));
+}
+
+function applyFlightControls(): void {
+  setFlightVector(pressedFlightKeys.size > 0 ? keyboardFlightVector(pressedFlightKeys) : stickVector);
+}
+
+function resetFlightControls(): void {
+  const hadInput = pressedFlightKeys.size > 0 || activePointer !== undefined;
+  pressedFlightKeys.clear();
+  const pointer = activePointer;
+  activePointer = undefined;
+  stickVector = { x: 0, y: 0 };
+  knob.style.transform = 'translate(0, 0)';
+  if (pointer !== undefined && stick.hasPointerCapture(pointer)) stick.releasePointerCapture(pointer);
+  // Don't cancel an autopilot course merely because the user changes windows.
+  if (hadInput) setFlightVector({ x: 0, y: 0 });
+}
+
+window.addEventListener('keydown', (event) => {
+  if (!FLIGHT_KEYS.has(event.code) || paused || getExpedition()?.status !== 'active'
+    || shell.dataset.screen !== 'expedition' || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+  event.preventDefault();
+  if (event.repeat) return;
+  pressedFlightKeys.add(event.code);
+  applyFlightControls();
+});
+window.addEventListener('keyup', (event) => {
+  if (!pressedFlightKeys.delete(event.code)) return;
+  event.preventDefault();
+  applyFlightControls();
+});
+window.addEventListener('blur', resetFlightControls);
+document.addEventListener('visibilitychange', () => { if (document.hidden) resetFlightControls(); });
+
 function updateFlight(pointer: PointerEvent): void {
   const bounds = stick.getBoundingClientRect();
   const x = pointer.clientX - bounds.left - bounds.width / 2;
@@ -801,21 +844,28 @@ function updateFlight(pointer: PointerEvent): void {
   const moveX = x * factor;
   const moveY = y * factor;
   knob.style.transform = `translate(${moveX}px, ${moveY}px)`;
-  setFlightVector({ x: moveX / limit, y: moveY / limit });
+  stickVector = { x: moveX / limit, y: moveY / limit };
+  applyFlightControls();
 }
-stick.addEventListener('pointerdown', (event) => { activePointer = event.pointerId; stick.setPointerCapture(event.pointerId); updateFlight(event); });
+stick.addEventListener('pointerdown', (event) => {
+  if (paused || getExpedition()?.status !== 'active' || activePointer !== undefined) return;
+  activePointer = event.pointerId; stick.setPointerCapture(event.pointerId); updateFlight(event);
+});
 stick.addEventListener('pointermove', (event) => { if (event.pointerId === activePointer) updateFlight(event); });
 function releaseFlight(event: PointerEvent): void {
   if (event.pointerId !== activePointer) return;
   activePointer = undefined;
   knob.style.transform = 'translate(0, 0)';
-  setFlightVector({ x: 0, y: 0 });
+  stickVector = { x: 0, y: 0 };
+  applyFlightControls();
 }
 stick.addEventListener('pointerup', releaseFlight);
 stick.addEventListener('pointercancel', releaseFlight);
+stick.addEventListener('lostpointercapture', releaseFlight);
 
 subscribe(() => {
   if (!getExpedition() && shell.dataset.screen === 'expedition') {
+    resetFlightControls();
     const returnedCargo = consumeReturnCargo();
     // A return always lands on the neutral Farhaven overview. Clear the last
     // room selection before the scene exists, then shield it from the trailing

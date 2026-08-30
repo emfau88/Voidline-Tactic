@@ -93,7 +93,8 @@ export function loadActiveExpedition(): SavedExpedition | undefined {
     const parsed = JSON.parse(window.localStorage.getItem(EXPEDITION_STORAGE_KEY) ?? 'null') as Partial<SavedExpedition> | null;
     if (!parsed || !isExpedition(parsed.expedition)) return undefined;
     return {
-      expedition: normalizeCombatState(parsed.expedition),
+      // A saved physical key/touch is no longer held after reloading the page.
+      expedition: normalizeCombatState({ ...parsed.expedition, flightInput: { x: 0, y: 0 } }),
       selectedTargetId: typeof parsed.selectedTargetId === 'string' ? parsed.selectedTargetId : undefined,
     };
   } catch {
