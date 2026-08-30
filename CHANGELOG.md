@@ -4,6 +4,8 @@ Alle nachvollziehbaren Änderungen an Voidline: Farhaven werden hier chronologis
 
 ## [Unreleased]
 
+- Der Browser-Ballistiktest verwendet nun ein tatsächlich stationäres Ziel. Zuvor wurde nur seine Startposition versetzt, während das alte Patrouillenzentrum erhalten blieb; auf langsameren CI-Runnern konnte es deshalb vor dem Einschlag aus der Schussbahn fliegen und den Pages-Deploy fälschlich blockieren.
+
 - Hotfix für Expeditions-Reloads: Boot und Wiederaufnahme starten nicht länger gleichzeitig Farhaven und die Expeditionsszene. Dadurch verschwindet der transparente Stations- und Schiffsschatten beim Herauszoomen. Die sichtbare Heimathafen-Miniatur ist nun 2,75-mal so groß wie die ursprüngliche Fassung; ihr Kern überragt das Spielerschiff klar und gebaute Module wachsen proportional mit.
 
 - Der erste Farhaven-Besuch benennt den Ausflug nun eindeutig als ersten Schritt und erklärt direkt am Start, dass das Wrack gescannt und jederzeit zurückgekehrt werden kann. Der im Sektor sichtbare Heimathafen ist rund 55 Prozent größer und bleibt mit etwas Abstand zum spawnenden Schiff lesbar.

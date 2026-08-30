@@ -3,8 +3,10 @@ import { createExpedition } from '../../src/domain/exploration/expeditionEngine'
 
 test.beforeEach(async ({ page }) => {
   const run = createExpedition();
+  const targetPosition = { x: run.position.x + 390, y: run.position.y };
   const target = { ...run.hostiles[0]!, id: 'ballistics-target', name: 'Ballistik-Testziel',
-    position: { x: run.position.x + 390, y: run.position.y }, hull: 20, maxHull: 20 };
+    position: targetPosition, patrolCenter: targetPosition, patrolRadius: 0,
+    passive: true, status: 'patrol' as const, hull: 20, maxHull: 20 };
   await page.goto('/');
   await page.evaluate(({ expedition }) => {
     localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({ version: 5,
