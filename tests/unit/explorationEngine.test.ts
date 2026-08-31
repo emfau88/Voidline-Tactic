@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canEnterWormhole, createExpedition, enterWormhole, firePrimary, fireWeapon, investigate, mineVein, returnToFarhaven, rewardForExpeditionSignal, rewardForSignal, scan, setCourse, setFlightInput, stepExpedition, weaponReadiness, WORMHOLE_POSITION } from '../../src/domain/exploration/expeditionEngine';
+import { isSignalNavigable, primaryNavigationSignal } from '../../src/domain/exploration/navigation';
 
 describe('exploration engine', () => {
   it('classifies nearby echoes while consuming rechargeable system charge', () => {
@@ -8,6 +9,17 @@ describe('exploration engine', () => {
     expect(scanned.energy).toBe(92);
     expect(scanned.signals.find((signal) => signal.id === 'echo-wreck')?.knowledge).toBe('classified');
     expect(scanned.signals.find((signal) => signal.id === 'echo-anomaly')?.knowledge).toBe('echo');
+    expect(scanned.scanPerformed).toBe(true);
+  });
+
+  it('keeps the authored mission visible before scanning and reveals weak contacts after a pulse', () => {
+    const start = createExpedition(0, 2, 'second-shift');
+    const mission = primaryNavigationSignal(start)!;
+    const distantArchive = start.signals.find((signal) => signal.id === 'wayfarer-archive')!;
+    expect(mission.id).toBe('monk-lantern');
+    expect(isSignalNavigable(start, mission)).toBe(true);
+    expect(isSignalNavigable(start, distantArchive)).toBe(false);
+    expect(isSignalNavigable(scan(start), distantArchive)).toBe(true);
   });
 
   it('moves deterministically toward a chosen signal', () => {

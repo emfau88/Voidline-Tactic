@@ -5,6 +5,7 @@ import { rewardForExpeditionSignal, weaponReadiness } from '../../domain/explora
 import { RESOURCE_PRESENTATION } from '../../domain/resources/presentation';
 import { getExpedition, getProfile, getSelectedTargetId, isXenogateUnlocked, tickExpedition } from '../../app/gameFlow';
 import { WORMHOLE_POSITION } from '../../domain/exploration/expeditionEngine';
+import { primaryNavigationSignal } from '../../domain/exploration/navigation';
 import type { ExpeditionState, SignalKind, Vector2, WeaponMode } from '../../domain/exploration/types';
 import { SHIP_VARIANTS, type ShipUpgradeId, type ShipVariantId } from '../../domain/ship/types';
 
@@ -66,6 +67,7 @@ export class ExpeditionScene extends Phaser.Scene {
   private engineFlame?: Phaser.GameObjects.Graphics;
   private signalLayer?: Phaser.GameObjects.Container;
   private scanCompass?: Phaser.GameObjects.Container;
+  private scanCompassBack?: Phaser.GameObjects.Graphics;
   private scanCompassArrow?: Phaser.GameObjects.Graphics;
   private scanCompassIcon?: Phaser.GameObjects.Image;
   private scanCompassName?: Phaser.GameObjects.Text;
@@ -307,9 +309,11 @@ export class ExpeditionScene extends Phaser.Scene {
   private renderSignals(expedition: ExpeditionState): void {
     this.signalLayer?.removeAll(true);
     this.game.canvas.dataset.expeditionContacts = expedition.hostiles.map((hostile) => hostile.id).join(',');
+    const missionSignalId = primaryNavigationSignal(expedition)?.id;
+    this.game.canvas.dataset.navigationTarget = missionSignalId ?? '';
     for (const signal of expedition.signals) {
       if (signal.knowledge === 'resolved') continue;
-      if (signal.knowledge === 'echo') this.addFaintEcho(signal.position);
+      if (signal.knowledge === 'echo') this.addFaintEcho(signal.position, signal.id === missionSignalId);
       else this.addSignalMarker(signal);
     }
     for (const hostile of expedition.hostiles) {
@@ -436,13 +440,18 @@ export class ExpeditionScene extends Phaser.Scene {
     };
   }
 
-  private addFaintEcho(position: Vector2): void {
+  private addFaintEcho(position: Vector2, mission = false): void {
     const echo = this.add.graphics();
-    echo.lineStyle(1, 0x6e8592, 0.3);
+    echo.lineStyle(mission ? 2 : 1, mission ? 0xe7bd72 : 0x6e8592, mission ? 0.72 : 0.3);
     echo.lineBetween(position.x - 5, position.y, position.x + 5, position.y);
     echo.lineBetween(position.x, position.y - 5, position.x, position.y + 5);
-    echo.fillStyle(0x8fa3ad, 0.28); echo.fillRect(position.x - 1, position.y - 1, 2, 2);
+    echo.fillStyle(mission ? 0xffd894 : 0x8fa3ad, mission ? 0.72 : 0.28); echo.fillRect(position.x - 1, position.y - 1, 2, 2);
     this.signalLayer?.add(echo);
+    if (!mission) return;
+    const label = this.add.text(position.x, position.y + 12, 'MISSIONSZIEL', {
+      fontFamily: 'Arial', fontSize: 7, color: '#f4d18b', fontStyle: 'bold', letterSpacing: 0.7,
+    }).setOrigin(0.5, 0);
+    this.signalLayer?.add(label);
   }
 
   private addSignalMarker(signal: ExpeditionState['signals'][number]): void {
@@ -498,6 +507,7 @@ export class ExpeditionScene extends Phaser.Scene {
     back.fillStyle(0x07151f, 0.74); back.fillRoundedRect(-42, -17, 84, 34, 9);
     back.lineStyle(1, 0x80cbd2, 0.46); back.strokeRoundedRect(-42, -17, 84, 34, 9);
     this.scanCompassArrow = this.add.graphics().setPosition(-29, 0);
+    this.scanCompassBack = back;
     this.scanCompassArrow.lineStyle(2, 0x94e7e8, 0.74);
     this.scanCompassArrow.lineBetween(-5, 4, 0, -4);
     this.scanCompassArrow.lineBetween(0, -4, 5, 4);
@@ -527,8 +537,9 @@ export class ExpeditionScene extends Phaser.Scene {
    */
   private updateScanCompass(expedition: ExpeditionState): void {
     if (!this.scanCompass || !this.scanCompassArrow || !this.scanCompassIcon || !this.scanCompassName || !this.scanCompassDistance) return;
+    const missionSignal = primaryNavigationSignal(expedition);
     const candidate = expedition.signals
-      .filter((signal) => signal.knowledge === 'classified')
+      .filter((signal) => signal.knowledge === 'classified' || signal.id === missionSignal?.id)
       .map((signal) => ({ signal, distance: Math.hypot(signal.position.x - expedition.position.x, signal.position.y - expedition.position.y) }))
       .filter(({ distance }) => distance >= 190)
       .sort((first, second) => {
@@ -546,6 +557,7 @@ export class ExpeditionScene extends Phaser.Scene {
 
     const reward = rewardForExpeditionSignal(expedition, candidate.signal);
     const resource = RESOURCE_PRESENTATION[reward.kind];
+    const isMission = candidate.signal.id === missionSignal?.id;
     const desiredAngle = Math.atan2(candidate.signal.position.y - expedition.position.y, candidate.signal.position.x - expedition.position.x) + Math.PI / 2;
     const now = this.time.now;
     if (this.scanCompassTargetId !== candidate.signal.id) {
@@ -558,9 +570,16 @@ export class ExpeditionScene extends Phaser.Scene {
     this.lastScanCompassUpdateAt = now;
     this.scanCompassTargetId = candidate.signal.id;
     this.scanCompassArrow.setRotation(this.scanCompassAngle);
+    this.scanCompassBack?.clear();
+    this.scanCompassBack?.fillStyle(0x07151f, 0.78).fillRoundedRect(-42, -17, 84, 34, 9);
+    this.scanCompassBack?.lineStyle(1, isMission ? 0xe7bd72 : 0x80cbd2, isMission ? 0.78 : 0.46).strokeRoundedRect(-42, -17, 84, 34, 9);
+    this.scanCompassArrow.clear();
+    this.scanCompassArrow.lineStyle(2, isMission ? 0xf0c979 : 0x94e7e8, 0.82);
+    this.scanCompassArrow.lineBetween(-5, 4, 0, -4);
+    this.scanCompassArrow.lineBetween(0, -4, 5, 4);
     this.scanCompassIcon.setTexture(resource.textureKey);
-    this.scanCompassName.setText(resource.name.toUpperCase()).setColor(resource.color);
-    this.scanCompassDistance.setText(`${Math.round(candidate.distance)}u · SCAN ${expedition.scanRadius}u`);
+    this.scanCompassName.setText(isMission && candidate.signal.knowledge === 'echo' ? 'MISSIONSZIEL' : resource.name.toUpperCase()).setColor(isMission ? '#f4d18b' : resource.color);
+    this.scanCompassDistance.setText(`${Math.round(candidate.distance)}u · ${candidate.signal.knowledge === 'echo' ? 'UNGEKLÄRT' : `SCAN ${expedition.scanRadius}u`}`);
     // scrollFactor(0) still participates in the camera zoom transform. Place
     // and counter-scale around the viewport centre so the guide remains a
     // crisp 84x34 px and cannot drift beyond the edge at higher map zooms.

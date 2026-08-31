@@ -5,6 +5,7 @@ import { FLIGHT_KEYS, keyboardFlightVector } from './app/flightControls';
 import { beginExpedition, canPurchaseFieldUpgrade, chooseStartingShip, clearSelectedHostile, consumeExpeditionDefeat, consumeReturnCargo, courseTo, enterAlienRift, fireWeapons, getExpedition, getProfile, getPrologueObjective, getSelectedTargetId, improveFacility, investigateSignal, isXenogateUnlocked, mineVeinSignal, purchaseFieldUpgrade, resetGameForDevelopment, returnHome, scanNearby, selectHostile, setFlightVector, subscribe } from './app/gameFlow';
 import { canEnterWormhole, rewardForExpeditionSignal, WORMHOLE_POSITION, weaponReadiness, type WeaponReadiness } from './domain/exploration/expeditionEngine';
 import type { Cargo, ExpeditionState, ResourceKind, WeaponMode } from './domain/exploration/types';
+import { EXPEDITION_WORLD, isSignalNavigable, primaryNavigationSignal } from './domain/exploration/navigation';
 import { canUpgrade } from './domain/outpost/outpostEngine';
 import { FACILITIES, type FacilityId } from './domain/outpost/types';
 import { formatResourceCost, RESOURCE_ORDER, RESOURCE_PRESENTATION, resourceEntries, resourceSourceHint, type ResourceAmounts } from './domain/resources/presentation';
@@ -64,6 +65,7 @@ const shipSelection = document.getElementById('ship-selection')!;
 const shipyardPanel = document.getElementById('shipyard-panel')!;
 const game = createGame('game-root');
 let paused = false;
+let mapResumesFlight = false;
 let toastTimer: number | undefined;
 let selectedFacility: FacilityId | undefined;
 let outpostTapShieldUntil = 0;
@@ -377,10 +379,8 @@ function renderOutpost(): void {
   const firstLaunch = getProfile().expeditionCount === 0;
   const next = !getProfile().facilities.hangar
     ? getProfile().expeditionCount === 0 ? ['ERSTER KONTAKT', 'WRACK UND GLUTKUTTER', 'Bergen · fliehen oder kämpfen'] : ['ERSTER KONTAKT', 'ZURÜCK ZUM WRACK', 'Hangarplatten sichern · Kampf freiwillig']
-    : !getProfile().ship?.upgrades.includes(FIRST_FIELD_UPGRADE_ID)
-      ? ['HANGARWERKSTATT', 'FRACHTRÜCKEN EINBAUEN', 'Erst den echten Einbau im Hangar wählen']
-      : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
-        ? ['JAGD ODER UMWEG', 'DREI WEGE ZU DEN DATEN', 'Archiv · Anomalie · Räuber']
+    : !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID)
+        ? ['NEUE MISSION', 'MÖNCHSLATERNE SUCHEN', 'Relikt · Daten · freiwilliger Kampf']
         : !getProfile().story.routeTraceRecovered
           ? ['DRITTE SCHICHT', 'SCHWARZE ADER ERSCHLIESSEN', 'Minenlaser · optionale Plündererkiste']
           : !getProfile().facilities.navigation
@@ -390,8 +390,10 @@ function renderOutpost(): void {
   // the current task lives on the station rather than covering it as a large HUD card.
   required<HTMLElement>('first-launch-guide').hidden = !firstLaunch;
   outpostHud.classList.toggle('first-launch', firstLaunch);
-  launch.querySelector('span')!.textContent = firstLaunch ? 'ERSTE MISSION' : 'EXPEDITION';
-  launch.querySelector('strong')!.textContent = firstLaunch ? 'JETZT AUSFLIEGEN' : 'ASCHSAUM STARTEN';
+  const repeatWreck = !getProfile().facilities.hangar && !firstLaunch;
+  const storyMission = Boolean(getProfile().facilities.hangar && !getProfile().ship?.upgrades.includes(SECOND_FIELD_UPGRADE_ID));
+  launch.querySelector('span')!.textContent = firstLaunch ? 'ERSTE MISSION' : repeatWreck ? 'BERGUNG WIEDERHOLEN' : storyMission ? 'ZWEITE MISSION' : 'EXPEDITION';
+  launch.querySelector('strong')!.textContent = firstLaunch ? 'JETZT AUSFLIEGEN' : storyMission ? 'MÖNCHSLATERNE' : 'ASCHSAUM STARTEN';
   launch.querySelector('small')!.textContent = firstLaunch ? 'Wrack scannen · Rückkehr jederzeit möglich' : `${next[0]} · ${next[1]}`;
   if (coreInfoOpen) openCoreInfo();
   else renderFacilityPanel();
@@ -508,6 +510,88 @@ function renderExpedition(): void {
   }));
 }
 
+function mapPoint(className: string, label: string, position: { x: number; y: number }, onSelect?: () => void): HTMLElement {
+  const point = document.createElement(onSelect ? 'button' : 'span');
+  point.className = `sector-map-point ${className}`;
+  point.style.left = `${position.x / EXPEDITION_WORLD.width * 100}%`;
+  point.style.top = `${position.y / EXPEDITION_WORLD.height * 100}%`;
+  point.setAttribute('aria-label', label);
+  point.innerHTML = `<i></i><b></b>`;
+  point.querySelector('b')!.textContent = label;
+  if (point instanceof HTMLButtonElement) {
+    point.type = 'button';
+    point.addEventListener('click', onSelect!);
+  }
+  return point;
+}
+
+function closeSectorMap(): void {
+  const map = required<HTMLElement>('sector-map');
+  if (map.hidden) return;
+  map.hidden = true;
+  if (mapResumesFlight) setPaused(false);
+  mapResumesFlight = false;
+  required<HTMLButtonElement>('sector-map-button').focus({ preventScroll: true });
+}
+
+function renderSectorMap(): void {
+  const map = required<HTMLElement>('sector-map');
+  const expedition = getExpedition();
+  if (map.hidden || !expedition) return;
+  required<HTMLElement>('sector-map-title').textContent = expedition.sectorName.toUpperCase();
+  const objective = getPrologueObjective();
+  required<HTMLElement>('sector-map-objective').innerHTML = `<small>${objective.kicker}</small><strong>${objective.title}</strong><span>${objective.copy}</span>`;
+  const board = required<HTMLElement>('sector-map-board');
+  const mission = primaryNavigationSignal(expedition);
+  const points: HTMLElement[] = [
+    mapPoint('home', 'Farhaven', expedition.origin, () => {
+      closeSectorMap();
+      returnHome();
+      toast('RÜCKKEHR NACH FARHAVEN EINGELEITET.');
+    }),
+    mapPoint('player', 'Dein Schiff', expedition.position),
+  ];
+  if (expedition.sectorId === 'ashenscar') points.push(mapPoint('gate', 'Xenogate', WORMHOLE_POSITION, () => {
+    courseTo(WORMHOLE_POSITION);
+    closeSectorMap();
+    toast('KURS ZUM XENOGATE GESETZT.');
+  }));
+  for (const signal of expedition.signals) {
+    const isMission = signal.id === mission?.id;
+    if (!isMission && signal.knowledge === 'echo' && !expedition.scanPerformed) continue;
+    const classified = signal.knowledge === 'classified';
+    const reward = rewardForExpeditionSignal(expedition, signal);
+    const label = isMission && !classified
+      ? 'Missionsziel · ungeklärtes Signal'
+      : classified
+        ? `${signal.name} · ${reward.amount} ${RESOURCE_PRESENTATION[reward.kind].name}`
+        : 'Schwaches Signal · Entfernung unbekannt';
+    const onSelect = isSignalNavigable(expedition, signal) && signal.knowledge !== 'resolved' ? () => {
+      courseTo(signal.position);
+      closeSectorMap();
+      toast(`${classified ? signal.name.toUpperCase() : 'SCHWACHES SIGNAL'} · KURS GESETZT.`);
+    } : undefined;
+    const onCourse = expedition.course && Math.hypot(signal.position.x - expedition.course.x, signal.position.y - expedition.course.y) < 4;
+    points.push(mapPoint(`${isMission ? 'mission' : classified ? `resource ${reward.kind}` : 'weak'}${signal.knowledge === 'resolved' ? ' resolved' : ''}${onCourse ? ' on-course' : ''}`, label, signal.position, onSelect));
+  }
+  if (expedition.scanPerformed) for (const hostile of expedition.hostiles) {
+    points.push(mapPoint('danger', `${hostile.name} · Gefahr`, hostile.position));
+  }
+  board.replaceChildren(...points);
+  map.dataset.missionTarget = mission?.id ?? '';
+  map.dataset.weakSignals = String(expedition.signals.filter((signal) => signal.knowledge === 'echo').length);
+}
+
+function openSectorMap(): void {
+  if (!getExpedition()) return;
+  resetFlightControls();
+  mapResumesFlight = !paused;
+  if (mapResumesFlight) setPaused(true);
+  required<HTMLElement>('sector-map').hidden = false;
+  renderSectorMap();
+  required<HTMLButtonElement>('close-sector-map').focus({ preventScroll: true });
+}
+
 function render(): void {
   const expedition = getExpedition();
   renderResources();
@@ -520,7 +604,10 @@ function render(): void {
     required<HTMLElement>('outpost-nav').hidden = true;
     facilityPanel.hidden = true;
     renderExpedition();
+    renderSectorMap();
   } else {
+    required<HTMLElement>('sector-map').hidden = true;
+    mapResumesFlight = false;
     shell.dataset.screen = 'outpost';
     expeditionHud.hidden = true;
     flightControl.hidden = true;
@@ -535,7 +622,7 @@ function render(): void {
 
 function startExpedition(): void {
   resetFlightControls();
-  paused = false;
+  setPaused(false);
   selectedFacility = undefined;
   pendingShipUpgrade = undefined;
   coreInfoOpen = false;
@@ -596,10 +683,11 @@ game.events.on('farhaven:target-selected', (targetId: string) => {
 });
 game.events.on('farhaven:target-cleared', () => clearSelectedHostile());
 game.events.on('farhaven:signal-selected', (signalId: string) => {
-  const signal = getExpedition()?.signals.find((entry) => entry.id === signalId);
-  if (!signal || signal.knowledge !== 'classified') return;
+  const expedition = getExpedition();
+  const signal = expedition?.signals.find((entry) => entry.id === signalId);
+  if (!expedition || !signal || !isSignalNavigable(expedition, signal)) return;
   courseTo(signal.position);
-  toast(`KURS ZU ${signal.name.toUpperCase()} GESETZT.`);
+  toast(signal.knowledge === 'classified' ? `KURS ZU ${signal.name.toUpperCase()} GESETZT.` : 'KURS ZUM MISSIONSZIEL GESETZT · SIGNAL NOCH UNGEKLÄRT.');
 });
 function enterRiftIfReady(): void {
   if (!enterAlienRift()) return;
@@ -764,7 +852,7 @@ window.addEventListener('keydown', (event) => {
   event.preventDefault();
   fireSelectedWeapon(weapon);
 });
-required<HTMLButtonElement>('return-button').addEventListener('click', () => { resetFlightControls(); returnHome(); });
+required<HTMLButtonElement>('return-button').addEventListener('click', () => { closeSectorMap(); setPaused(false); resetFlightControls(); returnHome(); });
 required<HTMLButtonElement>('close-return-moment').addEventListener('click', () => {
   required<HTMLElement>('return-moment').hidden = true;
   if (pendingVisualCargo) game.events.emit('farhaven:cargo-unload', pendingVisualCargo);
@@ -783,11 +871,31 @@ required<HTMLButtonElement>('reset-button').addEventListener('click', () => {
     toast('TESTSTAND ZURÜCKGESETZT · WÄHLE EINEN RUMPF.');
   }
 });
-required<HTMLButtonElement>('pause-button').addEventListener('click', () => {
+function setPaused(value: boolean): void {
   resetFlightControls();
-  paused = !paused;
-  if (paused) game.loop.sleep(); else game.loop.wake();
+  paused = value;
+  // Pause only the expedition scene. Sleeping and waking Phaser's global loop
+  // can stall browser automation and, on some mobile browsers, the whole tab.
+  // The DOM map must remain interactive while world simulation is frozen.
+  if (paused && game.scene.isActive('expedition')) game.scene.pause('expedition');
+  else if (!paused && game.scene.isPaused('expedition')) game.scene.resume('expedition');
   required<HTMLButtonElement>('pause-button').setAttribute('aria-pressed', String(paused));
+  shell.dataset.gamePaused = String(paused);
+}
+required<HTMLButtonElement>('pause-button').addEventListener('click', () => {
+  setPaused(!paused);
+});
+required<HTMLButtonElement>('sector-map-button').addEventListener('click', openSectorMap);
+required<HTMLButtonElement>('close-sector-map').addEventListener('click', closeSectorMap);
+window.addEventListener('keydown', (event) => {
+  if (isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey || shell.dataset.screen !== 'expedition') return;
+  if (event.code === 'Escape' && !required<HTMLElement>('sector-map').hidden) {
+    event.preventDefault();
+    closeSectorMap();
+  } else if (event.code === 'KeyM') {
+    event.preventDefault();
+    if (required<HTMLElement>('sector-map').hidden) openSectorMap(); else closeSectorMap();
+  }
 });
 required<HTMLButtonElement>('fullscreen-button').addEventListener('click', async () => {
   try {

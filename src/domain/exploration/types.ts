@@ -106,6 +106,9 @@ export interface ExpeditionState {
   readonly cargo: Cargo;
   readonly cargoCapacity: number;
   readonly scanRadius: number;
+  /** True after the first pulse; used to reveal distant weak contacts without
+   * pretending they were already identified. Optional for older save games. */
+  readonly scanPerformed?: boolean;
   readonly hullRiskReduction?: number;
   readonly salvageBonus?: number;
   readonly cantorBypass?: boolean;

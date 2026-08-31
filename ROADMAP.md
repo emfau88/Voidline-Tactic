@@ -1,6 +1,6 @@
 # Voidline: Farhaven — Produkt-Roadmap
 
-Stand: 27. August 2026
+Stand: 31. August 2026
 Status-Legende: ✅ fertig · 🚧 in Arbeit · ⬜ geplant · 🧪 validieren
 
 ### Aktueller Arbeitsblock — Stand 30. August 2026
@@ -61,6 +61,7 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Hangar als erstes sichtbares Farhaven-Modul
 - ✅ Gewähltes Schiff am Notdock sichtbar; Hangar als verständliche erste Heimkehr-Belohnung mit Dock- und Einflugmoment
 - ✅ Zweite Expedition mit Daten, Relikt und Erzader
+- ✅ Zweite Expedition wird nach dem Hangar ohne versteckte Frachtrücken-Pflicht freigeschaltet
 - ✅ Erster echter Einbau: Minenlaser
 - ✅ Aktiver Rohstoffabbau und begrenzter Frachtraum
 - ✅ Farhaven als modulare Top-down-Station mit echten Bauzuständen
@@ -73,6 +74,8 @@ Der Vertical Slice gilt als tragfähig, wenn ein neuer Spieler in etwa zehn Minu
 - ✅ Dieselben Ressourcen-Icons auf Expeditionen, in Fracht und bei Preisen
 - ✅ Verständliche Hinweise, wo Ressourcen gefunden und wofür sie verwendet werden
 - ✅ Allgemeine Richtungshinweise für bis zu drei klassifizierte Funde mit Ressource, Menge, Entfernung, Risiko und Werkzeug
+- ✅ Hauptmissionsziel ist vor dem Scan mit Live-Distanz sichtbar; ein Scan deckt zusätzliche schwache Fernsignale auf
+- ✅ Pausierende Sektorkarte auf Touch und Taste M mit Kurswahl, Missions-, Fund- und Gefahrenlegende
 - ✅ Sicherer oder schneller Datenweg in der zweiten Expedition
 - ✅ Wiederholbarer Bergungsflug nach Abschluss der verlorenen Route
 - 🧪 Ersten Zehn-Minuten-Ablauf mit neuen Spielern ohne Hilfestellung testen

@@ -52,7 +52,10 @@ export interface PrologueObjective {
 
 function scenarioForProfile(): ExpeditionScenario {
   const upgrades = profile.ship?.upgrades ?? [];
-  if (profile.expeditionCount === 0 || !upgrades.includes(FIRST_FIELD_UPGRADE_ID)) return 'first-wreck';
+  // The first wreck is the material run for Farhaven's hangar. The cargo spine
+  // is useful, but it must never be a hidden story gate: once the hangar exists,
+  // the Mönchslaterne route and its data/relic rewards are available.
+  if (profile.expeditionCount === 0 || !profile.facilities.hangar) return 'first-wreck';
   if (!upgrades.includes(SECOND_FIELD_UPGRADE_ID)) return 'second-shift';
   if (!profile.story.routeTraceRecovered) return 'mining-run';
   return 'recovery-run';
@@ -113,15 +116,12 @@ export function getPrologueObjective(): PrologueObjective {
       ? { kicker: 'ERSTE HEIMKEHR · 4/4', title: 'DEN HANGAR ERRICHTEN', copy: 'Die geborgenen Legierungen reichen. Öffne rechts den Hangar und verbinde das Dock.' }
       : { kicker: 'ERSTE HEIMKEHR', title: 'EINE BERGUNG SICHERN', copy: 'Der Hangar braucht vier Legierungen. Starte eine Expedition und untersuche das nahe Wrack.' };
   }
-  if (!profile.ship.upgrades.includes(FIRST_FIELD_UPGRADE_ID)) {
-    return canPurchaseShipUpgrade(profile, FIRST_FIELD_UPGRADE_ID)
-      ? { kicker: 'ERSTER SCHIFFSBAUTEIL', title: 'FRACHTRÜCKEN EINBAUEN', copy: 'Im Hangar wartet ein verfügbarer Frachtrücken. Er erweitert jede Expedition um zwei Frachtplätze.' }
-      : { kicker: 'HANGAR ONLINE', title: 'WERKSTATT PRÜFEN', copy: 'Öffne die Werkstatt im Hangar, um den nächsten verfügbaren Bauteil zu sehen.' };
-  }
   if (!profile.ship.upgrades.includes(SECOND_FIELD_UPGRADE_ID)) {
-    return canPurchaseShipUpgrade(profile, SECOND_FIELD_UPGRADE_ID)
-      ? { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' }
-      : { kicker: 'JAGD ODER UMWEG', title: 'DEN MINENLASER VORBEREITEN', copy: 'Mönchslaterne plus Liturgie oder Räuberchiffre liefern das Material. Das entfernte Archiv bietet eine langsamere sichere Route.' };
+    if (canPurchaseShipUpgrade(profile, SECOND_FIELD_UPGRADE_ID)) return { kicker: 'ZWEITE SCHICHT · 4/4', title: 'MINENLASER EINBAUEN', copy: 'Reliktkern und Datensätze reichen. Öffne die Werkstatt im Hangar und rüste den echten Minenlaser aus.' };
+    if (!profile.ship.upgrades.includes(FIRST_FIELD_UPGRADE_ID)) return canPurchaseShipUpgrade(profile, FIRST_FIELD_UPGRADE_ID)
+      ? { kicker: 'OPTIONALER SCHIFFSBAUTEIL', title: 'FRACHTRÜCKEN ODER NEUE SPUR', copy: 'Der Frachtrücken erweitert Expeditionen um zwei Plätze. Die neue Mission zur Mönchslaterne ist bereits verfügbar.' }
+      : { kicker: 'NEUE SPUR IM ASCHSAUM', title: 'DIE MÖNCHSLATERNE SUCHEN', copy: 'Starte die zweite Mission. Dort findest du erstmals Relikte und verschiedene Wege zu Datensätzen.' };
+    return { kicker: 'JAGD ODER UMWEG', title: 'DEN MINENLASER VORBEREITEN', copy: 'Mönchslaterne plus Liturgie oder Räuberchiffre liefern das Material. Das entfernte Archiv bietet eine langsamere sichere Route.' };
   }
   if (!profile.story.routeTraceRecovered) return { kicker: 'VERLORENE ROUTE · 4/5', title: 'DEN ROUTENKERN HEIMBRINGEN', copy: 'Der Minenlaser ist bereit. Sichere die Routenader im Aschsaum und kehre mit dem Verstärker zurück.' };
   if (!profile.facilities.navigation) return canUpgrade(profile, 'navigation')

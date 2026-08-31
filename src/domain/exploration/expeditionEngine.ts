@@ -260,6 +260,7 @@ export function createExpedition(scanBonus = 0, cargoBonus = 0, scenario: Expedi
     cargo: { alloys: 0, data: 0, relics: 0 },
     cargoCapacity: 6 + cargoBonus,
     scanRadius: 560 + scanBonus,
+    scanPerformed: false,
     hullRiskReduction,
     salvageBonus,
     cantorBypass,
@@ -405,7 +406,7 @@ export function scan(state: ExpeditionState): ExpeditionState {
       knowledge: 'classified' as const,
     };
   });
-  return appendLog({ ...state, signals, hostiles: cantorPacified ? state.hostiles.filter((hostile) => hostile.id !== 'ash-cantor') : state.hostiles, energy: state.energy - 8 }, cantorPacified
+  return appendLog({ ...state, scanPerformed: true, signals, hostiles: cantorPacified ? state.hostiles.filter((hostile) => hostile.id !== 'ash-cantor') : state.hostiles, energy: state.energy - 8 }, cantorPacified
     ? 'Die Breitbandarray antwortet auf den Aschenchor. Der Kantor senkt seine Waffen und gleitet aus dem Kampfgebiet.'
     : found > 0 ? `${found} Signal${found === 1 ? '' : 'e'} klassifiziert.` : 'Scan beendet. Nur Stille antwortet.');
 }

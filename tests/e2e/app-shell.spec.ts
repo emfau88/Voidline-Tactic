@@ -242,6 +242,33 @@ test('scans a sector, classifies a signal and keeps the mobile HUD readable', as
   expect(layout.overlaysDoNotOverlap).toBe(true);
 });
 
+test('opens the data and relic mission after the hangar without requiring a cargo spine', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
+    version: 5,
+    resources: { alloys: 0, data: 0, relics: 0 },
+    facilities: { hangar: 1, scanner: 0, labor: 0, navigation: 0 },
+    expeditionCount: 1,
+    story: { routeTraceRecovered: false, discoveries: ['echo-wreck'] },
+    ship: { variant: 'aster-vale', upgrades: [] },
+  })));
+  await page.reload();
+  await expect(page.locator('#launch-button')).toContainText('ZWEITE MISSION');
+  await expect(page.locator('#launch-button')).toContainText('MÖNCHSLATERNE');
+  await startExpedition(page);
+  await expect(page.locator('#game-root canvas')).toHaveAttribute('data-navigation-target', 'monk-lantern');
+  await page.getByRole('button', { name: /SCANNEN/ }).click();
+  await expect(page.locator('#signal-list')).toContainText('MÖNCHSLATERNE');
+  await expect(page.locator('#signal-list')).toContainText('SCHNEIDELITURGIE');
+  await page.getByRole('button', { name: /KARTE/ }).click();
+  await expect(page.locator('#sector-map')).toBeVisible();
+  await expect(page.locator('#sector-map')).toHaveAttribute('data-mission-target', 'monk-lantern');
+  await expect(page.locator('#sector-map .sector-map-point.weak')).toHaveCount(2);
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-game-paused', 'true');
+  await page.getByRole('button', { name: 'Sektorkarte schließen' }).click();
+  await expect(page.locator('#sector-map')).toBeHidden();
+  await expect(page.locator('#game-shell')).toHaveAttribute('data-game-paused', 'false');
+});
+
 test('mirrors built Farhaven modules at the expedition return point', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('voidline-farhaven-save-v2', JSON.stringify({
     version: 5,

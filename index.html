@@ -144,7 +144,17 @@
         <section id="flight-control" hidden aria-label="Flugsteuerung">
           <small id="desktop-control-hint">WASD / PFEILE · MAUSRAD ZOOM</small>
           <div id="flight-stick" aria-label="Schiff steuern"><i></i><span>FLIEGEN</span></div>
+          <button id="sector-map-button" type="button" aria-haspopup="dialog">◇<span>KARTE</span></button>
           <button id="pause-button" type="button" aria-pressed="false">Ⅱ</button>
+        </section>
+        <section id="sector-map" hidden role="dialog" aria-modal="true" aria-labelledby="sector-map-title">
+          <header>
+            <span><small>TAKTISCHE ÜBERSICHT</small><strong id="sector-map-title">ASCHSAUM I</strong></span>
+            <button id="close-sector-map" type="button" aria-label="Sektorkarte schließen">×</button>
+          </header>
+          <div id="sector-map-objective"></div>
+          <div id="sector-map-board" aria-label="Sektorkarte mit anwählbaren Kontakten"></div>
+          <footer><span class="legend-mission">◆ Mission</span><span class="legend-resource">● Fund</span><span class="legend-danger">▲ Gefahr</span><small>Kontakt antippen · Kurs setzen · M</small></footer>
         </section>
         <div id="toast" role="status" aria-live="polite"></div>
       </section>
